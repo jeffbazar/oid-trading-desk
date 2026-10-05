@@ -74,6 +74,13 @@
       "before": "Project lived only as a tmp unzip with Mac paths; production-vs-proposed status, API ownership and duplicate vendor queries were not recorded together.",
       "after": "Copied to /workspace/oid-trading-desk with SETUP-VS-PRODUCTION, API-INVENTORY, QUERY-ARCHITECTURE (mermaid, owner/reader split, RH watch-quote duplicate, FA Growth shared limit, single X pool, archive path), HANDBOOK-ERRATA and data/live-bridge.md. No collectors installed, no quota used, no orders.",
       "status": "documented"
+    },
+    {
+      "title": "Rose sole writer of rh-quotes",
+      "date": "2026-10-05",
+      "before": "Hal hal-rh-watch at :05/:35 ET and Rose's live book pulse both called Robinhood get_equity_quotes for the Tech\u222achip union. The overlap was open debt.",
+      "after": "Jeffrey + Rose agreed Rose (dashboard/refresh_marks.py) is the sole writer of market-data/latest/rh-quotes.json (owner rose, TTL 120s, 38 Tech\u222achip+index symbols). Hal reads that file for soft tape and annotates Soft A only. No get_equity_quotes for the union while the file is fresh. Elevate/invalidate still uses live Robinhood \u2264120s, never the cache. No collector cutover.",
+      "status": "documented"
     }
   ]
 }
