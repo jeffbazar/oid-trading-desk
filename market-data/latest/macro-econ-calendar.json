@@ -1,0 +1,54 @@
+{
+  "as_of_pt": "2026-10-05 5:58 AM PT",
+  "writer": "Macro Bot",
+  "feed": "macro-econ-calendar",
+  "authority": "research_alerts_only",
+  "today": {
+    "label": "ISM Services day",
+    "events": [
+      {
+        "et": "9:45 AM",
+        "name": "S&P Global US Services PMI (Sep)",
+        "prior": 56.5,
+        "actual": 58.8,
+        "note": "matched flash 58.7; already priced"
+      },
+      {
+        "et": "10:00 AM",
+        "name": "ISM Services PMI (Sep)",
+        "cons": 55.7,
+        "prior": 55.4,
+        "actual": 54.9,
+        "prices_paid": 74.0,
+        "note": "Prices Paid highest since Jul 2022; clear delta alerted"
+      }
+    ]
+  },
+  "week_ahead": [
+    {
+      "date": "2026-10-06",
+      "name": "Trade Balance",
+      "et": "8:30 AM"
+    },
+    {
+      "date": "2026-10-07",
+      "name": "FOMC minutes",
+      "et": "2:00 PM"
+    },
+    {
+      "date": "2026-10-08",
+      "name": "Claims",
+      "et": "8:30 AM"
+    },
+    {
+      "date": "2026-10-09",
+      "name": "UMich Prelim",
+      "et": "10:00 AM"
+    }
+  ],
+  "look_ahead": [
+    "CPI ~Oct 14",
+    "PPI ~Oct 15"
+  ],
+  "note": "Soft calendar / post-print alerts only; never elevates."
+}

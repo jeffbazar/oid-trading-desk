@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<meta http-equiv="refresh" content="300"/>
+<title>OID · Events</title>
+<style>
+:root{
+  --bg:#070b10; --panel:#0e141c; --line:#1a2533;
+  --text:#e8eef7; --muted:#7f91a8; --accent:#4da3ff;
+  --good:#3dd68c; --bad:#ff6b7a; --warn:#f0b429; --flat:#9aa8b8;
+  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,system-ui,-apple-system,sans-serif;background:
+  radial-gradient(900px 420px at 8% -8%,#142033 0%,transparent 55%),
+  radial-gradient(700px 380px at 100% 0%,#1a1528 0%,transparent 50%),
+  var(--bg);color:var(--text);min-height:100vh}
+.wrap{max-width:1340px;margin:0 auto;padding:22px 18px 56px}
+h1{font-size:1.35rem;margin:0 0 6px}
+h2{font-size:1.05rem;margin:22px 0 10px}
+.sub{color:var(--muted);font-size:.88rem}
+.tabs{display:flex;gap:8px;margin:0 0 16px;flex-wrap:wrap}
+.tabs a{display:inline-block;padding:7px 14px;border-radius:999px;border:1px solid var(--line);color:var(--muted);text-decoration:none;font-size:.78rem;font-weight:650;letter-spacing:.04em;text-transform:uppercase}
+.tabs a.active,.tabs a:hover{color:var(--text);border-color:#2a4a70;background:#152030}
+.table-wrap{border:1px solid var(--line);border-radius:12px;overflow:auto;background:var(--panel)}
+table{width:100%;border-collapse:collapse;min-width:720px}
+th,td{padding:9px 11px;text-align:left;font-size:.84rem;border-bottom:1px solid var(--line);vertical-align:top}
+th{color:var(--muted);font-weight:600;font-size:.68rem;text-transform:uppercase;background:#0a1018;position:sticky;top:0}
+td.num,.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+td.notes{font-size:.78rem;color:var(--muted);max-width:420px;line-height:1.35}
+tr.urgent{background:rgba(240,180,41,.08)}
+.tchip{display:inline-block;font-size:.62rem;padding:2px 6px;border-radius:999px;border:1px solid var(--line);color:var(--muted);background:#0a1018;text-transform:uppercase}
+.tchip.flat{color:var(--muted)}
+.empty{color:var(--muted);padding:16px;text-align:center}
+.note{font-size:.82rem;color:var(--muted);margin:8px 0 16px;line-height:1.4}
+.note ul{margin:6px 0 0;padding-left:18px}
+.callout{border:1px solid #6a4e18;background:#2a1f0a;border-radius:10px;padding:10px 14px;margin:12px 0;color:var(--warn);font-size:.88rem}
+footer{margin-top:24px;color:var(--muted);font-size:.8rem;line-height:1.45}
+</style>
+<meta property="og:title" content="OID Live Book Rose and Hal" />
+<meta property="og:description" content="A shared paper trading ticker and research blotter tracking live market marks, cost basis, and soft watch lists for Rose and Hal." />
+<meta property="og:url" content="https://bold-tulip-nejq.here.now/catalysts.html" />
+<meta property="og:type" content="website" />
+<meta property="og:image" content="https://here.now/og/bold-tulip-nejq.jpg" />
+<meta property="og:image:width" content="1280" />
+<meta property="og:image:height" content="720" />
+<meta name="twitter:image" content="https://here.now/og/bold-tulip-nejq.jpg" />
+<meta name="twitter:card" content="summary_large_image" /></head><body><div class="wrap">
+<div class="tabs"><a href="index.html">Blotter</a><a href="data-sources.html">Data sources</a><a href="trader-intel.html">Trader intel</a><a class="active" href="catalysts.html">Events</a><a href="soft-grader.html">Soft Grader</a><a href="map.html">Map</a><a href="chart.html">Chart</a></div>
+<h1>Events · earnings &amp; catalysts</h1>
+<div class="sub">Desk watchlist · FlashAlpha primary · Built 2026-10-04 5:26 PM PT · as of 2026-09-29 7:25 AM PT</div>
+<div class="callout"><strong>Nearest:</strong> ISM Services PMI <strong>Mon Oct 5</strong> 10:00 AM ET. Soft research only — does not elevate gates.</div>
+<div class="note"><ul><li>MU Q4 FY2026 canonical = Wed 2026-09-30 AMC (desk soft pin · RH/UW postmarket). FA historically listed 2026-09-21 — superseded; do not restore without re-verify. Implied move ~4.5% carry from FA when pinned.</li><li>Market movers (macro_events) = soft research calendar only — never elevate gates. Sources: BEA release schedule, BLS Oct 2026 schedule, Fed FOMC calendar, ISM convention / FinanceCalendar, FedRateCalc cross-check.</li><li>UW dates can differ by 1 day (NVDA 11/18 vs FA 11/17) — use FA + company IR when sizing.</li><li>SPY/QQQ have no corporate earnings; macro prints live under Market movers.</li><li>Other events = soft/web research (product, conference); confirm on company IR before sizing. Oil/rates context stays on blotter strip — not duplicated here.</li></ul></div>
+
+<h2>Market movers (macro / econ)</h2>
+<p class="note" style="margin-top:0">Soft research only — PCE, jobs, inflation, FOMC, ISM. Does not elevate gates. Oil/rates stay on blotter strip.</p>
+<div class="table-wrap"><table>
+<thead><tr>
+  <th>Date</th><th>Event</th><th>Time ET</th><th>Importance</th><th>Note</th>
+</tr></thead>
+<tbody>
+<tr><td class='num'>2026-09-29</td><td><strong>—</strong></td><td class='num'>10:00 AM ET</td><td>—</td><td class='notes'></td></tr>
+<tr><td class='num'>2026-09-29</td><td><strong>JOLTS (Job Openings)</strong></td><td class='num'>10:00 AM ET</td><td>★★★</td><td class='notes'>Labor demand soft color into NFP week. Source: FedRateCalc / BLS schedule pattern (typically last business day of month).</td></tr>
+<tr><td class='num'>2026-09-30</td><td><strong>Core PCE / Personal Income &amp; Outlays</strong></td><td class='num'>8:30 AM ET</td><td>★★★★★</td><td class='notes'>Fed preferred inflation gauge; same morning as MU earn AMC. Official BEA schedule.</td></tr>
+<tr><td class='num'>2026-09-30</td><td><strong>GDP (Third Estimate) Q2</strong></td><td class='num'>8:30 AM ET</td><td>★★★★</td><td class='notes'>BEA third estimate + annual updates day; pairs with PCE same stamp. Source: BEA release schedule.</td></tr>
+<tr><td class='num'>2026-10-01</td><td><strong>ISM Manufacturing PMI</strong></td><td class='num'>10:00 AM ET</td><td>★★★★</td><td class='notes'>First business day of month convention (ISM). Soft growth/rates color for tech duration.</td></tr>
+<tr><td class='num'>2026-10-02</td><td><strong>Employment Situation (NFP)</strong></td><td class='num'>8:30 AM ET</td><td>★★★★★</td><td class='notes'>Official BLS October schedule. High-impact rates/vol for QQQ/NVDA/MU week-after.</td></tr>
+<tr class='urgent'><td class='num'>2026-10-05</td><td><strong>ISM Services PMI</strong></td><td class='num'>10:00 AM ET</td><td>★★★★</td><td class='notes'>Third business day of month convention (ISM Services). Soft only.</td></tr>
+<tr class='urgent'><td class='num'>2026-10-07</td><td><strong>FOMC Minutes (Sep 15–16 meeting)</strong></td><td class='num'>2:00 PM ET</td><td>★★★</td><td class='notes'>Minutes typically ~3 weeks after decision. Soft path color; not a rate print.</td></tr>
+<tr><td class='num'>2026-10-14</td><td><strong>CPI (Consumer Price Index)</strong></td><td class='num'>8:30 AM ET</td><td>★★★★★</td><td class='notes'>Official BLS Oct schedule + desk calendars/bls-release-calendar.json. Key pre-FOMC inflation.</td></tr>
+<tr><td class='num'>2026-10-15</td><td><strong>PPI (Producer Price Index)</strong></td><td class='num'>8:30 AM ET</td><td>★★★★</td><td class='notes'>Official BLS Oct schedule. Pipeline inflation soft color day after CPI.</td></tr>
+<tr><td class='num'>2026-10-28</td><td><strong>FOMC Rate Decision</strong></td><td class='num'>2:00 PM ET</td><td>★★★★★</td><td class='notes'>Statement-only (no SEP*). Official Fed calendar. Statement ~2pm ET; press conference usual.</td></tr>
+<tr><td class='num'>2026-10-29</td><td><strong>GDP (Advance) Q3 + PCE (Sep)</strong></td><td class='num'>8:30 AM ET</td><td>★★★★★</td><td class='notes'>Next PCE after Aug print; BEA advance GDP same stamp. Source: BEA schedule.</td></tr>
+</tbody></table></div>
+
+<h2>Earnings (next ~90d)</h2>
+<div class="table-wrap"><table>
+<thead><tr>
+  <th>Date</th><th>Ticker</th><th>Session</th><th>Period</th><th class="num">EPS est</th><th class="num">Impl move</th><th>Conf</th><th>Source</th>
+</tr></thead>
+<tbody>
+<tr><td class='num'>2026-09-30</td><td><strong>MU</strong></td><td>AMC</td><td>Q4 FY2026</td><td class='num'>32.25</td><td class='num'>4.5%</td><td>✓</td><td class='notes'>desk soft pin · RH/UW (canonical Wed 2026-09-30 AMC)</td></tr>
+<tr><td class='num'>2026-10-19</td><td><strong>NFLX</strong></td><td>AMC</td><td>Q3 FY2026</td><td class='num'>0.84</td><td class='num'>—</td><td>✓</td><td class='notes'>FlashAlpha</td></tr>
+<tr><td class='num'>2026-10-20</td><td><strong>TSLA</strong></td><td>AMC</td><td>Q3 FY2026</td><td class='num'>0.45</td><td class='num'>—</td><td>✓</td><td class='notes'>FlashAlpha</td></tr>
+<tr><td class='num'>2026-10-26</td><td><strong>BE</strong></td><td>AMC</td><td>Q3 FY2026</td><td class='num'>0.68</td><td class='num'>—</td><td>✓</td><td class='notes'>FlashAlpha</td></tr>
+<tr><td class='num'>2026-10-27</td><td><strong>GOOGL</strong></td><td>AMC</td><td>Q3 FY2026</td><td class='num'>3.11</td><td class='num'>—</td><td>✓</td><td class='notes'>FlashAlpha</td></tr>
+<tr><td class='num'>2026-10-28</td><td><strong>AMZN</strong></td><td>AMC</td><td>Q3 FY2026</td><td class='num'>1.99</td><td class='num'>—</td><td>✓</td><td class='notes'>FlashAlpha</td></tr>
+<tr><td class='num'>2026-11-02</td><td><strong>AMD</strong></td><td>AMC</td><td>Q3 FY2026</td><td class='num'>1.95</td><td class='num'>—</td><td>✓</td><td class='notes'>FlashAlpha</td></tr>
+<tr><td class='num'>2026-11-02</td><td><strong>PLTR</strong></td><td>—</td><td>Q3 FY2026</td><td class='num'>0.42</td><td class='num'>—</td><td>✓</td><td class='notes'>FlashAlpha</td></tr>
+<tr><td class='num'>2026-11-04</td><td><strong>IREN</strong></td><td>—</td><td>Q1 FY2027</td><td class='num'>-0.4</td><td class='num'>—</td><td>✓</td><td class='notes'>FlashAlpha</td></tr>
+<tr><td class='num'>2026-11-09</td><td><strong>NBIS</strong></td><td>—</td><td>Q3 FY2026</td><td class='num'>-0.9</td><td class='num'>—</td><td>✓</td><td class='notes'>FlashAlpha</td></tr>
+<tr><td class='num'>2026-11-17</td><td><strong>NVDA</strong></td><td>AMC</td><td>Q3 FY2027</td><td class='num'>2.52</td><td class='num'>—</td><td>✓</td><td class='notes'>FlashAlpha</td></tr>
+<tr><td class='num'>2026-12-15</td><td><strong>MU</strong></td><td>AMC</td><td>Q1 FY2027</td><td class='num'>35.88</td><td class='num'>—</td><td>✓</td><td class='notes'>FlashAlpha</td></tr>
+</tbody></table></div>
+
+<h2>Other catalysts (product / conference / interview)</h2>
+<div class="table-wrap"><table>
+<thead><tr>
+  <th>Date</th><th>Ticker</th><th>Type</th><th>Title</th><th>Note</th>
+</tr></thead>
+<tbody>
+<tr><td class='num'>2026-09-24</td><td><strong>NFLX</strong></td><td><span class='tchip flat'>conference presentation</span></td><td>World Congress 2026 — Netflix AI performance-agent session</td><td class='notes'>Engineering presentation; soft tech catalyst, not a product launch.</td></tr>
+<tr><td class='num'>2026-09-28</td><td><strong>BE</strong></td><td><span class='tchip flat'>conference</span></td><td>Yotta 2026 (Sep 28–30)</td><td class='notes'>Bloom execs on AI data-center power panels; soft demand/partnership color.</td></tr>
+<tr><td class='num'>2026-09-29</td><td><strong>NBIS</strong></td><td><span class='tchip flat'>conference</span></td><td>The AI Conference 2026 (Sep 29–Oct 1)</td><td class='notes'>Nebius sponsor; VP Di Jin speaks Oct 1; Token Factory/inference visibility.</td></tr>
+<tr><td class='num'>2026-10-01</td><td><strong>TSLA</strong></td><td><span class='tchip flat'>product reveal</span></td><td>Next-generation Roadster reveal/demonstration</td><td class='notes'>Date confirmed via Tesla teaser and reservation-holder invitations; Waco, TX, 5:30 p.m. PT. Production timing/specs remain unconfirmed.</td></tr>
+<tr><td class='num'>2026-10-05</td><td><strong>GOOGL</strong></td><td><span class='tchip flat'>product launch</span></td><td>Googlebook “Opening Night”</td><td class='notes'>Google event debuting Gemini-focused laptops; pre-orders reportedly begin Sep 21.</td></tr>
+<tr><td class='num'>2026-10-06</td><td><strong>AMZN</strong></td><td><span class='tchip flat'>retail event</span></td><td>Prime Big Deal Days (Oct 6–7)</td><td class='notes'>Confirmed two-day Prime event; holiday demand / device promo read-through.</td></tr>
+<tr><td class='num'>2026-10-06</td><td><strong>IREN</strong></td><td><span class='tchip flat'>conference</span></td><td>infra/STRUCTURE Summit (Oct 6–8)</td><td class='notes'>IREN CDO Michael Nudelman confirmed speaker; soft AI infra catalyst.</td></tr>
+<tr><td class='num'>2026-10-13</td><td><strong>BE</strong></td><td><span class='tchip flat'>conference presentation</span></td><td>TechCrunch Disrupt — AI infrastructure panel (Oct 13–15)</td><td class='notes'>Bloom SVP Bill Thayer on AI data-center power demand; soft.</td></tr>
+<tr><td class='num'>2026-10-20</td><td><strong>NBIS</strong></td><td><span class='tchip flat'>conference</span></td><td>NVIDIA GTC Berlin — Nebius Diamond sponsor (Oct 20–22)</td><td class='notes'>Live demos / customer presentations; soft AI-cloud color.</td></tr>
+<tr><td class='num'>2026-10-21</td><td><strong>NVDA</strong></td><td><span class='tchip flat'>conference/keynote</span></td><td>GTC Berlin — Jensen Huang keynote</td><td class='notes'>Confirmed Tempodrom keynote; AI infra / robotics / product risk.</td></tr>
+<tr><td class='num'>2026-11-15</td><td><strong>MU</strong></td><td><span class='tchip flat'>conference</span></td><td>SC26 / Chicago HPC (Nov 15–20)</td><td class='notes'>Micron events page lists Chicago HPC; mapping to SC26 tentative.</td></tr>
+<tr><td class='num'>2026-11-16</td><td><strong>AMD</strong></td><td><span class='tchip flat'>conference/exhibition</span></td><td>SC26 Supercomputing (Nov 16–19)</td><td class='notes'>AMD booth listed; HPC/AI demand color, no launch confirmed.</td></tr>
+<tr><td class='num'>2026-11-18</td><td><strong>NBIS</strong></td><td><span class='tchip flat'>conference</span></td><td>Slush 2026 (Nov 18–19)</td><td class='notes'>Nebius sponsorship confirmed; booth details tentative.</td></tr>
+<tr><td class='num'>2026-11-30</td><td><strong>AMZN</strong></td><td><span class='tchip flat'>conference/product event</span></td><td>AWS re:Invent 2026 (Nov 30–Dec 4)</td><td class='notes'>Confirmed; new service launches / AI-cloud capex catalyst.</td></tr>
+<tr><td class='num'>2026-12-01</td><td><strong>NVDA</strong></td><td><span class='tchip flat'>conference/keynote</span></td><td>GTC Washington, D.C. — Jensen Huang keynote</td><td class='notes'>Confirmed 2pm ET; AI factories, physical AI, US scientific infra.</td></tr>
+</tbody></table></div>
+
+<footer>
+Research / paper only. Earnings from desk pin + FlashAlpha <code>get_earnings_calendar</code>. Macro from BEA/BLS/Fed (+ ISM convention). Other events soft/web — confirm on company IR before sizing. Path: <code>market-data/latest/desk-catalysts.json</code>.
+</footer>
+</div></body></html>

@@ -1,0 +1,729 @@
+{
+  "id": "HAL-RH-WATCH-20261005-4",
+  "type": "hal_rh_watch_pulse",
+  "agent": "Hal",
+  "desk": "OT2",
+  "mandate": "Research/paper ONLY \u2014 zero RH execution",
+  "as_of": "2026-10-05T15:51:00Z",
+  "as_of_pt": "2026-10-05 8:51 AM PT",
+  "as_of_et": "2026-10-05 11:51 AM ET",
+  "prior_pulse": {
+    "id": "HAL-RH-WATCH-20261005-3",
+    "as_of": "2026-10-05T15:22:30Z"
+  },
+  "watchlists": {
+    "Tech": {
+      "id": "0ca69f17-bda4-4300-a6ca-616a2c13bade",
+      "count": 22
+    },
+    "chip play": {
+      "id": "3cb53f4e-a3fc-4bc1-b871-3e71417b4336",
+      "count": 22
+    }
+  },
+  "union_count": 37,
+  "union_symbols": [
+    "ADI",
+    "AMD",
+    "AMZN",
+    "ARM",
+    "ASML",
+    "AVGO",
+    "BE",
+    "COHR",
+    "CRDO",
+    "EWY",
+    "GLW",
+    "GOOG",
+    "INTC",
+    "INTU",
+    "IREN",
+    "KEYS",
+    "KLAC",
+    "LITE",
+    "LRCX",
+    "META",
+    "MH",
+    "MRVL",
+    "MU",
+    "NBIS",
+    "NFLX",
+    "NVDA",
+    "ORCL",
+    "QQQ",
+    "SKHY",
+    "SMH",
+    "SNDK",
+    "SPCX",
+    "SPY",
+    "STX",
+    "TSLA",
+    "TSM",
+    "WDC"
+  ],
+  "quote_note": "RH get_equity_quotes live union (2 batches) venue ~15:50:23\u201315:50:35Z; real-time, not delayed; all state=active. Watchlists re-pulled: Tech 22 / chip play 22, union 37 unchanged.",
+  "fa_source": {
+    "path": "market-data/latest/fa-levels.json",
+    "writer": "OID-Q5-20261005-11",
+    "as_of": "2026-10-05T15:41:23Z",
+    "freshness_note": "GOOGL/MU FRESH 15:40Z (~10m, at TTL edge); NVDA 15:27Z; AMD/GOOG/INTC/TSM/SPCX 15:06Z; BE/CBRS 14:59Z; SPY/QQQ/TSLA/META/AMZN/NFLX/PLTR 14:31\u201314:34Z; LRCX 13:55Z \u2014 all STALE_CARRY for elevate purposes; AVGO not in store (carry Hal 14:44:48Z CW370/PW350/flip358.03)"
+  },
+  "fa_burned": [],
+  "uw": {
+    "note": "No new UW pull; carry OID-UW-RESTAMP-20261005-1 14:41Z (NVDA lean BEAR, GOOGL MIXED; market tide call-led). Color only."
+  },
+  "soft_color": [
+    {
+      "symbol": "ADI",
+      "spot_rh": 414.29,
+      "day_pct": -0.69,
+      "quote_delayed": false,
+      "lists": [
+        "chip play"
+      ],
+      "cw": null,
+      "pw": null,
+      "flip": null,
+      "fa_status": "WALLS_DATA_INSUFFICIENT"
+    },
+    {
+      "symbol": "AMD",
+      "spot_rh": 631.0,
+      "day_pct": -0.46,
+      "quote_delayed": false,
+      "lists": [
+        "Tech",
+        "chip play"
+      ],
+      "cw": 640,
+      "pw": 600,
+      "flip": 586.19,
+      "fa_status": "STALE_CARRY",
+      "fa_as_of": "2026-10-05T15:06:37Z",
+      "gap_to_cw_pct": 1.43,
+      "thru_cw": false,
+      "above_flip": true,
+      "above_pw": true
+    },
+    {
+      "symbol": "AMZN",
+      "spot_rh": 252.18,
+      "day_pct": 0.26,
+      "quote_delayed": false,
+      "lists": [
+        "Tech"
+      ],
+      "cw": 260,
+      "pw": 250,
+      "flip": 249.05,
+      "fa_status": "STALE_CARRY",
+      "fa_as_of": "2026-10-05T14:34:09Z",
+      "gap_to_cw_pct": 3.1,
+      "thru_cw": false,
+      "above_flip": true,
+      "above_pw": true
+    },
+    {
+      "symbol": "ARM",
+      "spot_rh": 302.47,
+      "day_pct": -1.63,
+      "quote_delayed": false,
+      "lists": [
+        "chip play"
+      ],
+      "cw": null,
+      "pw": null,
+      "flip": null,
+      "fa_status": "WALLS_DATA_INSUFFICIENT"
+    },
+    {
+      "symbol": "ASML",
+      "spot_rh": 1858.575,
+      "day_pct": -0.47,
+      "quote_delayed": false,
+      "lists": [
+        "Tech",
+        "chip play"
+      ],
+      "cw": null,
+      "pw": null,
+      "flip": null,
+      "fa_status": "WALLS_DATA_INSUFFICIENT"
+    },
+    {
+      "symbol": "AVGO",
+      "spot_rh": 361.0,
+      "day_pct": 1.65,
+      "quote_delayed": false,
+      "lists": [
+        "Tech",
+        "chip play"
+      ],
+      "cw": null,
+      "pw": null,
+      "flip": null,
+      "fa_status": "WALLS_DATA_INSUFFICIENT"
+    },
+    {
+      "symbol": "BE",
+      "spot_rh": 290.19,
+      "day_pct": 0.36,
+      "quote_delayed": false,
+      "lists": [
+        "Tech"
+      ],
+      "cw": 300,
+      "pw": 260,
+      "flip": 271.42,
+      "fa_status": "STALE_CARRY",
+      "fa_as_of": "2026-10-05T14:59:07Z",
+      "gap_to_cw_pct": 3.38,
+      "thru_cw": false,
+      "above_flip": true,
+      "above_pw": true
+    },
+    {
+      "symbol": "COHR",
+      "spot_rh": 330.97,
+      "day_pct": -1.8,
+      "quote_delayed": false,
+      "lists": [
+        "chip play"
+      ],
+      "cw": null,
+      "pw": null,
+      "flip": null,
+      "fa_status": "WALLS_DATA_INSUFFICIENT"
+    },
+    {
+      "symbol": "CRDO",
+      "spot_rh": 210.985,
+      "day_pct": -3.5,
+      "quote_delayed": false,
+      "lists": [
+        "Tech"
+      ],
+      "cw": null,
+      "pw": null,
+      "flip": null,
+      "fa_status": "WALLS_DATA_INSUFFICIENT"
+    },
+    {
+      "symbol": "EWY",
+      "spot_rh": 191.655,
+      "day_pct": -0.12,
+      "quote_delayed": false,
+      "lists": [
+        "chip play"
+      ],
+      "cw": null,
+      "pw": null,
+      "flip": null,
+      "fa_status": "WALLS_DATA_INSUFFICIENT"
+    },
+    {
+      "symbol": "GLW",
+      "spot_rh": 160.605,
+      "day_pct": -2.18,
+      "quote_delayed": false,
+      "lists": [
+        "chip play"
+      ],
+      "cw": null,
+      "pw": null,
+      "flip": null,
+      "fa_status": "WALLS_DATA_INSUFFICIENT"
+    },
+    {
+      "symbol": "GOOG",
+      "spot_rh": 342.08,
+      "day_pct": 0.51,
+      "quote_delayed": false,
+      "lists": [
+        "Tech"
+      ],
+      "cw": 350,
+      "pw": 340,
+      "flip": 341.09,
+      "fa_status": "STALE_CARRY",
+      "fa_as_of": "2026-10-05T15:06:36Z",
+      "gap_to_cw_pct": 2.32,
+      "thru_cw": false,
+      "above_flip": true,
+      "above_pw": true
+    },
+    {
+      "symbol": "INTC",
+      "spot_rh": 117.28,
+      "day_pct": -1.72,
+      "quote_delayed": false,
+      "lists": [
+        "Tech"
+      ],
+      "cw": 130,
+      "pw": 110,
+      "flip": 112.95,
+      "fa_status": "STALE_CARRY",
+      "fa_as_of": "2026-10-05T15:06:54Z",
+      "gap_to_cw_pct": 10.85,
+      "thru_cw": false,
+      "above_flip": true,
+      "above_pw": true
+    },
+    {
+      "symbol": "INTU",
+      "spot_rh": 283.54,
+      "day_pct": 0.88,
+      "quote_delayed": false,
+      "lists": [
+        "Tech"
+      ],
+      "cw": null,
+      "pw": null,
+      "flip": null,
+      "fa_status": "WALLS_DATA_INSUFFICIENT"
+    },
+    {
+      "symbol": "IREN",
+      "spot_rh": 40.2001,
+      "day_pct": -3.74,
+      "quote_delayed": false,
+      "lists": [
+        "Tech"
+      ],
+      "cw": null,
+      "pw": null,
+      "flip": null,
+      "fa_status": "WALLS_DATA_INSUFFICIENT"
+    },
+    {
+      "symbol": "KEYS",
+      "spot_rh": 385.27,
+      "day_pct": 0.16,
+      "quote_delayed": false,
+      "lists": [
+        "chip play"
+      ],
+      "cw": null,
+      "pw": null,
+      "flip": null,
+      "fa_status": "WALLS_DATA_INSUFFICIENT"
+    },
+    {
+      "symbol": "KLAC",
+      "spot_rh": 203.89,
+      "day_pct": -1.45,
+      "quote_delayed": false,
+      "lists": [
+        "chip play"
+      ],
+      "cw": null,
+      "pw": null,
+      "flip": null,
+      "fa_status": "WALLS_DATA_INSUFFICIENT"
+    },
+    {
+      "symbol": "LITE",
+      "spot_rh": 1086.76,
+      "day_pct": 0.12,
+      "quote_delayed": false,
+      "lists": [
+        "chip play"
+      ],
+      "cw": null,
+      "pw": null,
+      "flip": null,
+      "fa_status": "WALLS_DATA_INSUFFICIENT"
+    },
+    {
+      "symbol": "LRCX",
+      "spot_rh": 344.945,
+      "day_pct": -0.73,
+      "quote_delayed": false,
+      "lists": [
+        "chip play"
+      ],
+      "cw": 355,
+      "pw": 330,
+      "flip": 321.7,
+      "fa_status": "STALE_CARRY",
+      "fa_as_of": "2026-10-05T13:55:03Z",
+      "gap_to_cw_pct": 2.91,
+      "thru_cw": false,
+      "above_flip": true,
+      "above_pw": true
+    },
+    {
+      "symbol": "META",
+      "spot_rh": 745.14,
+      "day_pct": 2.34,
+      "quote_delayed": false,
+      "lists": [
+        "Tech"
+      ],
+      "cw": 750,
+      "pw": 700,
+      "flip": null,
+      "fa_status": "STALE_CARRY",
+      "fa_as_of": "2026-10-05T14:31:21Z",
+      "gap_to_cw_pct": 0.65,
+      "thru_cw": false,
+      "above_flip": null,
+      "above_pw": true
+    },
+    {
+      "symbol": "MH",
+      "spot_rh": 12.775,
+      "day_pct": -0.58,
+      "quote_delayed": false,
+      "lists": [
+        "chip play"
+      ],
+      "cw": null,
+      "pw": null,
+      "flip": null,
+      "fa_status": "WALLS_DATA_INSUFFICIENT"
+    },
+    {
+      "symbol": "MRVL",
+      "spot_rh": 273.12,
+      "day_pct": 0.3,
+      "quote_delayed": false,
+      "lists": [
+        "chip play"
+      ],
+      "cw": null,
+      "pw": null,
+      "flip": null,
+      "fa_status": "WALLS_DATA_INSUFFICIENT"
+    },
+    {
+      "symbol": "MU",
+      "spot_rh": 1064.405,
+      "day_pct": -0.98,
+      "quote_delayed": false,
+      "lists": [
+        "Tech",
+        "chip play"
+      ],
+      "cw": 1100,
+      "pw": 1060,
+      "flip": 1039.04,
+      "fa_status": "FRESH",
+      "fa_as_of": "2026-10-05T15:40:45Z",
+      "gap_to_cw_pct": 3.34,
+      "thru_cw": false,
+      "above_flip": true,
+      "above_pw": true
+    },
+    {
+      "symbol": "NBIS",
+      "spot_rh": 235.515,
+      "day_pct": -3.0,
+      "quote_delayed": false,
+      "lists": [
+        "Tech"
+      ],
+      "cw": null,
+      "pw": null,
+      "flip": null,
+      "fa_status": "WALLS_DATA_INSUFFICIENT"
+    },
+    {
+      "symbol": "NFLX",
+      "spot_rh": 67.085,
+      "day_pct": 0.04,
+      "quote_delayed": false,
+      "lists": [
+        "Tech"
+      ],
+      "cw": 70,
+      "pw": 65,
+      "flip": 72.08,
+      "fa_status": "STALE_CARRY",
+      "fa_as_of": "2026-10-05T14:34:09Z",
+      "gap_to_cw_pct": 4.35,
+      "thru_cw": false,
+      "above_flip": false,
+      "above_pw": true
+    },
+    {
+      "symbol": "NVDA",
+      "spot_rh": 236.855,
+      "day_pct": 1.24,
+      "quote_delayed": false,
+      "lists": [
+        "Tech",
+        "chip play"
+      ],
+      "cw": 240,
+      "pw": 230,
+      "flip": 218.13,
+      "fa_status": "STALE_CARRY",
+      "fa_as_of": "2026-10-05T15:27:33Z",
+      "gap_to_cw_pct": 1.33,
+      "thru_cw": false,
+      "above_flip": true,
+      "above_pw": true
+    },
+    {
+      "symbol": "ORCL",
+      "spot_rh": 143.485,
+      "day_pct": 0.83,
+      "quote_delayed": false,
+      "lists": [
+        "chip play"
+      ],
+      "cw": null,
+      "pw": null,
+      "flip": null,
+      "fa_status": "WALLS_DATA_INSUFFICIENT"
+    },
+    {
+      "symbol": "QQQ",
+      "spot_rh": 753.71,
+      "day_pct": 0.55,
+      "quote_delayed": false,
+      "lists": [
+        "Tech"
+      ],
+      "cw": 755,
+      "pw": 740,
+      "flip": 748.29,
+      "fa_status": "STALE_CARRY",
+      "fa_as_of": "2026-10-05T14:34:05Z",
+      "gap_to_cw_pct": 0.17,
+      "thru_cw": false,
+      "above_flip": true,
+      "above_pw": true
+    },
+    {
+      "symbol": "SKHY",
+      "spot_rh": 194.48,
+      "day_pct": -0.33,
+      "quote_delayed": false,
+      "lists": [
+        "Tech"
+      ],
+      "cw": null,
+      "pw": null,
+      "flip": null,
+      "fa_status": "WALLS_DATA_INSUFFICIENT"
+    },
+    {
+      "symbol": "SMH",
+      "spot_rh": 631.7,
+      "day_pct": 0.17,
+      "quote_delayed": false,
+      "lists": [
+        "chip play"
+      ],
+      "cw": null,
+      "pw": null,
+      "flip": null,
+      "fa_status": "WALLS_DATA_INSUFFICIENT"
+    },
+    {
+      "symbol": "SNDK",
+      "spot_rh": 1713.435,
+      "day_pct": -0.38,
+      "quote_delayed": false,
+      "lists": [
+        "Tech",
+        "chip play"
+      ],
+      "cw": null,
+      "pw": null,
+      "flip": null,
+      "fa_status": "WALLS_DATA_INSUFFICIENT"
+    },
+    {
+      "symbol": "SPCX",
+      "spot_rh": 166.365,
+      "day_pct": 4.66,
+      "quote_delayed": false,
+      "lists": [
+        "Tech"
+      ],
+      "cw": 170,
+      "pw": 150,
+      "flip": 155.32,
+      "fa_status": "STALE_CARRY",
+      "fa_as_of": "2026-10-05T15:06:36Z",
+      "gap_to_cw_pct": 2.18,
+      "thru_cw": false,
+      "above_flip": true,
+      "above_pw": true
+    },
+    {
+      "symbol": "SPY",
+      "spot_rh": 773.26,
+      "day_pct": 0.47,
+      "quote_delayed": false,
+      "lists": [
+        "Tech"
+      ],
+      "cw": 785,
+      "pw": 767,
+      "flip": null,
+      "fa_status": "STALE_CARRY",
+      "fa_as_of": "2026-10-05T14:34:00Z",
+      "gap_to_cw_pct": 1.52,
+      "thru_cw": false,
+      "above_flip": null,
+      "above_pw": true
+    },
+    {
+      "symbol": "STX",
+      "spot_rh": 886.49,
+      "day_pct": 4.42,
+      "quote_delayed": false,
+      "lists": [
+        "chip play"
+      ],
+      "cw": null,
+      "pw": null,
+      "flip": null,
+      "fa_status": "WALLS_DATA_INSUFFICIENT"
+    },
+    {
+      "symbol": "TSLA",
+      "spot_rh": 377.35,
+      "day_pct": 1.82,
+      "quote_delayed": false,
+      "lists": [
+        "Tech"
+      ],
+      "cw": 400,
+      "pw": 370,
+      "flip": 370.95,
+      "fa_status": "STALE_CARRY",
+      "fa_as_of": "2026-10-05T14:34:06Z",
+      "gap_to_cw_pct": 6.0,
+      "thru_cw": false,
+      "above_flip": true,
+      "above_pw": true
+    },
+    {
+      "symbol": "TSM",
+      "spot_rh": 485.2,
+      "day_pct": 2.63,
+      "quote_delayed": false,
+      "lists": [
+        "Tech",
+        "chip play"
+      ],
+      "cw": 500,
+      "pw": 400,
+      "flip": null,
+      "fa_status": "STALE_CARRY",
+      "fa_as_of": "2026-10-05T15:06:53Z",
+      "gap_to_cw_pct": 3.05,
+      "thru_cw": false,
+      "above_flip": null,
+      "above_pw": true
+    },
+    {
+      "symbol": "WDC",
+      "spot_rh": 442.38,
+      "day_pct": 6.52,
+      "quote_delayed": false,
+      "lists": [
+        "chip play"
+      ],
+      "cw": null,
+      "pw": null,
+      "flip": null,
+      "fa_status": "WALLS_DATA_INSUFFICIENT"
+    }
+  ],
+  "hard_rolls_new": [],
+  "minor_level_changes_vs_prior": [
+    "NVDA flip 219.1\u2192218.13 (15:27Z, sensitive_root); CW240/PW230 unchanged",
+    "MU flip 1037.2\u21921039.04 (FRESH 15:40Z); CW1100/PW1060 unchanged",
+    "GOOGL FRESH 15:40Z CW350/PW340/flip342.96 (Rose seat scope)"
+  ],
+  "hard_rolls_already_surfaced": [
+    "QQQ CW 760\u2192755 (HAL-RH-WATCH-20261005-1)",
+    "TSLA CW 370\u2192400 / PW 360\u2192370",
+    "MU PW 1070\u21921050, BE CW 290\u2192300 / PW 285\u2192260",
+    "AVGO CW 360\u2192370 (HAL-RH-WATCH-20261005-2)"
+  ],
+  "elevate_decisions": [
+    {
+      "symbol": "AVGO",
+      "decision": "SKIP_WATCH",
+      "reason": "361.00, 2.5% under CW 370 (carry); faded from 362.3; re-check trigger \u2265~365 with flip 358 held not hit"
+    },
+    {
+      "symbol": "NVDA",
+      "decision": "SKIP",
+      "reason": "1.33% under CW 240, PW 230 held, UW lean BEAR carry \u2014 no second color"
+    },
+    {
+      "symbol": "QQQ",
+      "decision": "SKIP",
+      "reason": "0.17% under CW 755 \u2014 no approach room; not thru"
+    },
+    {
+      "symbol": "META",
+      "decision": "SKIP",
+      "reason": "0.65% under CW 750, day +2.34% near chase; standing hard-against new META calls"
+    },
+    {
+      "symbol": "SPCX",
+      "decision": "SKIP",
+      "reason": "2.2% under CW 170, day +4.66% \u2014 late chase"
+    },
+    {
+      "symbol": "AMD",
+      "decision": "SKIP",
+      "reason": "1.43% under CW 640 but red on day (\u22120.46%)"
+    },
+    {
+      "symbol": "GOOG",
+      "decision": "SKIP",
+      "reason": "~0.29% above flip 341.09, CW 350 2.3% away; Rose holds GOOGL Soft A (no-stack)"
+    },
+    {
+      "symbol": "MU",
+      "decision": "SKIP",
+      "reason": "3.35% under CW 1100, hugging PW 1060 (+0.4%), red \u22120.98%"
+    },
+    {
+      "symbol": "SPY/TSM/TSLA/BE/LRCX/INTC",
+      "decision": "SKIP",
+      "reason": "\u22651.5% to CW with no thru; no gate clears"
+    },
+    {
+      "symbol": "WDC/STX/SNDK",
+      "decision": "AVOID",
+      "reason": "Soft A avoid per Jeffrey 2026-10-05 (WDC +6.5%, STX +4.4%)"
+    }
+  ],
+  "elevates": [],
+  "seats_opened": 0,
+  "hal_seats": {
+    "open": 0,
+    "max": 7,
+    "room": 7
+  },
+  "open_rose_seats": [
+    {
+      "id": "OID-PAPER-20261005-1",
+      "symbol": "GOOGL"
+    }
+  ],
+  "tape_soft": "Flat vs 8:22 AM PT pulse. Megacap AI bid holds (META +2.3%, TSM +2.6%, TSLA +1.8%, AVGO +1.7%, NVDA +1.2%); semi-cap/optical/neocloud still red (CRDO \u22123.5%, NBIS \u22123.0%, IREN \u22123.7%, GLW \u22122.2%, COHR \u22121.8%, INTC \u22121.7%, ARM \u22121.6%, KLAC \u22121.4%); SPCX +4.7%; HDD WDC +6.5% / STX +4.4% fading slightly (avoid).",
+  "macro_soft": "carry: ISM Services prices paid hot; macro_tech \u22121 \u2014 soft color only",
+  "materialNotify": false,
+  "quiet": true,
+  "parent_wake": {
+    "soft_alert": false,
+    "elevate": false,
+    "reason": "no hard rolls/structure breaks; no gates cleared; tape unchanged"
+  },
+  "blotter_url": "https://bold-tulip-nejq.here.now/",
+  "blotter_publish": false,
+  "zero_rh_execution": true
+}

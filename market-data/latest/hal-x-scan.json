@@ -1,0 +1,132 @@
+{
+  "feed": "hal-x-scan",
+  "as_of": "2026-10-05T15:24:00Z",
+  "as_of_pt": "2026-10-05 8:24 AM PT",
+  "writer": "Hal",
+  "error": null,
+  "ttl_seconds": 7200,
+  "allowlist": "HAL-X-ALLOWLIST.md",
+  "query_window_start": "2026-10-05T03:21:00Z",
+  "posts_scanned": 17,
+  "paginated": false,
+  "more_available": true,
+  "more_available_note": "single 25-cap page returned 17 posts back to 7:31 AM PT; earlier overnight posts not paged (cost cap)",
+  "handles_scanned": [
+    "CheddarFlow",
+    "spotgamma",
+    "MenthorQpro",
+    "OptionsHawk",
+    "Tradytics",
+    "3PeaksTrading",
+    "GammaEdges",
+    "SqueezeMetrics",
+    "Alpha_Ex_LLC",
+    "TheProfInvestor",
+    "MentoviaX"
+  ],
+  "handles_seen": [
+    "MenthorQpro",
+    "MentoviaX",
+    "3PeaksTrading",
+    "TheProfInvestor",
+    "CheddarFlow"
+  ],
+  "handles_empty": [
+    "spotgamma",
+    "OptionsHawk",
+    "Tradytics",
+    "GammaEdges",
+    "SqueezeMetrics",
+    "Alpha_Ex_LLC"
+  ],
+  "high_signal": [
+    {
+      "handle": "CheddarFlow",
+      "post_id": "2107118990665388159",
+      "url": "https://x.com/CheddarFlow/status/2107118990665388159",
+      "symbols": [
+        "SPY"
+      ],
+      "reason": "High \u2014 $7B+ SPY CW 770 BROKEN, rolled to 785; matches shared FA map (CW 785/PW 767, 0DTE magnet 772, spot ~771.75, flip sign mismatch, STALE_CARRY 7:34 AM PT). Watch only; Path B gates not cleared from X alone.",
+      "claim": "trader-intel/claims/20261005-CheddarFlow-spy-7b-call-wall-770-broken-785.md"
+    },
+    {
+      "handle": "MentoviaX",
+      "post_id": "2107118377823264976",
+      "url": "https://x.com/MentoviaX/status/2107118377823264976",
+      "symbols": [
+        "NBIS"
+      ],
+      "reason": "High \u2014 ~$2M block call buying NBIS Nov 2026 280 strike on weakness (stock ~\u22123.5%). Unconfirmed by UW; NBIS not FA-covered.",
+      "claim": "trader-intel/claims/20261005-MentoviaX-nbis-2m-block-nov-280c.md"
+    },
+    {
+      "handle": "CheddarFlow",
+      "post_id": "2107122389314060657",
+      "url": "https://x.com/CheddarFlow/status/2107122389314060657",
+      "symbols": [
+        "SPCX"
+      ],
+      "reason": "High \u2014 millions of SPCX call sweepers hitting tape; no strike/expiry in text. Chase gate likely on surge day.",
+      "claim": "trader-intel/claims/20261005-CheddarFlow-spcx-millions-call-sweepers.md"
+    },
+    {
+      "handle": "3PeaksTrading",
+      "post_id": "2107116536272146488",
+      "url": "https://x.com/3PeaksTrading/status/2107116536272146488",
+      "symbols": [
+        "SPX",
+        "SPY"
+      ],
+      "reason": "Medium-high \u2014 SPX tagged ~7760 (+35pt); positive gamma 7760\u20137775 likely resistance, range rest of day.",
+      "claim": "trader-intel/claims/20261005-3PeaksTrading-spx-pos-gamma-7760-7775.md"
+    }
+  ],
+  "soft_color": [
+    {
+      "handle": "MentoviaX",
+      "post_id": "2107128573303685417",
+      "url": "https://x.com/MentoviaX/status/2107128573303685417",
+      "symbols": [
+        "NVDA"
+      ],
+      "reason": "Soft \u2014 NVDA 'parabolic\u2026 252 incoming?' TA call, no options terms"
+    },
+    {
+      "handle": "MentoviaX",
+      "post_id": "2107116621987025375",
+      "url": "https://x.com/MentoviaX/status/2107116621987025375",
+      "symbols": [
+        "MU"
+      ],
+      "reason": "Soft \u2014 MU sentiment/whale run-up hunch + quiet consolidation; no flow"
+    },
+    {
+      "handle": "TheProfInvestor",
+      "post_id": "2107122718135238840",
+      "url": "https://x.com/TheProfInvestor/status/2107122718135238840",
+      "symbols": [
+        "SPCX"
+      ],
+      "reason": "Soft \u2014 SPCX cup & handle TA (pairs with CheddarFlow sweeps)"
+    },
+    {
+      "handle": "3PeaksTrading",
+      "post_id": "2107126627989909712",
+      "url": "https://x.com/3PeaksTrading/status/2107126627989909712",
+      "symbols": [],
+      "reason": "Skip \u2014 crude jumpy on Mideast headlines (macro \u2192 Macro Bot / Peanut)"
+    },
+    {
+      "handle": "MenthorQpro",
+      "post_id": "2107128841000931768",
+      "url": "https://x.com/MenthorQpro/status/2107128841000931768",
+      "symbols": [],
+      "reason": "Skip \u2014 gamma explainer thread"
+    }
+  ],
+  "credits_before": 54.47,
+  "credits_after": 54.38,
+  "credits_spent_est": 0.09,
+  "note": "Hal X scan 2026-10-05 8:21 AM PT: 17 posts, 4 high-signal \u2014 CheddarFlow SPY $7B CW 770 broken\u2192785 (FA-corroborated), MentoviaX NBIS $2M block Nov 280c, CheddarFlow SPCX call sweepers, 3Peaks SPX +gamma 7760\u20137775; 4 claims logged; watch only, 0 elevates; zero RH execution."
+}

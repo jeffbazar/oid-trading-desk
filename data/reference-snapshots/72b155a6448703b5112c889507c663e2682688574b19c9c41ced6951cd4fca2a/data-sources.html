@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<meta http-equiv="refresh" content="120"/>
+<title>OID · Data sources</title>
+<style>
+:root{
+  --bg:#070b10; --panel:#0e141c; --panel2:#121a24; --line:#1a2533;
+  --text:#e8eef7; --muted:#7f91a8; --accent:#4da3ff;
+  --good:#3dd68c; --bad:#ff6b7a; --warn:#f0b429; --flat:#9aa8b8;
+  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,system-ui,-apple-system,sans-serif;background:
+  radial-gradient(900px 420px at 8% -8%,#142033 0%,transparent 55%),
+  radial-gradient(700px 380px at 100% 0%,#1a1528 0%,transparent 50%),
+  var(--bg);color:var(--text);min-height:100vh}
+.wrap{max-width:1340px;margin:0 auto;padding:14px 16px 48px}
+h1{font-size:1.35rem;margin:0 0 6px}
+.sub{color:var(--muted);font-size:.88rem}
+.tabs{display:flex;gap:8px;margin:0 0 10px;flex-wrap:wrap}
+.tabs a{display:inline-block;padding:7px 14px;border-radius:999px;border:1px solid var(--line);color:var(--muted);text-decoration:none;font-size:.78rem;font-weight:650;letter-spacing:.04em;text-transform:uppercase}
+.tabs a.active,.tabs a:hover{color:var(--text);border-color:#2a4a70;background:#152030}
+.table-wrap{border:1px solid var(--line);border-radius:12px;overflow:auto;background:var(--panel)}
+table{width:100%;border-collapse:collapse;min-width:960px}
+th,td{padding:9px 11px;text-align:left;font-size:.84rem;border-bottom:1px solid var(--line);vertical-align:top}
+th{color:var(--muted);font-weight:600;font-size:.68rem;text-transform:uppercase;background:#0a1018;position:sticky;top:0}
+td.num,.num{font-family:var(--mono);font-variant-numeric:tabular-nums;text-align:right}
+td.cadence,td.notes{font-size:.78rem;color:var(--muted);max-width:300px;line-height:1.35}
+code{font-size:.8em;background:#0a1018;padding:1px 5px;border-radius:4px}
+.tchip{display:inline-block;font-size:.62rem;padding:2px 6px;border-radius:999px;border:1px solid var(--line);color:var(--muted);background:#0a1018;text-transform:uppercase;letter-spacing:.03em}
+.tchip.ok{color:var(--good);border-color:#1e5c40;background:#123526}
+.tchip.warn{color:var(--warn);border-color:#6a4e18;background:#2a1f0a}
+.tchip.bad{color:var(--bad);border-color:#7a3038;background:#2a1216}
+.tchip.flat{color:var(--muted)}
+.quota-panel{margin:14px 0 16px;padding:14px 16px;border:1px solid var(--line);border-radius:12px;background:linear-gradient(180deg,#121a24,#0e141c)}
+.quota-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:10px}
+.quota-title{font-size:.78rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.quota-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+@media(max-width:980px){.quota-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:560px){.quota-grid{grid-template-columns:1fr}}
+.qcard{padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:#0a1018}
+.qk{font-size:.72rem;color:var(--muted);font-weight:650;margin-bottom:4px}
+.qplan{font-weight:500;opacity:.85;text-transform:uppercase;font-size:.62rem;margin-left:4px}
+.qv{font-size:1.05rem;font-weight:700;font-variant-numeric:tabular-nums}
+.qv.ok{color:var(--good)}.qv.warn{color:var(--warn)}.qv.bad{color:var(--bad)}.qv.flat{color:var(--muted)}
+.qbar{height:5px;background:#1a2533;border-radius:999px;overflow:hidden;margin:8px 0 4px}
+.qfill{height:100%;border-radius:999px}
+.qfill.ok{background:var(--good)}.qfill.warn{background:var(--warn)}.qfill.bad{background:var(--bad)}
+.qtiny{font-size:.68rem;color:var(--muted);line-height:1.35;margin-top:2px}
+.quota-panel.empty .quota-miss{font-size:.84rem}
+.qspend{display:flex;flex-wrap:wrap;gap:6px 10px;margin-top:8px;font-size:.68rem;color:var(--muted)}
+.qspend b{color:var(--text);font-weight:700}
+.x-spend-strip{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;margin-top:12px;padding-top:10px;border-top:1px solid var(--line);font-size:.82rem;font-variant-numeric:tabular-nums}
+.x-spend-strip .xslab{font-size:.68rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.x-spend-strip b{color:var(--text)}
+
+.ds-summary{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 14px}
+.ds-summary .tchip{font-size:.72rem;padding:4px 10px}
+.header-sess{margin:8px 0 4px}
+.sess-badge{display:inline-block;font-size:.65rem;padding:2px 8px;border-radius:999px;letter-spacing:.05em;font-weight:700;border:1px solid var(--line)}
+.sess-badge.sess-rth{background:#123526;color:var(--good);border-color:#1e5c40}
+.sess-badge.sess-pre{background:#1a2a40;color:#7db7ff;border-color:#2a4a70}
+.sess-badge.sess-ah{background:#2a1f40;color:#c4b5fd;border-color:#5b4a9a}
+.sess-badge.sess-closed{background:#1a1f28;color:var(--muted);border-color:#2a3340}
+footer{margin-top:20px;color:var(--muted);font-size:.8rem;line-height:1.45}
+</style>
+<meta property="og:title" content="OID Live Book Rose and Hal" />
+<meta property="og:description" content="A shared paper trading ticker and research blotter tracking live market marks, cost basis, and soft watch lists for Rose and Hal." />
+<meta property="og:url" content="https://bold-tulip-nejq.here.now/data-sources.html" />
+<meta property="og:type" content="website" />
+<meta property="og:image" content="https://here.now/og/bold-tulip-nejq.jpg" />
+<meta property="og:image:width" content="1280" />
+<meta property="og:image:height" content="720" />
+<meta name="twitter:image" content="https://here.now/og/bold-tulip-nejq.jpg" />
+<meta name="twitter:card" content="summary_large_image" /></head><body><div class="wrap">
+<div class="tabs"><a href="index.html">Blotter</a><a class="active" href="data-sources.html">Data sources</a><a href="trader-intel.html">Trader intel</a><a href="catalysts.html">Events</a><a href="soft-grader.html">Soft Grader</a><a href="map.html">Map</a><a href="chart.html">Chart</a></div>
+<h1>Data sources · Rose + Hal</h1>
+<div class="sub">Live status from <code>market-data/latest/</code> · Cadence from QUERY-DEDUP / HAL-CADENCE-V1 / HAL-X-ALLOWLIST · Built 2026-10-04 5:26 PM PT</div>
+<div class="header-sess"><span class="sess-badge sess-ah sess-live" title="After-hours (16:00–20:00 ET) — not regular hours; live extended print when available">AFTER-HOURS · LIVE</span></div>
+<div class="quota-panel empty"><div class="quota-title">Query limits &amp; cost</div><div class="quota-miss muted">No <code>api-quotas.json</code> yet — Hal/Rose write on refresh.</div></div>
+<div class="ds-summary"><span class="tchip ok">OK: 5</span> <span class="tchip flat">CARRY: 25</span> <span class="tchip flat">DISABLED: 1</span> <span class="tchip flat">NOT_BUILT: 3</span></div>
+<div class="table-wrap"><table>
+<thead><tr>
+  <th>Source</th><th>Feed</th><th>Owner</th><th>Cadence</th>
+  <th class="num">TTL</th><th class="num">Last success (PT)</th><th>Status</th><th>Notes</th>
+</tr></thead>
+<tbody>
+<tr><td>FlashAlpha</td><td><code>fa-levels</code></td><td>Rose</td><td class='cadence'>Walls pulse primary (11:45/12:45/13:45/14:45 ET); Q5 gated</td><td class='num'>600s</td><td class='num'>2026-10-02 1:00 PM PT</td><td><span class='tchip flat' title='OID-CLOSE-20261002-1'>CARRY</span></td><td class='notes'>Last file Fri 1:00 PM PT is STALE_CARRY because FlashAlpha quota was 0. Prior walls write 12:46 PM PT. Weekend CARRY is not a Sunday outage. Hal read-only.</td></tr>
+<tr><td>FlashAlpha</td><td><code>fa-flow-levels</code></td><td>Rose</td><td class='cadence'>Sibling of fa-levels when stored separately; walls-pulse primary</td><td class='num'>600s</td><td class='num'>2026-10-02 10:52 AM PT</td><td><span class='tchip flat' title='OID-NDW-20261002'>CARRY</span></td><td class='notes'>Alias/sibling — often empty if walls writes only fa-levels</td></tr>
+<tr><td>FlashAlpha</td><td><code>fa-soft</code></td><td>Rose</td><td class='cadence'>Piggyback after levels when soft context needed</td><td class='num'>1800s</td><td class='num'>—</td><td><span class='tchip flat' title=''>NOT_BUILT</span></td><td class='notes'>No writer. Exposure summary is not collected. Not a failed fetch.</td></tr>
+<tr><td>Unusual Whales</td><td><code>uw-flow-alerts</code></td><td>Rose</td><td class='cadence'>Near-wall / soft-catalyst (Q5, open, FH, walls-on-notify)</td><td class='num'>900s</td><td class='num'>2026-10-02 10:25 AM PT</td><td><span class='tchip flat' title='OID-NDW-20261002-1025'>CARRY</span></td><td class='notes'>Hal read-only</td></tr>
+<tr><td>Unusual Whales</td><td><code>uw-net-prem</code></td><td>Rose</td><td class='cadence'>Near-wall or session wrap</td><td class='num'>900s</td><td class='num'>2026-10-02 1:00 PM PT</td><td><span class='tchip flat' title='OID-CLOSE-20261002-1'>CARRY</span></td><td class='notes'>flow_per_strike + market_tide</td></tr>
+<tr><td>Unusual Whales</td><td><code>uw-oe</code></td><td>Rose</td><td class='cadence'>Near-wall notify</td><td class='num'>1800s</td><td class='num'>—</td><td><span class='tchip flat' title=''>NOT_BUILT</span></td><td class='notes'>No writer. Dark pool is not collected. Not a failed fetch.</td></tr>
+<tr><td>Unusual Whales</td><td><code>uw-form4</code></td><td>Rose</td><td class='cadence'>Premarket universe + afternoon midday forced</td><td class='num'>21600s</td><td class='num'>2026-10-02 12:32 PM PT</td><td><span class='tchip flat' title='oid-afternoon-validation / OID-PM-20261002-1 Form-4 force refresh (missed on PM run)'>CARRY</span></td><td class='notes'>Form-4 / insider; Hal read-only</td></tr>
+<tr><td>Robinhood</td><td><code>rh-quotes</code></td><td>shared</td><td class='cadence'>Scan color; dashboard session/day%; elevate always live</td><td class='num'>120s</td><td class='num'>2026-10-02 1:56 PM PT</td><td><span class='tchip flat' title='oid-support-levels-watch'>CARRY</span></td><td class='notes'>Equity quotes · session badge / day%</td></tr>
+<tr><td>Robinhood</td><td><code>rh-option-marks</code></td><td>shared</td><td class='cadence'>Q5 + walls + Hal intraday :11/:26/:41/:56 ET</td><td class='num'>300s</td><td class='num'>2026-10-02 1:02 PM PT</td><td><span class='tchip flat' title='refresh_marks.py'>CARRY</span></td><td class='notes'>Open paper marks; elevate/invalidate need live</td></tr>
+<tr><td>Robinhood</td><td><code>rh-rvol</code></td><td>Rose</td><td class='cadence'>Near-wall writers</td><td class='num'>1800s</td><td class='num'>—</td><td><span class='tchip flat' title=''>NOT_BUILT</span></td><td class='notes'>No writer. Session RVOL is not collected. Not a failed fetch.</td></tr>
+<tr><td>X</td><td><code>x-core8</code></td><td>Rose</td><td class='cadence'>Drafted weekday :48 10–15 ET — enabled=false</td><td class='num'>—</td><td class='num'>—</td><td><span class='tchip flat' title=''>DISABLED</span></td><td class='notes'>OID Core-8 disabled; see HAL-X-ALLOWLIST for Hal list</td></tr>
+<tr><td>X</td><td><code>hal-x-scan</code></td><td>Hal</td><td class='cadence'>8:11–20:11 PT every 2h, 7 days (HAL-CADENCE-V1)</td><td class='num'>7200s</td><td class='num'>2026-10-04 4:20 PM PT</td><td><span class='tchip ok' title='Hal'>OK</span></td><td class='notes'>Trader/options insights; notify on high signal only</td></tr>
+<tr><td>Dashboard</td><td><code>live-refresh</code></td><td>shared</td><td class='cadence'>Piggyback after elevate / invalidate / walls / Hal marks</td><td class='num'>300s</td><td class='num'>2026-10-02 1:02 PM PT</td><td><span class='tchip flat' title='dashboard'>CARRY</span></td><td class='notes'>dashboard/live_refresh.py → here.now bold-tulip-nejq</td></tr>
+<tr><td>Hal</td><td><code>hal-intraday-marks</code></td><td>Hal</td><td class='cadence'>:11/:26/:41/:56 ET, 9–15 weekdays</td><td class='num'>900s</td><td class='num'>2026-10-02 1:02 PM PT</td><td><span class='tchip flat' title=''>CARRY</span></td><td class='notes'>Marks + Greeks + soft triggers; quiet unless material · file market-data/latest/hal-marks.json. Last success Friday 1:02 PM PT. Weekend hold is carry, not a failed pull. Book flat.</td></tr>
+<tr><td>Robinhood</td><td><code>hal-rh-watch</code></td><td>Hal</td><td class='cadence'>Weekdays :05/:35 ET, 10–15. Soft tape only.</td><td class='num'>3600s</td><td class='num'>2026-10-02 12:42 PM PT</td><td><span class='tchip flat' title=''>CARRY</span></td><td class='notes'>Tech + chip play watch pulse. Soft color. Never elevates. Last RTH pulse Friday 12:42 PM PT. Weekend hold is carry, not a failed fetch.</td></tr>
+<tr><td>EDGAR</td><td><code>premarket-edgar</code></td><td>Rose</td><td class='cadence'>8:15 ET premarket (Form-4 sweep owner)</td><td class='num'>21600s</td><td class='num'>2026-10-02 12:32 PM PT</td><td><span class='tchip flat' title='oid-afternoon-validation / OID-PM-20261002-1 Form-4 force refresh (missed on PM run)'>CARRY</span></td><td class='notes'>oid-premarket-edgar-ping; Form-4 universe</td></tr>
+<tr><td>Soft</td><td><code>close-triggers</code></td><td>shared</td><td class='cadence'>After marks (live_refresh hook)</td><td class='num'>600s</td><td class='num'>2026-10-02 6:26 PM PT</td><td><span class='tchip flat' title='OID'>CARRY</span></td><td class='notes'>Alerts only — never auto-close / never RH</td></tr>
+<tr><td>Soft</td><td><code>book-triggers</code></td><td>Rose</td><td class='cadence'>After marks / scorecard</td><td class='num'>600s</td><td class='num'>2026-10-02 6:26 PM PT</td><td><span class='tchip flat' title='Rose'>CARRY</span></td><td class='notes'>BOOK_TP / BOOK_GIVEBACK soft flags</td></tr>
+<tr><td>OID</td><td><code>paper-open</code></td><td>shared</td><td class='cadence'>On change (not TTL-gated)</td><td class='num'>on change</td><td class='num'>2026-10-02 6:26 PM PT</td><td><span class='tchip ok' title=''>OK</span></td><td class='notes'>Open seat snapshot for peers</td></tr>
+<tr><td>Quota</td><td><code>api-quotas</code></td><td>shared</td><td class='cadence'>Refresh on Data sources rebuild / Hal marks / Rose walls</td><td class='num'>3600s</td><td class='num'>2026-10-04 4:20 PM PT</td><td><span class='tchip flat' title='Hal'>CARRY</span></td><td class='notes'>FlashAlpha daily calls + X credit balance at top of this page</td></tr>
+<tr><td>Catalysts</td><td><code>desk-catalysts</code></td><td>Hal</td><td class='cadence'>Refresh on ask / premarket; FA earnings primary</td><td class='num'>21600s</td><td class='num'>2026-09-29 7:25 AM PT</td><td><span class='tchip flat' title='oid-data-day-delta-0929'>CARRY</span></td><td class='notes'>Watchlist earnings + other events → Events tab. Last as_of 2026-09-27. Not refreshed for Oct 2. Not a live calendar. Not an RTH outage.</td></tr>
+<tr><td>X</td><td><code>x-spend</code></td><td>Hal</td><td class='cadence'>After each Hal X scan + quota refresh</td><td class='num'>3600s</td><td class='num'>2026-10-04 4:20 PM PT</td><td><span class='tchip flat' title='Hal'>CARRY</span></td><td class='notes'>X $ spend: today / week / month / total since tracking start</td></tr>
+<tr><td>Robinhood</td><td><code>market-tape</code></td><td>shared</td><td class='cadence'>Piggyback on live_refresh / Hal marks (with equity quotes)</td><td class='num'>300s</td><td class='num'>2026-10-02 1:02 PM PT</td><td><span class='tchip flat' title='live_refresh.py'>CARRY</span></td><td class='notes'>SPY·QQQ·DIA strip + RSP/VTV/VUG helpers · soft/paper</td></tr>
+<tr><td>Robinhood</td><td><code>shay-semi-watch</code></td><td>Rose</td><td class='cadence'>Piggyback on live_refresh equity quotes</td><td class='num'>300s</td><td class='num'>2026-10-02 1:02 PM PT</td><td><span class='tchip flat' title='refresh_marks.py'>CARRY</span></td><td class='notes'>Shay 2027-PE equity soft watch · since-post% vs Fri baseline · no seats</td></tr>
+<tr><td>Robinhood</td><td><code>chart-daily</code></td><td>Chart Bot</td><td class='cadence'>One-shot daily history. No weekday collector yet.</td><td class='num'>—</td><td class='num'>2026-10-04 2:33 PM PT</td><td><span class='tchip ok' title='Chart Bot'>OK</span></td><td class='notes'>CB-DAILY-V1 Tech+chip play 37. Split-adjusted regular daily bars. Last session 2026-10-02. Computed 2026-10-04 2:33 PM PT. Not a live quote. SKHY and SPCX lack 200 bars. Forecasts null. softOnly.</td></tr>
+<tr><td>Desk store</td><td><code>supply-chain-identity</code></td><td>Customer/Supplier Bot</td><td class='cadence'>Identity snapshot only. No collector.</td><td class='num'>—</td><td class='num'>2026-10-04 4:57 PM PT</td><td><span class='tchip ok' title='Customer/Supplier Bot'>OK</span></td><td class='notes'>Tech+chip play identity. Relationships 0, claims 0. Empty edges are not a failed fetch. Not a live graph. softOnly.</td></tr>
+<tr><td>X+web</td><td><code>peanut-news</code></td><td>Peanut</td><td class='cadence'>Weekdays 5:30 AM PT, then every 5 min 6:11 AM–1:56 PM PT. File updates only on a move-worthy alert.</td><td class='num'>—</td><td class='num'>2026-10-02 5:33 AM PT</td><td><span class='tchip ok' title='Peanut'>OK</span></td><td class='notes'>Tech+chip play move-worthy alerts. Last alert Fri 2026-10-02 5:33 AM PT (STX/WDC/AMZN). Quiet scans do not rewrite this file, so the stamp is last alert, not last scan. Weekend hold. Not a failed pull. Score is a news judgment, not a forecast. softOnly.</td></tr>
+<tr><td>Robinhood</td><td><code>shay-ma-levels</code></td><td>Rose</td><td class='cadence'>Spots piggyback live_refresh; full MA recompute via refresh_shay_ma_levels.py (daily/on demand)</td><td class='num'>300s</td><td class='num'>2026-10-02 1:02 PM PT</td><td><span class='tchip flat' title='refresh_marks.py'>CARRY</span></td><td class='notes'>Shay key-levels MA soft watch · EMA9/21 SMA50/200 + Total Trend · softOnly · never elevate alone</td></tr>
+<tr><td>FlashAlpha+RH</td><td><code>support-map</code></td><td>Rose</td><td class='cadence'>Weekdays every 15 min, 6:05 AM–1:50 PM PT. Soft only.</td><td class='num'>300s</td><td class='num'>2026-10-02 1:56 PM PT</td><td><span class='tchip flat' title='oid-support-levels-watch'>CARRY</span></td><td class='notes'>Put-wall distance for the support watch. Last file Fri 1:56 PM PT. Walls inside are the 1:00 PM quota carry, not a fresh FlashAlpha pull. Weekend hold. Never elevates.</td></tr>
+<tr><td>FRED</td><td><code>fred-hy-oas</code></td><td>shared</td><td class='cadence'>With fidelity-three refresh (daily-ish)</td><td class='num'>86400s</td><td class='num'>2026-10-02 1:02 PM PT</td><td><span class='tchip flat' title='refresh_market_tape.py'>CARRY</span></td><td class='notes'>ICE BofA HY OAS BAMLH0A0HYM2 · public CSV · no key</td></tr>
+<tr><td>FRED</td><td><code>fred-ig-oas</code></td><td>shared</td><td class='cadence'>With fidelity-three refresh (daily-ish)</td><td class='num'>86400s</td><td class='num'>2026-10-02 1:02 PM PT</td><td><span class='tchip flat' title='refresh_market_tape.py'>CARRY</span></td><td class='notes'>ICE BofA IG Corp OAS BAMLC0A0CM · public CSV · no key</td></tr>
+<tr><td>FRED+RH</td><td><code>macro-spot</code></td><td>shared</td><td class='cadence'>Piggyback on live_refresh / market-tape</td><td class='num'>300s</td><td class='num'>2026-10-02 1:02 PM PT</td><td><span class='tchip flat' title='live_refresh.py'>CARRY</span></td><td class='notes'>File stamp Fri 1:02 PM PT is weekend carry, not an outage. VIX is that Friday quote. WTI/Brent futures match the Macro morning note. 10Y inside is FRED/UW 4.96% as of 2026-09-22, not Friday's tape. FRED spot oil is 2026-09-15 and is not the score. soft only.</td></tr>
+<tr><td>Macro</td><td><code>macro-morning</code></td><td>Macro Bot</td><td class='cadence'>Weekdays 5:45 AM PT chat pack. This file is not written by that routine yet.</td><td class='num'>21600s</td><td class='num'>2026-10-02 5:54 AM PT</td><td><span class='tchip flat' title='Macro Bot'>CARRY</span></td><td class='notes'>Last judgment Fri 2026-10-02 5:54 AM PT. daily_macro warm/+1, macro_tech warm/+2. Seven scores are evidence, not a sum. Weekend hold. Row will not move Monday until the morning routine writes this file. Not a live quote. softOnly.</td></tr>
+<tr><td>Dashboard</td><td><code>fidelity-three</code></td><td>shared</td><td class='cadence'>Piggyback on live_refresh (equity quotes + FRED + Yahoo hist)</td><td class='num'>1800s</td><td class='num'>2026-10-02 1:02 PM PT</td><td><span class='tchip flat' title='live_refresh.py'>CARRY</span></td><td class='notes'>Median-growth proxy (RSP−SPY) · credit OAS · VTV/VUG valuation proxy</td></tr>
+</tbody></table></div>
+<footer>
+Research / paper only · Zero RH execution. Top bar = FlashAlpha daily calls + X credit $ · UW has no meter · RH no $. Status: <strong>OK</strong> within TTL · <strong>STALE</strong> past TTL in RTH · <strong>CARRY</strong> last write held outside RTH (weekend/closed) ·
+<strong>ERROR</strong> vendor/error flag · <strong>NEVER</strong> no cache file · <strong>DISABLED</strong> routine off.
+See <code>dashboard/DATA-SOURCES.md</code>.
+</footer>
+</div></body></html>

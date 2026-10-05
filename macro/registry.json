@@ -1,0 +1,15 @@
+{
+  "bot": "Macro Bot",
+  "as_of_pt": "2026-10-05 8:48 AM PT",
+  "authority": "research_alerts_soft_color_only",
+  "feeds": [
+    {"id": "macro-morning", "file": "market-data/latest/macro-morning.json", "cadence": "weekday_0545_pt_pack_0614_pt_file", "neverElevateAlone": true},
+    {"id": "macro-econ-calendar", "file": "market-data/latest/macro-econ-calendar.json", "cadence": "weekday_0550_pt_plus_oneshots", "neverElevateAlone": true},
+    {"id": "macro-x-tech", "file": "market-data/latest/macro-x-scan.json", "cadence": "weekday_hourly_0910_1510_et", "sharedXPool": true, "neverElevateAlone": true}
+  ],
+  "metric_inputs": ["10Y_yield", "oil_WTI_Brent", "USD_DXY_or_USDJPY", "VIX", "NQ_vs_ES", "credit_HYG_day", "event_calendar"],
+  "conflict_order": ["event_print", "10Y", "NQ_vs_ES", "oil_day_pct", "VIX", "dollar"],
+  "oil_primary": "WTI_CL_and_Brent_front_month_futures",
+  "not_applicable": ["trading_economics_consensus", "cme_fedwatch", "databento", "fred_hy_ig_oas_credit", "2y_real_yields", "15m_material_change_check", "three_briefs_per_day", "versioned_release_records", "api", "push_receiver", "flashalpha", "unusual_whales", "robinhood_quotes"],
+  "shared_pools": ["X"]
+}

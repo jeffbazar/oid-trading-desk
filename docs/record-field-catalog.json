@@ -1,0 +1,165 @@
+{
+  "contract_version": "five-bot-field-catalog-v1",
+  "status": "FIELD_CATALOG_PROPOSAL_NOT_FULL_PAYLOAD_JSON_SCHEMA",
+  "envelope_required": [
+    "record_type",
+    "record_id",
+    "revision",
+    "producer",
+    "schema_version",
+    "rule_version",
+    "entity_ids",
+    "instrument_ids",
+    "source_refs",
+    "source_observed_at",
+    "source_published_at",
+    "received_at",
+    "record_available_at",
+    "evaluated_at",
+    "session",
+    "delay_class",
+    "coverage_state",
+    "data_status",
+    "supersedes_revision",
+    "correction_status",
+    "next_review_at"
+  ],
+  "rules": [
+    "Stable IDs, immutable revisions, separate latest-head pointers",
+    "Unknowns null; financial values decimal strings with units/currency/basis",
+    "One generated_at cannot refresh the ages of component sources",
+    "Prediction probabilities null until a registered calibrated model covers that outcome/horizon",
+    "Disclosure confidence, exposure confidence, impact direction, materiality and alert priority are separate",
+    "Record availability for evaluation includes ingestion/processing latency; do not backdate",
+    "Receipt acknowledgment, analysis completion, decision approval and paper transaction are distinct",
+    "Critical quote evidence includes source time, delay/session, exact contract and current bid/ask"
+  ],
+  "producer_payloads": {
+    "chart": {
+      "record_types": [
+        "chart_setup"
+      ],
+      "fields": [
+        "timeframe",
+        "completed_bar_refs",
+        "adjustment_basis",
+        "features",
+        "pivots_with_confirmation_times",
+        "pattern_status",
+        "trigger",
+        "invalidation",
+        "setup_expiry",
+        "forecast_outcome",
+        "forecast_horizon",
+        "model_version",
+        "validation_status",
+        "probability_or_null"
+      ]
+    },
+    "macro": {
+      "record_types": [
+        "economic_release",
+        "macro_snapshot"
+      ],
+      "fields": [
+        "release_id",
+        "actuals_with_units",
+        "original_prior",
+        "revised_prior",
+        "frozen_consensus_ref",
+        "surprise",
+        "market_transmission_refs",
+        "daily_macro",
+        "macro_tech",
+        "input_scores",
+        "reasoning",
+        "tone_labels",
+        "confidence_category",
+        "stale_conflicting_inputs"
+      ]
+    },
+    "news": {
+      "record_types": [
+        "news_event",
+        "event_assessment",
+        "company_relationship",
+        "project_milestone"
+      ],
+      "fields": [
+        "event_id",
+        "claims",
+        "attribution",
+        "evidence_refs",
+        "source_status",
+        "novelty",
+        "expectations_ref",
+        "affected_entities",
+        "exposure_paths",
+        "exposure_confidence",
+        "direct_or_inferred",
+        "milestone_type",
+        "economic_horizon"
+      ]
+    },
+    "rose": {
+      "record_types": [
+        "trader_decision"
+      ],
+      "fields": [
+        "position_or_setup_id",
+        "thesis_family_id",
+        "campaign_id",
+        "trade_horizon",
+        "exact_signed_legs",
+        "original_target",
+        "binding_rules",
+        "time_stop",
+        "contract_scenarios",
+        "risk_checks",
+        "override",
+        "action",
+        "next_review_at",
+        "authority_required"
+      ]
+    },
+    "hal": {
+      "record_types": [
+        "trader_decision"
+      ],
+      "fields": [
+        "position_or_setup_id",
+        "thesis_family_id",
+        "campaign_id",
+        "management_category",
+        "durable_thesis",
+        "dated_expectations",
+        "catalyst_window",
+        "milestones",
+        "intended_exit",
+        "duration_buffer",
+        "contract_scenarios",
+        "binding_rules",
+        "risk_checks",
+        "action",
+        "next_review_at"
+      ]
+    }
+  },
+  "infrastructure_payloads": [
+    "market_quote",
+    "option_quote",
+    "price_bar",
+    "option_analytics",
+    "flow_observation",
+    "dealer_levels",
+    "instrument_reference",
+    "source_document",
+    "company_metric",
+    "company_estimate",
+    "scheduled_event",
+    "position_revision",
+    "recipient_alert",
+    "source_health"
+  ],
+  "note": "Earlier shared-bot-records.schema.json validates the proposed supplier/event record families only. Chart, macro and trader payload schemas require separate implementation and validation."
+}

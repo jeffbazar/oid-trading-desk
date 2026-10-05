@@ -1,0 +1,73 @@
+{
+  "feed": "chart-daily",
+  "file": "chart-daily-observations.json",
+  "owner": "Chart Bot",
+  "rule": "CB-DAILY-V1",
+  "softOnly": true,
+  "neverElevateAlone": true,
+  "routine": "chart-daily-refresh",
+  "cadence": "Weekdays 2:24 PM PT after cash close; weekend/holiday keep last completed session",
+  "universe_id": "RH-TECH-CHIP-20261004",
+  "universe_note": "Robinhood Tech \u222a chip play, 37 names; GOOG Class C only; QQQ+SMH benchmarks on lists; SOXX not fetched",
+  "api": {
+    "connector": "user-robinhood-trading",
+    "tool": "get_equity_historicals",
+    "params": {
+      "interval": "day",
+      "bounds": "regular",
+      "adjustment": "split",
+      "start": "2024-01-01Z"
+    },
+    "calls_per_weekday": "~37 (one per symbol)",
+    "do_not_duplicate": true
+  },
+  "outputs": [
+    "chart-bot/observations/{SYMBOL}.json",
+    "chart-bot/latest/chart-daily-observations.json",
+    "market-data/latest/chart-daily-observations.json",
+    "https://bold-tulip-nejq.here.now/chart.html"
+  ],
+  "indicators": {
+    "shay_lineage": [
+      "EMA9",
+      "EMA21",
+      "SMA50",
+      "SMA200"
+    ],
+    "engineering_unvalidated": [
+      "SMA20",
+      "ATR14"
+    ],
+    "total_trend": [
+      "Bullish",
+      "Bearish",
+      "Hold",
+      "UNAVAILABLE"
+    ],
+    "relative_strength": "20-session close-to-close vs QQQ and SMH"
+  },
+  "handoff": {
+    "to": [
+      "Rose - Option Trader 1",
+      "Hal - Options Trader 2"
+    ],
+    "when": "material trend flips or newly UNAVAILABLE after weekday refresh",
+    "quiet_if_unchanged": true,
+    "never_elevates": true
+  },
+  "not_applicable": [
+    "Databento",
+    "Massive",
+    "5/15/60-min bars",
+    "weekly bars",
+    "1-min RVOL",
+    "pattern detector",
+    "SOXX",
+    "forecasts/probabilities",
+    "push receiver",
+    "changes API"
+  ],
+  "does_not_share": "Rose/Hal live RH quote pulse",
+  "last_write_pt": "2026-10-04 2:33 PM PT",
+  "last_completed_session": "2026-10-02"
+}

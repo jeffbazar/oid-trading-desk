@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<meta http-equiv="refresh" content="300"/>
+<title>OID · Soft Grader</title>
+<style>
+:root{
+  --bg:#070b10; --panel:#0e141c; --line:#1a2533;
+  --text:#e8eef7; --muted:#7f91a8; --accent:#4da3ff;
+  --good:#3dd68c; --bad:#ff6b7a; --warn:#f0b429; --flat:#9aa8b8;
+  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,system-ui,-apple-system,sans-serif;background:
+  radial-gradient(900px 420px at 8% -8%,#142033 0%,transparent 55%),
+  radial-gradient(700px 380px at 100% 0%,#1a1528 0%,transparent 50%),
+  var(--bg);color:var(--text);min-height:100vh}
+.wrap{max-width:1340px;margin:0 auto;padding:22px 18px 56px}
+h1{font-size:1.35rem;margin:0 0 6px}
+h2{font-size:1.05rem;margin:22px 0 10px}
+.sub{color:var(--muted);font-size:.88rem}
+.tabs{display:flex;gap:8px;margin:0 0 16px;flex-wrap:wrap}
+.tabs a{display:inline-block;padding:7px 14px;border-radius:999px;border:1px solid var(--line);color:var(--muted);text-decoration:none;font-size:.78rem;font-weight:650;letter-spacing:.04em;text-transform:uppercase}
+.tabs a.active,.tabs a:hover{color:var(--text);border-color:#2a4a70;background:#152030}
+.table-wrap{border:1px solid var(--line);border-radius:12px;overflow:auto;background:var(--panel)}
+table{width:100%;border-collapse:collapse;min-width:720px}
+th,td{padding:9px 11px;text-align:left;font-size:.84rem;border-bottom:1px solid var(--line);vertical-align:top}
+th{color:var(--muted);font-weight:600;font-size:.68rem;text-transform:uppercase;background:#0a1018;position:sticky;top:0}
+td.num,.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+td.notes{font-size:.78rem;color:var(--muted);max-width:420px;line-height:1.35}
+.tchip{display:inline-block;font-size:.62rem;padding:2px 6px;border-radius:999px;border:1px solid var(--line);color:var(--muted);background:#0a1018;text-transform:uppercase;font-weight:650}
+.tchip.paper{color:#3dd68c;border-color:#2a5a40;background:#0f2418}
+.tchip.watch{color:#f0b429;border-color:#6a4e18;background:#2a1f0a}
+.tchip.skip{color:#ff6b7a;border-color:#5a2a32;background:#2a1218}
+.empty{color:var(--muted);padding:16px;text-align:center}
+.note{font-size:.82rem;color:var(--muted);margin:8px 0 16px;line-height:1.4}
+.note ul{margin:6px 0 0;padding-left:18px}
+.callout{border:1px solid #6a4e18;background:#2a1f0a;border-radius:10px;padding:10px 14px;margin:12px 0;color:var(--warn);font-size:.88rem;line-height:1.45}
+.callout strong{color:var(--text)}
+.check-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:800px){.check-grid{grid-template-columns:1fr}}
+.panel{border:1px solid var(--line);border-radius:12px;background:var(--panel);padding:12px 14px}
+.panel h3{margin:0 0 8px;font-size:.9rem}
+.panel ul{margin:0;padding-left:18px;color:var(--muted);font-size:.82rem;line-height:1.45}
+code{font-family:var(--mono);font-size:.78rem;color:#b8c9de}
+footer{margin-top:24px;color:var(--muted);font-size:.8rem;line-height:1.45}
+</style>
+<meta property="og:title" content="OID Live Book Rose and Hal" />
+<meta property="og:description" content="A shared paper trading ticker and research blotter tracking live market marks, cost basis, and soft watch lists for Rose and Hal." />
+<meta property="og:url" content="https://bold-tulip-nejq.here.now/soft-grader.html" />
+<meta property="og:type" content="website" />
+<meta property="og:image" content="https://here.now/og/bold-tulip-nejq.jpg" />
+<meta property="og:image:width" content="1280" />
+<meta property="og:image:height" content="720" />
+<meta name="twitter:image" content="https://here.now/og/bold-tulip-nejq.jpg" />
+<meta name="twitter:card" content="summary_large_image" /></head><body><div class="wrap">
+<div class="tabs"><a href="index.html">Blotter</a><a href="data-sources.html">Data sources</a><a href="trader-intel.html">Trader intel</a><a href="catalysts.html">Events</a><a class="active" href="soft-grader.html">Soft Grader</a><a href="map.html">Map</a><a href="chart.html">Chart</a></div>
+<h1>Soft Grader V1 · soft second opinion</h1>
+<div class="sub">Never elevates alone · research / paper only · schema 1.0 · Built 2026-10-04 5:26 PM PT · feed as of 2026-09-28 6:27 AM PT</div>
+
+<div class="callout">
+  <strong>What it is:</strong> a cheap typed second opinion on elevate packets / take-or-skip
+  (regime · direction · setup_quality · risk_state · toxic_flow · wrongAbout) — Jev-style lean from a compact snapshot (~400 tokens).<br/>
+  <strong>What it is not:</strong> a wall / FA / soft-catalyst replacement; a seat or premium authority;
+  a Close Playbook override; an auto-elevate. Hard gates always win. Zero RH execution.
+</div>
+
+<p class="note">No graded elevates yet — schema live. Soft only.</p>
+
+<h2>Typed answer schema</h2>
+<div class="table-wrap"><table>
+<thead><tr>
+  <th>Field</th><th>Type</th><th>Values</th><th>Meaning</th>
+</tr></thead>
+<tbody>
+<tr><td><code>regime</code></td><td>enum</td><td class='notes'>trending | mean_reverting | high_vol | crisis</td><td class='notes'>Tape regime lean</td></tr>
+<tr><td><code>direction</code></td><td>enum</td><td class='notes'>long | short | neutral</td><td class='notes'>Directional lean</td></tr>
+<tr><td><code>direction_confidence</code></td><td>number</td><td class='notes'>0.0–1.0</td><td class='notes'>Confidence in direction</td></tr>
+<tr><td><code>toxic_flow</code></td><td>bool</td><td class='notes'>true | false</td><td class='notes'>Adverse / toxic flow flag</td></tr>
+<tr><td><code>setup_quality</code></td><td>int</td><td class='notes'>0–3</td><td class='notes'>Setup quality score</td></tr>
+<tr><td><code>risk_state</code></td><td>enum</td><td class='notes'>safe | near_limit | reduce</td><td class='notes'>Book / ticket risk lean</td></tr>
+<tr><td><code>wrong_about</code></td><td>string</td><td class='notes'>short string</td><td class='notes'>Short opposing-case string (required) · required</td></tr>
+</tbody></table></div>
+
+<h2>Translation rules (deterministic)</h2>
+<div class="table-wrap"><table>
+<thead><tr>
+  <th>Lean</th><th>When</th><th>Note</th>
+</tr></thead>
+<tbody>
+
+<tr>
+  <td><span class="tchip paper">PAPER lean</span></td>
+  <td class="notes">setup_quality &gt;= 2; direction matches thesis; direction_confidence &gt;= 0.80; risk_state != reduce; NOT toxic_flow; regime != crisis</td>
+  <td class="notes">Soft lean only — hard gates still required; never elevates alone</td>
+</tr>
+<tr>
+  <td><span class="tchip watch">WATCH</span></td>
+  <td class="notes">setup_quality == 1; direction_confidence in [0.60, 0.79]; risk_state == near_limit</td>
+  <td class="notes">Unless forced SKIP</td>
+</tr>
+<tr>
+  <td><span class="tchip skip">SKIP</span></td>
+  <td class="notes">else, or stale/unavailable/crisis/toxic_flow</td>
+  <td class="notes">Default when stale, unavailable, or crisis</td>
+</tr>
+
+</tbody></table></div>
+
+<h2>Snapshot fields (grader input)</h2>
+<div class="check-grid">
+  <div class="panel">
+    <h3>Compact numeric state · ≤~400 tokens</h3>
+    <ul><li><code>symbol</code></li><li><code>contract</code></li><li><code>spot</code></li><li><code>vs_call_wall_pct</code></li><li><code>vs_put_wall_pct</code></li><li><code>day_pct</code></li><li><code>vix</code></li><li><code>regime_hint</code></li><li><code>flow_flags</code></li><li><code>dte</code></li><li><code>premium</code></li><li><code>seats_used</code></li><li><code>age_s</code></li><li><code>thesis_direction</code></li></ul>
+  </div>
+  <div class="panel">
+    <h3>Hard gates that always win</h3>
+    <ul><li>freshness (RH live ≤120s)</li><li>seats</li><li>premium caps</li><li>noElevateIntoPrint</li><li>WALLS_DATA_INSUFFICIENT</li><li>Soft C never alone</li><li>Close Playbook V1.1</li><li>soft-catalyst + FA structure</li></ul>
+  </div>
+</div>
+
+<h2>Live grades</h2>
+<p class="note" style="margin-top:0">From <code>market-data/latest/soft-grader.json</code> → <code>payload.grades[]</code>. Soft color only.</p>
+<div class="table-wrap"><table>
+<thead><tr>
+  <th>As of</th><th>Symbol</th><th>Contract</th><th>Lean</th><th>Regime</th><th>Dir</th>
+  <th class="num">Conf</th><th class="num">Setup</th><th>Risk</th><th>Toxic</th><th>Wrong about</th>
+</tr></thead>
+<tbody>
+<tr><td colspan='11' class='empty'>No graded elevates yet — schema live. Soft only. Grades appear here after Soft Grader runs on a PAPER_CANDIDATE packet.</td></tr>
+</tbody></table></div>
+
+<footer>
+Soft Grader never elevates alone. Does not override FA walls, RH ≤120s marks, Close Playbook V1.1, or mandate hard gates.
+Default SKIP/WATCH if snapshot stale, grader unavailable, or crisis regime. Research / paper only · <strong>zero RH orders</strong>.
+Docs: <code>SOFT-GRADER-V1.md</code> · schema <code>market-data/latest/soft-grader-schema.json</code> · elevate template
+<code>paper-trades/notes/SOFT-GRADER-ELEVATE-TEMPLATE.md</code>. Mandate: Soft Grader section in <code>MANDATE-V1.8.md</code>.
+</footer>
+</div></body></html>

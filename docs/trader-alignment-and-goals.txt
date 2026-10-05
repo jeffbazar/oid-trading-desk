@@ -1,0 +1,112 @@
+TRADER ALIGNMENT AND GOALS — ROSE AND HAL
+Proposed policy, October 4, 2026
+Draft only. No capital allocation, risk rule, bot or trading authority has changed.
+
+Set both portfolio goals and individual trade plans, with different jobs. The portfolio goal is to grow cashflow-adjusted capital after costs while staying within the approved risk budget. Each trade needs a target, invalidation and deadline suited to its thesis. A fixed profit quota should not force either trader to enter, hold or increase risk.
+
+I would establish measurable process goals now, reconcile the paper record, and calibrate return ambitions prospectively. The prior October 2 audited sample (31 Rose records and 26 Hal records) cannot support a credible monthly growth target. In that sample, Rose's three largest displayed winners account for approximately 89% of her net displayed profit. Hal has credit-spread sign errors and many administrative/operator exits. Neither reviewed record supplies a complete audited NAV and cashflow history. The refreshed October 4 site also shows weekend administrative flattening at prior-session marks; that is separate from live execution or evidence of a new trading edge.
+
+1. SHARED OBJECTIVE AND PRIORITY
+
+Use this objective for both traders:
+
+“Improve the desk's capital after realistic costs through repeatable decisions, while preserving authorized risk limits and recording evidence honestly. Protect existing positions before adding exposure. Take an eligible opportunity when its instrument and timing fit the thesis; remain in cash when they do not.”
+
+Priority: execution authority and hard risk/data gates; binding thesis failures and event/expiry exposure; existing-position decisions; eligible new opportunities; then return ambition. A profitable outcome does not excuse a breached gate. A properly handled losing trade is not automatically poor execution.
+
+Keep the current research/paper-only mandate and alert-only close authority. Proposed goals do not authorize automated closure, live orders, expanded instruments or larger positions.
+
+2. DIFFERENT MANDATES, CONSISTENT EVALUATION
+
+Rose should pursue short-term opportunities with defined price triggers, rapid risk review and a progress deadline. Her main process goals are timely invalidation, avoiding stalled under-wall positions, disciplined profit review, reliable near-expiry handling and explicit overnight decisions.
+
+Hal should pursue a durable thesis with dated catalysts and a contract whose remaining duration fits them. His main process goals are compatible business/expectations evidence, suitable strikes, earnings/IV planning, catalyst-progress review and campaign accounting. Choosing a January expiry does not by itself make an intraday wall press a longer-term trade.
+
+Review Rose's decisions daily and outcomes weekly, with rolling monthly/quarterly context. Review Hal's protective risks daily, thesis progress weekly, and outcomes over the intended holding/catalyst window and rolling quarterly context. Open losses and gains still appear in daily marked NAV. Hal must not postpone a binding failure until a monthly review, and Rose must not overtrade to win a monthly comparison.
+
+3. PORTFOLIO GROWTH GOALS
+
+Track total desk capital and separate Rose/Hal sleeves, including their allocated cash. If sleeve capital has not been defined, report dollars and risk-normalized outcomes; do not invent percentage account returns.
+
+NAV includes cash and signed values of all positions and applicable liabilities/receivables. Use a consistent documented mark policy and show data gaps. Report both a reference valuation and a conservative estimated liquidation view where reliable bid/ask data permits; do not imply those marks guarantee fills. Include fees, spreads/slippage assumptions, funding and relevant operating costs, without counting a cost twice.
+
+Deposits and withdrawals are external flows, not trading profit. Transfers between Rose and Hal are external flows to each sleeve but cancel within the total desk. Record values before and after material transfers so attribution remains reproducible.
+
+Use time-weighted returns to compare management across allocation changes: calculate returns between external cashflows and link the subperiods. A money-weighted return can additionally describe the owner's experienced result, with its time convention stated. Never call cumulative P&L divided by recycled ticket debits “fund growth.” The underlying calculation principle comes from the [GIPS Standards Handbook](https://www.gipsstandards.org/standards/gips-standards-for-firms/gips-standards-handbook-for-firms/).
+
+Measure percentage drawdown from the resulting cashflow-adjusted performance index, alongside dollar loss and current exposure. A deposit or transfer must not disguise a loss or reset the prior drawdown history merely because nominal NAV rises.
+
+Once the record is credible, set a quarterly/annual aspiration relative to a stated cash/market benchmark and an approved drawdown budget. Derive the ambition from observed after-cost results and stress scenarios. It remains an evaluation objective, not a promised return or requirement to recover losses by a deadline. No supported numerical fund-return target can be inferred from the current table.
+
+4. INDIVIDUAL TRADE TARGETS
+
+Every new recommendation needs an underlying target/range, a target-time option valuation under explicit IV assumptions, an invalidation, a progress deadline, an event/expiry plan and a next check. Distinguish the target from a forecast probability. Without a validated horizon-specific model, probability and numerical expected value remain unknown.
+
+Use targets tied to the opportunity: a wall/level for Rose's approach trade; a supported business/catalyst repricing range for Hal. Review when the original target is reached or remaining economics deteriorate. Do not move the target upward merely because a gain falls short of a monthly quota, or leave a failed trade open to achieve a fixed percentage.
+
+An option can profit on an earlier sale without reaching expiration breakeven. Time, IV, spread and the intended exit all matter. Therefore neither “every call must gain 30%” nor “every trade must offer 2R” should be a universal gate across all strategies. A credit spread has capped upside and different payoff geometry. The [OIC long-call guide](https://www.optionseducation.org/strategies/all-strategies/long-call) explains the role of underlying movement, time and volatility.
+
+Existing +50% MFE arming, conditional loss reviews and Rose book-profit alerts retain their verified scope. A target or review threshold is not new permission to auto-close. Shadow-test proposed earlier profit reviews separately rather than tuning them to the best historical exits.
+
+5. DEFINE R BEFORE COMPARING TRADERS
+
+For a consistent primary comparison, define initial_max_risk_R as the initial bounded loss of the intact strategy, including explicitly estimated relevant costs. Freeze the entry definition and report net P&L/R. This is risk-normalized trade performance, not NAV return.
+
+For standard, unadjusted, same-expiry contracts:
+- Long option: paid premium per share × multiplier × contracts, plus costs.
+- Debit vertical: net debit per share × multiplier × contracts, plus costs.
+- Credit vertical: (strike width − net credit per share) × multiplier × contracts, plus costs.
+
+Validate signed legs, deliverables and strategy identity. An adjusted contract or mixed-expiry structure needs its own payoff calculation. Assignment/exercise and financing exposure are separate from the intact vertical's theoretical expiration bound. The OIC documents the [debit-call-spread risk](https://www.optionseducation.org/strategies/all-strategies/bull-call-spread-debit-call-spread) and [credit-put-spread risk](https://www.optionseducation.org/strategies/all-strategies/bull-put-spread-credit-put-spread).
+
+Example only, not desk allocations: a $5-wide credit spread opened for $1 credit has $400 initial expiration risk for one standard 100-share contract, before costs. Closing it for $0.60 debit earns $40 before costs: +0.10R. The $100 received is not its capital at risk. A long option costing $500 and earning $100 produces +0.20R before costs.
+
+If the policy also uses planned_stop_risk_R, store it separately with its entry-time price/IV/cost assumptions. A stop or loss-review level is not guaranteed execution; an actual loss can exceed 1 planned-stop R. Do not use a hypothetical tight stop as the sole equal-risk denominator while ignoring full premium/gap exposure.
+
+Compare the traders using common capital/risk constraints and the same fill/cost rules, not equal seat counts or raw dollar profit. Also show exposure, holding time, capital utilization and liquidity. Longer holds cannot be fairly evaluated from identical short calendar samples alone. Integer contract sizing may prevent exact dollar-risk matching; disclose that mismatch rather than simulate fractional contracts as executable trades.
+
+6. CAMPAIGNS, OVERLAPS AND ATTRIBUTION
+
+Link rolls/re-entries to a campaign ID. Campaign P&L is signed trade cashflows before fees, minus recorded costs, plus the signed liquidation value of any remaining legs. If cashflows are already net of a cost, do not subtract it again. Include old-ticket losses; a new strike does not reset them. Store the original campaign risk budget, subsequent authorized risk additions, cumulative losses and peak exposure. Ticket R stays frozen; a campaign can lose more than one initial ticket R through repeated entries.
+
+Retain all outcomes in desk totals. Separately attribute rule-compliant decisions, owner overrides, tactical exceptions, operator rotations/trims and administrative closes. Report the complete result alongside category analysis; excluding inconvenient operator losses is not an unbiased success measure.
+
+QQQ, NVDA and multiple semiconductor calls can share one market shock. Group overlapping positions/events and report portfolio shock losses and common-factor concentration. Do not count simultaneous correlated winners as independent proof. Adding Rose and Hal sleeve returns without capital weighting is also not the desk return.
+
+7. MEASURABLE GOALS TO START WITH
+
+The following are proposed paper-process targets, not existing rules or proven trading optima:
+
+- 100% of new recommendations record the original thesis, horizon, target, invalidation, R definition, event/expiry plan, source timestamps and next review. Missing hard-gate inputs block the affected recommendation.
+- Zero unauthorized executions or hard-gate waivers disguised as compliant entries. Record every permitted override explicitly.
+- 100% of open positions reconcile daily; unresolved pricing/accounting exceptions remain visible and are excluded from reconciled calibration until explained. Show their count and potential impact; do not present the resolved subset as the complete track record.
+- Zero expired contracts left represented as actionable tradable seats. Unresolved settlement stays EXPIRED_PENDING_RECONCILIATION; do not invent a sale.
+- Measure P0 source-to-detection, receipt-to-alert and alert-to-decision latency separately. Proposed runtime target: 95% of valid P0 events delivered within 30 seconds of collector receipt, and urgent trader review within 60 seconds of alert delivery when the installed system supports it. Treat misses as coverage/process findings; they do not authorize automatic closure. Slower actual provider observations remain disclosed.
+- Rose documents an individual progress/overnight decision rather than waiting for a portfolio harvest to rescue a loser. Hal documents catalyst progress and duration fit rather than moving farther OTM solely to fit a premium cap.
+- Record every qualified WATCH/NO_TRADE and suppressed alert with a reason. There is no minimum trade count or target win rate.
+
+Report adherence, timeliness and missing coverage directly. Do not reward the bots for manufacturing trades or concealing negative evidence to meet these targets.
+
+8. PAPER CALIBRATION AND SCORECARD
+
+First reconcile the existing ledger and establish daily cash/NAV, price bases, costs and source coverage. Then freeze the policy version and collect prospective paper outcomes. Proposed review checkpoints are after 60 trading sessions for Rose and 120 for Hal, with interim reviews; these are operational windows, not proof of statistical sufficiency. Hal needs completed catalyst/holding cycles. Thin samples or one market regime require more observation, not more forced trades.
+
+The scorecard should show: net marked/realized P&L; cashflow-adjusted sleeve and desk returns; initial-risk R outcomes and campaign totals; drawdown depth/duration and recovery; worst event/day/campaign; profit factor and average win/loss with sample sizes; transaction-cost drag; shared shock exposure; source quality and rule adherence; and benchmark comparison for the same dates.
+
+Win rate is descriptive. A high win rate can coexist with negative results if losses are larger. Profit factor and expectancy should include costs, open-risk context and uncertainty; undefined ratios remain undefined. Show the contribution of the largest winners and losses without deleting them. Do not extrapolate a few favorable weeks into a dependable annual return.
+
+Compare each policy with its unchanged predecessor and simple cash/underlying benchmarks, with risk/exposure differences stated. Preserve rejected candidates, rule trials and unsuccessful variants. Use chronological out-of-sample evaluation and account for overlapping events. Repeatedly choosing the best historical parameters can inflate apparent skill; [Bailey and López de Prado's research](https://www.davidhbailey.com/dhbpapers/deflated-sharpe.pdf) addresses selection bias, multiple testing and non-normal returns.
+
+9. CAPITAL CHANGES AND DRAWDOWN
+
+Before a funded allocation or size increase, the desk needs explicit capital, per-trade/campaign risk, aggregate and correlated-exposure caps, liquidity assumptions, drawdown warning/hard limits, and escalation rules. Their actual dollar/percentage values remain unset here. The historical $5,000 premium ceiling is not a substitute for this full budget.
+
+Do not allocate more because a trader had one exceptional month, increase risk to meet a profit target, or automatically cut every losing strategy after a small sample. Review cost-adjusted performance, mandate fit, drawdowns, common-factor contribution and process reliability. Paper success supports further evaluation; it does not establish live execution quality or authorize live capital.
+
+At a configured drawdown warning, review exposure, data, thesis and policy stability. At a configured hard breach, apply the existing risk escalation and new-risk restrictions; any exit still follows its authorized protocol. Never raise the threshold mid-loss to make the breach disappear. Missing thresholds block a claim that risk has been approved.
+
+Any authorized allocation change starts a new recorded capital/risk version without erasing prior NAV, peak, drawdown or campaign losses. Sleeve cashflow-adjusted performance remains comparable. Review targets on a scheduled basis using accumulated evidence, with changes prospective and documented.
+
+COPY-READY ALIGNMENT ADDENDUM
+
+“Your objective is to improve after-cost portfolio capital within the active risk budget. Your holding horizon and instrument must fit the original thesis. Every recommendation has a defined target, invalidation, deadline and current evidence. Protect open positions before adding exposure. Missing gates mean WATCH or DATA_BLOCK. NO_TRADE is valid. A return ambition never overrides a hard limit, changes the thesis, creates a trade quota or authorizes execution. Record signed cashflows, risk, campaign history, costs, source times and overrides. Evaluate results on marked NAV and comparable risk, including all losses and allocation changes. Keep forecasts and performance claims proportional to validated evidence.”
