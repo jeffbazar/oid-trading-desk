@@ -1,0 +1,57 @@
+{
+  "as_of": "2026-10-04T16:57:37-07:00",
+  "as_of_pt": "2026-10-04 4:57 PM PT",
+  "writer": "Customer/Supplier Bot",
+  "error": null,
+  "ttl_seconds": null,
+  "feed": "supply-chain-identity",
+  "coverage": "identity_only",
+  "collector": false,
+  "entities": 37,
+  "instruments": 37,
+  "relationships": 0,
+  "claims": 0,
+  "sources": [
+    {
+      "source_id": "src-robinhood-watchlists",
+      "status": "connected",
+      "last_success_at": "2026-10-04"
+    },
+    {
+      "source_id": "src-robinhood-sec-filing-index",
+      "status": "connected",
+      "last_success_at": null
+    },
+    {
+      "source_id": "src-flashalpha",
+      "status": "connected_not_called",
+      "last_success_at": null
+    },
+    {
+      "source_id": "src-unusual-whales",
+      "status": "connected_not_called",
+      "last_success_at": null
+    },
+    {
+      "source_id": "src-x",
+      "status": "connected_not_called",
+      "last_success_at": null
+    },
+    {
+      "source_id": "src-benzinga",
+      "status": "not_entitled",
+      "last_success_at": null
+    },
+    {
+      "source_id": "src-factset",
+      "status": "not_entitled",
+      "last_success_at": null
+    },
+    {
+      "source_id": "src-eia",
+      "status": "not_entitled",
+      "last_success_at": null
+    }
+  ],
+  "note": "Identity list only. Zero relationships is the state, not a failed fetch. No weekday collector."
+}
