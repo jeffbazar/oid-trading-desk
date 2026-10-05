@@ -1,0 +1,66 @@
+{
+  "bot": "Hal - Options Trader 2",
+  "as_of_pt": "2026-10-05 10:27 AM PT",
+  "repo": "https://github.com/jeffbazar/oid-trading-desk",
+  "package_path": "hal/",
+  "authority": "research_alerts_paper_only",
+  "feeds": [
+    {
+      "id": "hal-intraday-marks",
+      "file": "market-data/latest/hal-marks.json",
+      "cadence": "weekday_rth_15m_11_26_41_56_et"
+    },
+    {
+      "id": "hal-rh-watch",
+      "file": "market-data/latest/hal-rh-watch-pulse.json",
+      "cadence": "weekday_rth_05_35_et",
+      "neverElevateAlone": true,
+      "duplicateOf": "Rose live RH pulse / proposed rh-quotes"
+    },
+    {
+      "id": "hal-x-scan",
+      "file": "market-data/latest/hal-x-scan.json",
+      "cadence": "every_2h_pt_0811_2011",
+      "allowlistDoc": "hal/HAL-X-ALLOWLIST.md"
+    },
+    {
+      "id": "desk-catalysts",
+      "file": "market-data/latest/desk-catalysts.json",
+      "neverElevateAlone": true,
+      "doc": "hal/DESK-CATALYSTS.md"
+    },
+    {
+      "id": "fa-levels",
+      "role": "reader",
+      "writer": "Rose",
+      "sharedQuota": true,
+      "doc": "hal/FA-READER.md"
+    }
+  ],
+  "docs": [
+    "hal/README.md",
+    "hal/HAL-CADENCE-V1.md",
+    "hal/HAL-X-ALLOWLIST.md",
+    "hal/FA-READER.md",
+    "hal/DESK-CATALYSTS.md",
+    "hal/DUPLICATE-RH-QUOTES.md"
+  ],
+  "duplicate_todo": "hal-rh-watch vs Rose live pulse \u2014 one writer to rh-quotes; see hal/DUPLICATE-RH-QUOTES.md",
+  "not_applicable": [
+    "databento",
+    "massive",
+    "intraday_bars",
+    "60s_quote_cadence_deployed",
+    "edgar_collector",
+    "form4_collector",
+    "benzinga",
+    "rh_order_execution"
+  ],
+  "soft_a_avoid": [
+    "WDC",
+    "STX",
+    "SNDK"
+  ],
+  "google_symbol": "GOOG",
+  "drop_policy": "folder_drop_preferred_over_pr"
+}

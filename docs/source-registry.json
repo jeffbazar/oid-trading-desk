@@ -1,0 +1,1017 @@
+{
+  "registry_version": "bot-operating-kit-v1",
+  "prepared_on": "2026-10-04",
+  "status": "RECOMMENDATION_SPECIFICATION_NOT_A_DEPLOYED_CONFIGURATION",
+  "desk_mode": "RESEARCH_PAPER_ONLY",
+  "bot_ids": [
+    "rose",
+    "hal",
+    "macro",
+    "chart",
+    "news"
+  ],
+  "authority": "Current mandate/risk limits prevail; recommendations do not authorize brokerage execution or automatic closure.",
+  "default_timezones": {
+    "storage": "UTC",
+    "market_schedule": "America/New_York",
+    "human_display": "America/Los_Angeles"
+  },
+  "principles": [
+    "One shared collector per feed; fan out stored records",
+    "Provider candidates are alternatives, not a requirement to purchase all",
+    "Observation age, update cycle, processing interval and reasoning interval are distinct",
+    "Only entitled genuinely live feeds support critical-state price decisions",
+    "Existing FA/UW/Form4 and Hal X writer assignments remain until explicitly migrated",
+    "Customer/Supplier Event Map is a module inside News Alerts in this five-bot design"
+  ],
+  "feeds": [
+    {
+      "feed_id": "equity_quotes",
+      "logical_owner": "shared_collector",
+      "consumers": [
+        "rose",
+        "hal",
+        "chart",
+        "macro",
+        "news"
+      ],
+      "provider_candidates": [
+        "Existing Robinhood path, subject to measured quality",
+        "One entitled consolidated equities feed: Databento or Massive"
+      ],
+      "required_fields": [
+        "instrument_id",
+        "symbol",
+        "bid",
+        "ask",
+        "bid_size",
+        "ask_size",
+        "last",
+        "source_observed_at",
+        "received_at",
+        "session",
+        "delayed",
+        "venue_scope"
+      ],
+      "normal_collection_target": "Stream; fallback shared watchlist 1–5 min, Rose-held 15–30 sec, Hal-held underlying 60 sec",
+      "critical_collection_target": "Rose critical 5–10 sec; Hal critical 10–30 sec, if provider supports genuinely live data",
+      "freshness_policy": "Action targets <=30 sec ordinary / <=10 sec critical; retain applicable current <=120 sec hard gate",
+      "inventory_status": "EXISTING_PATH_VERIFY_LATENCY",
+      "source_urls": [
+        "https://databento.com/docs",
+        "https://www.massive.com/stocks"
+      ],
+      "notes": "Consolidated quotes and single-venue BBO are different; record scope. Use an actual equity quote rather than ORATS parity-derived stockPrice.",
+      "implementation_priority": "FOUNDATION",
+      "operational_status": "PROPOSED_OR_UNVERIFIED_NOT_DEPLOYED_BY_THIS_TASK"
+    },
+    {
+      "feed_id": "equity_bars",
+      "logical_owner": "chart",
+      "consumers": [
+        "chart",
+        "rose",
+        "hal",
+        "macro"
+      ],
+      "provider_candidates": [
+        "Same market-data provider as equity quotes; reuse existing MA lineage"
+      ],
+      "required_fields": [
+        "instrument_id",
+        "bar_start",
+        "bar_end",
+        "timeframe",
+        "open",
+        "high",
+        "low",
+        "close",
+        "volume",
+        "session",
+        "completion_state",
+        "adjustment_basis",
+        "available_at"
+      ],
+      "normal_collection_target": "Ingest trades/1-min bars; publish completed 5/15/60-min, RTH daily and completed weekly bars",
+      "critical_collection_target": "On corrections/halts/splits; no extra LLM scan on unchanged ticks",
+      "freshness_policy": "Calendar-aware completeness and delivery-lag policy; no quote-age TTL on completed daily history",
+      "inventory_status": "EXTEND_EXISTING_DAILY_MA_WITH_FULL_HISTORY",
+      "source_urls": [
+        "https://www.massive.com/docs/rest/stocks/aggregates/custom-bars",
+        "https://databento.com/docs"
+      ],
+      "notes": "At least 250 valid daily bars for initial SMA200 coverage, with more history for evaluation; request >=60 sessions of 1-min history as a proposed RVOL/research starting point. These are not validation sufficiency guarantees. Databento UTC daily bars require session aggregation; Massive split-adjusted bars are not automatically dividend-adjusted.",
+      "implementation_priority": "FOUNDATION",
+      "operational_status": "PROPOSED_OR_UNVERIFIED_NOT_DEPLOYED_BY_THIS_TASK"
+    },
+    {
+      "feed_id": "option_quotes",
+      "logical_owner": "shared_collector",
+      "consumers": [
+        "rose",
+        "hal"
+      ],
+      "provider_candidates": [
+        "Existing Robinhood path, verify exact quote age",
+        "Entitled OPRA through Databento or Massive"
+      ],
+      "required_fields": [
+        "contract_id",
+        "underlying_id",
+        "bid",
+        "ask",
+        "bid_size",
+        "ask_size",
+        "quote_observed_at",
+        "received_at",
+        "session",
+        "delayed",
+        "multiplier",
+        "deliverable",
+        "mark_basis"
+      ],
+      "normal_collection_target": "Stream held contracts; Rose 15–30 sec fallback, Hal core 5 min; narrow candidate chains 1–5 min",
+      "critical_collection_target": "Target held/near-trigger contracts only; Rose 5–10 sec, Hal 10–30 sec when supported; exact quote before decisions",
+      "freshness_policy": "Action targets <=30 sec ordinary / <=10 sec critical, with current hard ceiling preserved; background cache is not actionable freshness",
+      "inventory_status": "EXISTING_PATH_VERIFY_AND_ARCHIVE",
+      "source_urls": [
+        "https://databento.com/docs/examples/options/equity-options-introduction",
+        "https://www.massive.com/options"
+      ],
+      "notes": "OPRA provides quote/trade evidence, not guaranteed fill prices or native aggressor intent. Archive contemporaneous held/candidate contract quotes for evaluation.",
+      "implementation_priority": "FOUNDATION",
+      "operational_status": "PROPOSED_OR_UNVERIFIED_NOT_DEPLOYED_BY_THIS_TASK"
+    },
+    {
+      "feed_id": "option_analytics",
+      "logical_owner": "shared_collector",
+      "consumers": [
+        "rose",
+        "hal"
+      ],
+      "provider_candidates": [
+        "ORATS live/historical analytics, subject to entitlement",
+        "Existing broker Greeks where definition/timestamp are verified"
+      ],
+      "required_fields": [
+        "contract_id",
+        "iv",
+        "delta",
+        "gamma",
+        "theta",
+        "vega",
+        "rho",
+        "greek_units",
+        "model_version",
+        "option_volume",
+        "oi",
+        "oi_as_of",
+        "quoteDate",
+        "updatedAt",
+        "underlying_quote_ref"
+      ],
+      "normal_collection_target": "Rose held 1 min and candidate 5 min; Hal core 15 min; full chain on demand/relevant event",
+      "critical_collection_target": "Refresh on material price/IV/event change; do not poll faster than provider update cycle",
+      "freshness_policy": "Per-field as-of times; OI is not assumed intraday; model values are not executable NBBO",
+      "inventory_status": "RECOMMENDED_ENRICHMENT",
+      "source_urls": [
+        "https://orats.com/docs/live-data-api",
+        "https://orats.com/docs/authentication"
+      ],
+      "notes": "ORATS stockPrice may be parity-derived. Keep independent actual underlying quote. Live analytics and time-and-sales have different delivery characteristics.",
+      "implementation_priority": "ENHANCEMENT",
+      "operational_status": "PROPOSED_OR_UNVERIFIED_NOT_DEPLOYED_BY_THIS_TASK"
+    },
+    {
+      "feed_id": "option_flow",
+      "logical_owner": "rose_existing_writer",
+      "consumers": [
+        "rose",
+        "hal",
+        "chart"
+      ],
+      "provider_candidates": [
+        "Existing Unusual Whales feeds"
+      ],
+      "required_fields": [
+        "trade_id",
+        "contract_id",
+        "trade_time",
+        "available_at",
+        "premium",
+        "size",
+        "trade_condition",
+        "quote_context",
+        "inferred_side",
+        "opening_status",
+        "multileg_uncertainty"
+      ],
+      "normal_collection_target": "Existing shared notifications/Q5/open/FH; eligible near-wall refresh 1–5 min where supported",
+      "critical_collection_target": "Material flow event or eligible setup transition, subject to quota and documented provider cadence",
+      "freshness_policy": "Preserve existing 900-sec cache as background context; report actual observation age",
+      "inventory_status": "EXISTING_KEEP_WRITER",
+      "source_urls": [
+        "https://bold-tulip-nejq.here.now/data-sources.html"
+      ],
+      "notes": "Unknown opening/buyer intent remains unknown. Reposts, vendor aggregates and the underlying prints are related evidence, not independent votes.",
+      "implementation_priority": "FOUNDATION",
+      "operational_status": "PROPOSED_OR_UNVERIFIED_NOT_DEPLOYED_BY_THIS_TASK"
+    },
+    {
+      "feed_id": "dealer_levels",
+      "logical_owner": "rose_existing_writer",
+      "consumers": [
+        "rose",
+        "hal",
+        "chart"
+      ],
+      "provider_candidates": [
+        "Existing FlashAlpha levels/exposure"
+      ],
+      "required_fields": [
+        "instrument_id",
+        "call_wall",
+        "put_wall",
+        "named_flip",
+        "exposure_regime",
+        "source_observed_at",
+        "received_at",
+        "model_version",
+        "prior_revision",
+        "material_roll"
+      ],
+      "normal_collection_target": "Existing hourly wall pulses plus gated Q5/notifications; fresh request on qualifying entry if needed",
+      "critical_collection_target": "Material level roll/structure change; no duplicate Hal writer",
+      "freshness_policy": "Existing 600-sec wall TTL during applicable market session; hourly pulses alone cannot satisfy it",
+      "inventory_status": "EXISTING_KEEP_WRITER",
+      "source_urls": [
+        "https://bold-tulip-nejq.here.now/data-sources.html"
+      ],
+      "notes": "Record model provenance; new current-wall gate and original ticket invalidation are separate. Optional fa-soft cache is not established by the page.",
+      "implementation_priority": "FOUNDATION",
+      "operational_status": "PROPOSED_OR_UNVERIFIED_NOT_DEPLOYED_BY_THIS_TASK"
+    },
+    {
+      "feed_id": "reference_data",
+      "logical_owner": "shared_collector",
+      "consumers": [
+        "rose",
+        "hal",
+        "chart",
+        "macro",
+        "news"
+      ],
+      "provider_candidates": [
+        "Market-data provider security master/corporate actions",
+        "Official exchange/product calendars and OCC adjustment notices"
+      ],
+      "required_fields": [
+        "entity_id",
+        "instrument_id",
+        "contract_id",
+        "ticker_history",
+        "effective_from",
+        "effective_to",
+        "listing_time",
+        "expiry",
+        "multiplier",
+        "deliverable",
+        "split_factor",
+        "dividends",
+        "holiday_calendar",
+        "product_sessions"
+      ],
+      "normal_collection_target": "Daily before open; contract listings and actions on provider notification",
+      "critical_collection_target": "Intraday listing/adjustment/halt or calendar correction",
+      "freshness_policy": "Effective-date-aware versions; newest known relevant action and calendar required",
+      "inventory_status": "REQUIRED_EXTEND_OR_VERIFY",
+      "source_urls": [
+        "https://databento.com/docs",
+        "https://www.cboe.com/about/hours/us-options/"
+      ],
+      "notes": "Do not assume all options have multiplier 100 or the same close time; point-in-time instrument availability prevents look-ahead.",
+      "implementation_priority": "FOUNDATION",
+      "operational_status": "PROPOSED_OR_UNVERIFIED_NOT_DEPLOYED_BY_THIS_TASK"
+    },
+    {
+      "feed_id": "paper_ledger",
+      "logical_owner": "authorized_ledger_service",
+      "consumers": [
+        "rose",
+        "hal",
+        "news"
+      ],
+      "provider_candidates": [
+        "Authoritative desk paper ledger and risk configuration"
+      ],
+      "required_fields": [
+        "position_id",
+        "campaign_id",
+        "contract_legs",
+        "signed_qty",
+        "signed_cashflows",
+        "price_as_of",
+        "effective_at",
+        "decision_at",
+        "approved_at",
+        "recorded_at",
+        "mark_basis",
+        "max_risk",
+        "risk_policy_version",
+        "original_invalidation",
+        "owner_override"
+      ],
+      "normal_collection_target": "On every authorized change; traders reconcile at start of each run",
+      "critical_collection_target": "Immediate risk/position revision and accounting exception",
+      "freshness_policy": "Monotonic committed revisions/current snapshot; missing state blocks sized entries",
+      "inventory_status": "EXISTING_RECORDS_NEED_AUTHORITATIVE_INTERFACE",
+      "source_urls": [
+        "https://bold-tulip-nejq.here.now/index.html"
+      ],
+      "notes": "Paper state only. Current paper-open cache NEVER is not proof the ledger is absent. Credit-spread cashflow sign and denominator must be correct.",
+      "implementation_priority": "FOUNDATION",
+      "operational_status": "PROPOSED_OR_UNVERIFIED_NOT_DEPLOYED_BY_THIS_TASK"
+    },
+    {
+      "feed_id": "company_filings",
+      "logical_owner": "news",
+      "consumers": [
+        "news",
+        "hal",
+        "rose"
+      ],
+      "provider_candidates": [
+        "SEC EDGAR submissions and original filing/exhibits"
+      ],
+      "required_fields": [
+        "accession",
+        "cik",
+        "form",
+        "accepted_at",
+        "period",
+        "url",
+        "available_at",
+        "amendment_of",
+        "facts_with_units",
+        "evidence_location"
+      ],
+      "normal_collection_target": "Central staggered 60–120-sec market-window polling; 5-min off-hours fallback; provider push when available",
+      "critical_collection_target": "Prioritize held/watchlist issuers and confirmed earnings windows; global rate limit/backoff applies",
+      "freshness_policy": "Track filing coverage-through, acceptance and receipt; fresh HTTP response is not complete coverage",
+      "inventory_status": "EXTEND_EXISTING_FORM4_SWEEP",
+      "source_urls": [
+        "https://www.sec.gov/search-filings/edgar-application-programming-interfaces"
+      ],
+      "notes": "Add 8-K/10-Q/10-K/6-K/20-F and exhibits; SEC standardized XBRL does not include every segment/custom fact.",
+      "implementation_priority": "FOUNDATION",
+      "operational_status": "PROPOSED_OR_UNVERIFIED_NOT_DEPLOYED_BY_THIS_TASK"
+    },
+    {
+      "feed_id": "issuer_ir",
+      "logical_owner": "news",
+      "consumers": [
+        "news",
+        "hal",
+        "rose"
+      ],
+      "provider_candidates": [
+        "Issuer IR press releases, earnings materials, official metrics/transcripts",
+        "TSMC monthly revenue and hyperscaler disclosures"
+      ],
+      "required_fields": [
+        "company_id",
+        "release_id",
+        "publication_time",
+        "update_time",
+        "received_at",
+        "metric",
+        "fiscal_period",
+        "currency",
+        "basis",
+        "prior_guidance",
+        "evidence_quote_location",
+        "confirmed_event_time"
+      ],
+      "normal_collection_target": "Push/RSS where available; targeted 2–5-min fallback",
+      "critical_collection_target": "30–60-sec checks around confirmed releases when permitted; backoff after event",
+      "freshness_policy": "Publication/receipt latency and expected event coverage; no guarantee from poll interval",
+      "inventory_status": "RECOMMENDED_PRIMARY_EXPANSION",
+      "source_urls": [
+        "https://investor.nvidia.com/home/default.aspx",
+        "https://www.microsoft.com/en-us/investor",
+        "https://investor.tsmc.com/english"
+      ],
+      "notes": "Confirmed issuer facts can be immediately actionable evidence; a forecast/commitment is not realized revenue.",
+      "implementation_priority": "FOUNDATION",
+      "operational_status": "PROPOSED_OR_UNVERIFIED_NOT_DEPLOYED_BY_THIS_TASK"
+    },
+    {
+      "feed_id": "company_estimates",
+      "logical_owner": "hal",
+      "consumers": [
+        "hal",
+        "news",
+        "rose"
+      ],
+      "provider_candidates": [
+        "One licensed estimates provider, e.g. FactSet current estimates plus explicit point-in-time product"
+      ],
+      "required_fields": [
+        "company_id",
+        "metric",
+        "fiscal_period",
+        "reporting_basis",
+        "currency",
+        "mean",
+        "median",
+        "dispersion",
+        "contributor_count",
+        "vintage_at",
+        "available_at",
+        "revision_1d_7d_30d"
+      ],
+      "normal_collection_target": "Daily snapshot plus vendor updates; freeze last available baseline before earnings",
+      "critical_collection_target": "Post-release revisions as distinct records, not rewriting pre-release baseline",
+      "freshness_policy": "Vendor product-specific timing; daily PIT product is not assumed intraday consensus",
+      "inventory_status": "RECOMMENDED_HAL_ENHANCEMENT",
+      "source_urls": [
+        "https://insight.factset.com/resources/at-a-glance-factset-estimates-point-in-time-consensus?hs_amp=true",
+        "https://developer.factset.com/"
+      ],
+      "notes": "If absent, surprise is UNKNOWN rather than zero. Compare like-for-like GAAP/adjusted, fiscal periods and currencies.",
+      "implementation_priority": "ENHANCEMENT",
+      "operational_status": "PROPOSED_OR_UNVERIFIED_NOT_DEPLOYED_BY_THIS_TASK"
+    },
+    {
+      "feed_id": "event_calendar",
+      "logical_owner": "shared_collector",
+      "consumers": [
+        "rose",
+        "hal",
+        "macro",
+        "chart",
+        "news"
+      ],
+      "provider_candidates": [
+        "Issuer-confirmed company dates",
+        "Official BLS/BEA/Census/Fed/EIA calendars",
+        "Existing FA calendar as preliminary cross-check"
+      ],
+      "required_fields": [
+        "event_id",
+        "entity_id",
+        "event_type",
+        "scheduled_at",
+        "timezone",
+        "confirmation_status",
+        "source_revision",
+        "last_verified_at",
+        "expected_release_window",
+        "trade_relevance"
+      ],
+      "normal_collection_target": "Daily premarket reconciliation and on official changes; held-ticket check each decision",
+      "critical_collection_target": "Update on changed/uncertain dates and imminent events",
+      "freshness_policy": "Confirmed/estimated/conflicting/unknown separate; missing coverage is not no-event",
+      "inventory_status": "EXTEND_AND_RECONCILE_EXISTING_CALENDAR",
+      "source_urls": [
+        "https://www.bls.gov/schedule/news_release/",
+        "https://www.bea.gov/news/schedule",
+        "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm"
+      ],
+      "notes": "Company calendar ownership News; economic calendar ownership Macro; one shared namespace prevents duplicate events.",
+      "implementation_priority": "FOUNDATION",
+      "operational_status": "PROPOSED_OR_UNVERIFIED_NOT_DEPLOYED_BY_THIS_TASK"
+    },
+    {
+      "feed_id": "news_stream",
+      "logical_owner": "news",
+      "consumers": [
+        "news",
+        "rose",
+        "hal",
+        "macro"
+      ],
+      "provider_candidates": [
+        "Benzinga licensed WebSocket news/earnings/ratings/transcripts",
+        "Original issuer/regulatory sources for confirmation"
+      ],
+      "required_fields": [
+        "vendor_message_id",
+        "story_id",
+        "action",
+        "publication_time",
+        "update_time",
+        "received_at",
+        "entity_ids",
+        "claims",
+        "source_url",
+        "attribution",
+        "correction_status"
+      ],
+      "normal_collection_target": "Persistent stream when entitled; normalized ingestion 24/7 within available coverage",
+      "critical_collection_target": "Minimum material factual handoff immediately; deeper enrichment follows",
+      "freshness_policy": "Measure publication-to-receipt and receipt-to-delivery; retained quiet periods do not prove feed failure",
+      "inventory_status": "RECOMMENDED_PUSH_ADDITION",
+      "source_urls": [
+        "https://docs.benzinga.com/ws-reference/overview"
+      ],
+      "notes": "One connection per vendor stream/key, fan out internally; replay/deduplicate updates/deletes.",
+      "implementation_priority": "FOUNDATION",
+      "operational_status": "PROPOSED_OR_UNVERIFIED_NOT_DEPLOYED_BY_THIS_TASK"
+    },
+    {
+      "feed_id": "x_watchlist",
+      "logical_owner": "news_proposed_logical_owner",
+      "consumers": [
+        "news",
+        "hal",
+        "rose"
+      ],
+      "provider_candidates": [
+        "Existing Hal allowlisted X scan until authorized migration",
+        "Entitled X filtered stream as proposed shared discovery feed"
+      ],
+      "required_fields": [
+        "post_id",
+        "edit_history_ids",
+        "author_id",
+        "published_at",
+        "received_at",
+        "allowlist_rule",
+        "entities",
+        "claim_status",
+        "original_url",
+        "deletion_or_correction"
+      ],
+      "normal_collection_target": "Preferred shared stream; fallback narrow 60–120-sec discovery when affordable/supported; existing 2h routine otherwise remains background",
+      "critical_collection_target": "Prioritize official/credible held-ticker claims; verify high-severity provisional reports promptly",
+      "freshness_policy": "Entitlement and actual coverage explicit; social timestamps are not confirmation",
+      "inventory_status": "EXISTING_HAL_SCAN_PLUS_PROPOSED_MIGRATION",
+      "source_urls": [
+        "https://docs.x.com/x-api/posts/filtered-stream/introduction"
+      ],
+      "notes": "Rose scanner is disabled in current page. Do not claim stream/migration enabled. No posting/DM actions authorized.",
+      "implementation_priority": "ENHANCEMENT",
+      "operational_status": "PROPOSED_OR_UNVERIFIED_NOT_DEPLOYED_BY_THIS_TASK"
+    },
+    {
+      "feed_id": "insider_filings",
+      "logical_owner": "news_proposed_logical_owner",
+      "consumers": [
+        "news",
+        "hal",
+        "rose"
+      ],
+      "provider_candidates": [
+        "SEC Form4 source and existing UW/EDGAR sweep"
+      ],
+      "required_fields": [
+        "accession",
+        "issuer",
+        "reporting_person",
+        "transaction_date",
+        "accepted_at",
+        "received_at",
+        "code",
+        "shares",
+        "price",
+        "ownership_type",
+        "ten_b5_one_indicator",
+        "footnotes",
+        "amendment"
+      ],
+      "normal_collection_target": "Reuse central filing collection; existing premarket/afternoon sweep remains until migration",
+      "critical_collection_target": "New held/watchlist filing or material amendment",
+      "freshness_policy": "Backtest from filing availability, not transaction date",
+      "inventory_status": "EXISTING_KEEP_CURRENT_WRITER_UNTIL_MIGRATION",
+      "source_urls": [
+        "https://www.sec.gov/files/forms-3-4-5.pdf"
+      ],
+      "notes": "Separate purchases/sales from grants/exercises/tax withholding/gifts; delayed disclosure is not live insider buying.",
+      "implementation_priority": "FOUNDATION",
+      "operational_status": "PROPOSED_OR_UNVERIFIED_NOT_DEPLOYED_BY_THIS_TASK"
+    },
+    {
+      "feed_id": "relationship_graph",
+      "logical_owner": "news",
+      "consumers": [
+        "news",
+        "hal",
+        "rose"
+      ],
+      "provider_candidates": [
+        "Evidence from issuer filings/IR/contracts",
+        "Optional licensed relationship data such as FactSet Revere, independently verified before use"
+      ],
+      "required_fields": [
+        "relationship_id",
+        "from_entity",
+        "to_entity",
+        "relationship_type",
+        "product",
+        "exposure_amount_or_range",
+        "unit",
+        "evidence_refs",
+        "valid_from",
+        "valid_to",
+        "first_known_at",
+        "last_verified_at",
+        "confidence_category"
+      ],
+      "normal_collection_target": "Update on material evidence; daily active-edge check, weekly wider audit, filing-driven detailed review",
+      "critical_collection_target": "Material order/capex/financing/policy event affecting held/watchlist names",
+      "freshness_policy": "Verification deadline does not terminate relationship; unreported allocation remains unknown",
+      "inventory_status": "RECOMMENDED_MODULE_WITHIN_NEWS",
+      "source_urls": [
+        "https://www.sec.gov/search-filings/edgar-application-programming-interfaces"
+      ],
+      "notes": "One-hop default; two-hop only for meaningful evidenced path. Private AI companies included as entities; distinct project milestones avoid double counting.",
+      "implementation_priority": "ENHANCEMENT",
+      "operational_status": "PROPOSED_OR_UNVERIFIED_NOT_DEPLOYED_BY_THIS_TASK"
+    },
+    {
+      "feed_id": "economic_releases",
+      "logical_owner": "macro",
+      "consumers": [
+        "macro",
+        "news",
+        "rose",
+        "hal",
+        "chart"
+      ],
+      "provider_candidates": [
+        "Original BLS/BEA/Census/Fed/EIA release documents",
+        "Trading Economics stream for discovery/timeliness where entitled"
+      ],
+      "required_fields": [
+        "release_id",
+        "scheduled_at",
+        "published_at",
+        "received_at",
+        "period",
+        "actual",
+        "units",
+        "revised_prior",
+        "original_prior",
+        "consensus_ref",
+        "source_refs",
+        "revision"
+      ],
+      "normal_collection_target": "Release calendar-driven; stream preferred; source-supported 60–120-sec targeted official fallback around scheduled releases",
+      "critical_collection_target": "Canonical minimum actual/consensus handoff promptly, then available 1/5/15-min transmission follow-ups",
+      "freshness_policy": "Actual source publication/availability governs; no synthetic instant release",
+      "inventory_status": "RECOMMENDED_CANONICAL_RELEASE_PIPELINE",
+      "source_urls": [
+        "https://www.bls.gov/schedule/news_release/",
+        "https://www.bea.gov/news/schedule",
+        "https://www.census.gov/economic-indicators/calendar",
+        "https://www.eia.gov/petroleum/supply/weekly/"
+      ],
+      "notes": "Macro owns canonical actuals/revisions; News links the record. A headline-only release can remain provisional.",
+      "implementation_priority": "FOUNDATION",
+      "operational_status": "PROPOSED_OR_UNVERIFIED_NOT_DEPLOYED_BY_THIS_TASK"
+    },
+    {
+      "feed_id": "economic_consensus",
+      "logical_owner": "macro",
+      "consumers": [
+        "macro",
+        "news",
+        "rose",
+        "hal"
+      ],
+      "provider_candidates": [
+        "Trading Economics licensed economist consensus or another verified survey provider"
+      ],
+      "required_fields": [
+        "event_id",
+        "metric",
+        "period",
+        "forecast",
+        "proprietary_forecast",
+        "prior",
+        "units",
+        "survey_time",
+        "received_at",
+        "frozen_pre_release_at"
+      ],
+      "normal_collection_target": "Refresh daily and relevant pre-release window; freeze the last available observation before publication",
+      "critical_collection_target": "Do not replace frozen consensus with post-release values",
+      "freshness_policy": "Point-in-time baseline with own vintage/availability and coverage",
+      "inventory_status": "RECOMMENDED_EXPECTATIONS_FEED",
+      "source_urls": [
+        "https://docs.tradingeconomics.com/economic_calendar/schema/",
+        "https://docs.tradingeconomics.com/economic_calendar/streaming/"
+      ],
+      "notes": "Forecast (survey consensus) and TEForecast (provider model) are different fields.",
+      "implementation_priority": "ENHANCEMENT",
+      "operational_status": "PROPOSED_OR_UNVERIFIED_NOT_DEPLOYED_BY_THIS_TASK"
+    },
+    {
+      "feed_id": "live_rates",
+      "logical_owner": "macro",
+      "consumers": [
+        "macro",
+        "hal",
+        "rose"
+      ],
+      "provider_candidates": [
+        "Verified licensed cash-Treasury/TIPS yield source",
+        "FRED DGS10/DFII10 only for dated daily history"
+      ],
+      "required_fields": [
+        "instrument_id",
+        "tenor",
+        "nominal_or_real",
+        "yield_pct",
+        "change_bp",
+        "reference_time",
+        "source_observed_at",
+        "received_at",
+        "delay_class"
+      ],
+      "normal_collection_target": "Stream or 30–60-sec live-source observations during relevant sessions",
+      "critical_collection_target": "15–30-sec/stream around releases and material reversals where supported",
+      "freshness_policy": "Live versus daily observation explicit; source-specific measured age limits",
+      "inventory_status": "VERIFY_EXISTING_LIVE_PATH_ADD_IF_MISSING",
+      "source_urls": [
+        "https://fred.stlouisfed.org/series/DGS10",
+        "https://fred.stlouisfed.org/series/DFII10",
+        "https://www.federalreserve.gov/releases/h15/"
+      ],
+      "notes": "Treasury futures price is not a cash yield percentage. Do not estimate a live yield without declared validated conversion.",
+      "implementation_priority": "FOUNDATION",
+      "operational_status": "PROPOSED_OR_UNVERIFIED_NOT_DEPLOYED_BY_THIS_TASK"
+    },
+    {
+      "feed_id": "policy_pricing",
+      "logical_owner": "macro",
+      "consumers": [
+        "macro",
+        "hal",
+        "rose"
+      ],
+      "provider_candidates": [
+        "CME FedWatch API/fed-funds futures",
+        "Official Fed statements, minutes, speeches and decisions"
+      ],
+      "required_fields": [
+        "meeting_id",
+        "target_range",
+        "probability_distribution",
+        "source_time",
+        "priced_change",
+        "document_ref",
+        "policy_surprise"
+      ],
+      "normal_collection_target": "CME intraday product 60-sec updates; official documents on publication; daily calendar check",
+      "critical_collection_target": "Decision/release-triggered refresh; no polling above product cadence",
+      "freshness_policy": "Market-implied odds versus official policy separate",
+      "inventory_status": "RECOMMENDED_POLICY_ENRICHMENT",
+      "source_urls": [
+        "https://www.cmegroup.com/market-data/market-data-api/fedwatch-api.html",
+        "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm"
+      ],
+      "notes": "CME probabilities are pricing-derived, not the Fed forecast.",
+      "implementation_priority": "FOUNDATION",
+      "operational_status": "PROPOSED_OR_UNVERIFIED_NOT_DEPLOYED_BY_THIS_TASK"
+    },
+    {
+      "feed_id": "equity_futures",
+      "logical_owner": "macro",
+      "consumers": [
+        "macro",
+        "rose",
+        "hal"
+      ],
+      "provider_candidates": [
+        "Entitled CME NQ/ES quotes via vendor or CME"
+      ],
+      "required_fields": [
+        "contract_id",
+        "expiry",
+        "bid",
+        "ask",
+        "last",
+        "source_time",
+        "session_reference_price",
+        "return_pct",
+        "roll_rule"
+      ],
+      "normal_collection_target": "Stream or 30–60-sec observations",
+      "critical_collection_target": "15–30-sec/stream around releases where supported",
+      "freshness_policy": "Matched time/reference/session across NQ and ES",
+      "inventory_status": "RECOMMENDED_VERIFY_TRUE_FUTURES",
+      "source_urls": [
+        "https://www.cmegroup.com/market-data/connect-data.html",
+        "https://databento.com/docs"
+      ],
+      "notes": "QQQ/SPY are separately labeled ETF proxies. Front/back-month and baseline changes can create false relative leadership.",
+      "implementation_priority": "FOUNDATION",
+      "operational_status": "PROPOSED_OR_UNVERIFIED_NOT_DEPLOYED_BY_THIS_TASK"
+    },
+    {
+      "feed_id": "oil_futures",
+      "logical_owner": "macro",
+      "consumers": [
+        "macro",
+        "rose",
+        "hal",
+        "news"
+      ],
+      "provider_candidates": [
+        "CME WTI CL and ICE Brent live contracts through an entitled vendor"
+      ],
+      "required_fields": [
+        "contract_id",
+        "commodity",
+        "expiry",
+        "bid",
+        "ask",
+        "last_usd_per_barrel",
+        "source_time",
+        "reference_price",
+        "day_change_pct",
+        "volume",
+        "roll_rule"
+      ],
+      "normal_collection_target": "Stream or 30–60-sec observations during relevant futures sessions",
+      "critical_collection_target": "15–30-sec/stream on material event or release",
+      "freshness_policy": "Exact contracts/session references and matched observation times",
+      "inventory_status": "EXISTING_FUTURES_NOTE_VERIFY_AND_STANDARDIZE",
+      "source_urls": [
+        "https://databento.com/blog/ice-futures-market-data",
+        "https://www.cmegroup.com/market-data/connect-data.html"
+      ],
+      "notes": "The blotter describes futures as primary and FRED spot as secondary. Do not claim oil feed is proven wrong; make lineage explicit. Roll-aware changes avoid false price shocks.",
+      "implementation_priority": "FOUNDATION",
+      "operational_status": "PROPOSED_OR_UNVERIFIED_NOT_DEPLOYED_BY_THIS_TASK"
+    },
+    {
+      "feed_id": "volatility",
+      "logical_owner": "macro",
+      "consumers": [
+        "macro",
+        "rose",
+        "hal"
+      ],
+      "provider_candidates": [
+        "Entitled Cboe VIX index and optional VIX futures",
+        "Existing broker index quote if provenance verified"
+      ],
+      "required_fields": [
+        "instrument_id",
+        "index_or_future",
+        "value",
+        "source_time",
+        "change_pct",
+        "term_points",
+        "delay_class"
+      ],
+      "normal_collection_target": "Stream or 30–60-sec observations; term structure at product cadence",
+      "critical_collection_target": "Event/shock refresh",
+      "freshness_policy": "Index versus futures versus volatility ETF proxy distinct",
+      "inventory_status": "VERIFY_EXISTING_INDEX_AND_ADD_TERM_CONTEXT",
+      "source_urls": [
+        "https://www.cboe.com/tradable_products/vix/"
+      ],
+      "notes": "VIX futures ETNs/ETFs do not equal the VIX index.",
+      "implementation_priority": "FOUNDATION",
+      "operational_status": "PROPOSED_OR_UNVERIFIED_NOT_DEPLOYED_BY_THIS_TASK"
+    },
+    {
+      "feed_id": "dollar",
+      "logical_owner": "macro",
+      "consumers": [
+        "macro",
+        "hal",
+        "rose"
+      ],
+      "provider_candidates": [
+        "Entitled ICE dollar index/futures or verified FX basket feed"
+      ],
+      "required_fields": [
+        "instrument_id",
+        "index_or_future_or_proxy",
+        "value",
+        "change_pct",
+        "source_time",
+        "baseline",
+        "composition"
+      ],
+      "normal_collection_target": "Stream or 30–60-sec observations",
+      "critical_collection_target": "Release/shock refresh when supported",
+      "freshness_policy": "Instrument and source timestamp explicit",
+      "inventory_status": "RECOMMENDED_VERIFY_COVERAGE",
+      "source_urls": [
+        "https://www.ice.com/products/194/US-Dollar-Index-Futures"
+      ],
+      "notes": "UUP or selected FX pairs can be labeled proxies; never silently substitute for DXY.",
+      "implementation_priority": "FOUNDATION",
+      "operational_status": "PROPOSED_OR_UNVERIFIED_NOT_DEPLOYED_BY_THIS_TASK"
+    },
+    {
+      "feed_id": "credit_daily",
+      "logical_owner": "macro",
+      "consumers": [
+        "macro",
+        "hal"
+      ],
+      "provider_candidates": [
+        "FRED ICE BofA HY/IG option-adjusted spreads; optional licensed intraday credit tape"
+      ],
+      "required_fields": [
+        "series_id",
+        "observation_date",
+        "release_time",
+        "received_at",
+        "raw_value",
+        "raw_unit",
+        "normalized_spread_bp",
+        "vintage",
+        "change",
+        "frequency"
+      ],
+      "normal_collection_target": "Fetch on daily publication; reconcile daily availability",
+      "critical_collection_target": "Credit event alert may use separately labeled intraday instrument",
+      "freshness_policy": "Daily observation calendar/vintage; no intraday quotation claim",
+      "inventory_status": "EXISTING_DAILY_KEEP_AND_LABEL",
+      "source_urls": [
+        "https://fred.stlouisfed.org/series/BAMLH0A0HYM2",
+        "https://fred.stlouisfed.org/series/BAMLC0A0CM"
+      ],
+      "notes": "FRED source observations are Percent: preserve raw_value/raw_unit and normalize basis points = raw percent value ×100. Current FRED notes limit these series to three years of history beginning April 2026; older data needs a separately permitted source. ICE data rights require verification before third-party/public-site display. HYG price change is not the same observation as OAS.",
+      "implementation_priority": "FOUNDATION",
+      "operational_status": "PROPOSED_OR_UNVERIFIED_NOT_DEPLOYED_BY_THIS_TASK"
+    },
+    {
+      "feed_id": "fundamentals",
+      "logical_owner": "hal",
+      "consumers": [
+        "hal",
+        "news"
+      ],
+      "provider_candidates": [
+        "SEC standardized facts plus original filings and issuer metrics"
+      ],
+      "required_fields": [
+        "company_id",
+        "metric",
+        "fiscal_period_start",
+        "fiscal_period_end",
+        "basis",
+        "currency",
+        "units",
+        "reported_value",
+        "available_at",
+        "source_ref",
+        "amended_value"
+      ],
+      "normal_collection_target": "On filing/release; daily check for updates; weekly thesis/valuation review",
+      "critical_collection_target": "Material restatement/guidance/financing/capex change",
+      "freshness_policy": "Newest known vintage; historical facts not overwritten by later restatements",
+      "inventory_status": "EXTEND_PRIMARY_HAL_FOUNDATION",
+      "source_urls": [
+        "https://www.sec.gov/search-filings/edgar-application-programming-interfaces"
+      ],
+      "notes": "Expectations and actuals separate. Private project claims require primary evidence rather than invented financials.",
+      "implementation_priority": "FOUNDATION",
+      "operational_status": "PROPOSED_OR_UNVERIFIED_NOT_DEPLOYED_BY_THIS_TASK"
+    },
+    {
+      "feed_id": "source_health",
+      "logical_owner": "shared_collector",
+      "consumers": [
+        "rose",
+        "hal",
+        "macro",
+        "chart",
+        "news"
+      ],
+      "provider_candidates": [
+        "Collector/processor/outbox/consumer telemetry"
+      ],
+      "required_fields": [
+        "feed_id",
+        "expected_session",
+        "last_observed_at",
+        "last_received_at",
+        "coverage_through",
+        "missing_ranges",
+        "heartbeat_at",
+        "processing_lag",
+        "delivery_lag",
+        "entitlement_state",
+        "quota_state"
+      ],
+      "normal_collection_target": "On observations and heartbeat; health evaluation at least 60 sec during required coverage",
+      "critical_collection_target": "Immediate critical held-position coverage loss; ordinary incidents per configured confirmation policy",
+      "freshness_policy": "No-event stream is not failed if heartbeat/coverage normal; HTTP success is not complete coverage",
+      "inventory_status": "REQUIRED_SHARED_INFRASTRUCTURE",
+      "source_urls": [],
+      "notes": "Collection, normalization, analysis, delivery, acknowledgment and decision latencies are different.",
+      "implementation_priority": "FOUNDATION",
+      "operational_status": "PROPOSED_OR_UNVERIFIED_NOT_DEPLOYED_BY_THIS_TASK"
+    }
+  ]
+}

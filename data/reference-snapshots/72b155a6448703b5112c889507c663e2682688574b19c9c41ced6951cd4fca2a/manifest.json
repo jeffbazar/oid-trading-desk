@@ -1,0 +1,61 @@
+{
+  "bundle_id": "72b155a6448703b5112c889507c663e2682688574b19c9c41ced6951cd4fca2a",
+  "sources": {
+    "index.html": {
+      "url": "https://bold-tulip-nejq.here.now/index.html",
+      "file": "/Users/jb/Documents/Codex/oid-trading-desk/data/raw/index.html",
+      "sha256": "0e5d274f8763c1fb9ec703949b367d6e9f6426c015e90b66299a672820ea5f71",
+      "collected_at": "2026-10-05T02:59:52.152620Z",
+      "collected_at_basis": "local_file_mtime_not_independent_network_receipt"
+    },
+    "data-sources.html": {
+      "url": "https://bold-tulip-nejq.here.now/data-sources.html",
+      "file": "/Users/jb/Documents/Codex/oid-trading-desk/data/raw/data-sources.html",
+      "sha256": "92d31379685d08a552de8c1ff679ed9fd0b29184af10b0319aadf51849de354e",
+      "collected_at": "2026-10-05T02:59:55.036134Z",
+      "collected_at_basis": "local_file_mtime_not_independent_network_receipt"
+    },
+    "trader-intel.html": {
+      "url": "https://bold-tulip-nejq.here.now/trader-intel.html",
+      "file": "/Users/jb/Documents/Codex/oid-trading-desk/data/raw/trader-intel.html",
+      "sha256": "7eadd6c5f9fbb142453deb552d2fba1581a223d7d565ec562c399819f681b100",
+      "collected_at": "2026-10-05T02:59:52.793612Z",
+      "collected_at_basis": "local_file_mtime_not_independent_network_receipt"
+    },
+    "catalysts.html": {
+      "url": "https://bold-tulip-nejq.here.now/catalysts.html",
+      "file": "/Users/jb/Documents/Codex/oid-trading-desk/data/raw/catalysts.html",
+      "sha256": "c5a1ebf16090c7409826bc75d0ed67b174457c78158426f9c3e481f4714a79e9",
+      "collected_at": "2026-10-05T02:59:53.135227Z",
+      "collected_at_basis": "local_file_mtime_not_independent_network_receipt"
+    },
+    "soft-grader.html": {
+      "url": "https://bold-tulip-nejq.here.now/soft-grader.html",
+      "file": "/Users/jb/Documents/Codex/oid-trading-desk/data/raw/soft-grader.html",
+      "sha256": "4e5c61d201f0a7d92ab62d71586e20793e49e49253af13dbfb83a584d4e27790",
+      "collected_at": "2026-10-05T02:59:53.543997Z",
+      "collected_at_basis": "local_file_mtime_not_independent_network_receipt"
+    },
+    "map.html": {
+      "url": "https://bold-tulip-nejq.here.now/map.html",
+      "file": "/Users/jb/Documents/Codex/oid-trading-desk/data/raw/map.html",
+      "sha256": "b85255a5c8d1565c4c78cc10e4f5a42885ccdfd94f2e08c3c4bafb388072f36b",
+      "collected_at": "2026-10-05T03:00:35.471593Z",
+      "collected_at_basis": "local_file_mtime_not_independent_network_receipt"
+    },
+    "chart.html": {
+      "url": "https://bold-tulip-nejq.here.now/chart.html",
+      "file": "/Users/jb/Documents/Codex/oid-trading-desk/data/raw/chart.html",
+      "sha256": "4d71ecdc087840c4de9c8c32e5ae8901e0f356a0af0905a12e20c7662629b042",
+      "collected_at": "2026-10-05T03:00:37.463580Z",
+      "collected_at_basis": "local_file_mtime_not_independent_network_receipt"
+    },
+    "peanut-news.json": {
+      "url": "https://bold-tulip-nejq.here.now/peanut-news.json",
+      "file": "/Users/jb/Documents/Codex/oid-trading-desk/data/raw/peanut-news.json",
+      "sha256": "85d78a6239bfa8e6e303a5dc913eb711d24ff5102e71f1f746eb28a0bf9b7e6b",
+      "collected_at": "2026-10-05T02:59:54.387592Z",
+      "collected_at_basis": "local_file_mtime_not_independent_network_receipt"
+    }
+  }
+}

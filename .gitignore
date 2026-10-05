@@ -1,0 +1,5 @@
+__pycache__/
+*.py[cod]
+data/reviews.sqlite3*
+work/
+.DS_Store

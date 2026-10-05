@@ -1,0 +1,17 @@
+{
+  "as_of_pt": "2026-10-05 8:25 AM PT",
+  "as_of_et": "2026-10-05 11:25 AM ET",
+  "writer": "Macro Bot",
+  "feed": "macro-x-tech",
+  "status": "quiet",
+  "already_alerted_today": [
+    "ISM Services Prices Paid 74.0 hot (post-print)",
+    "AI/software deal cluster ~9:23 ET: Schneider/PTC, CBRS, Vistra DOE nuclear loans"
+  ],
+  "below_bar": [
+    "Aramco CEO thin-stocks warning; oil bounce not a Hormuz re-escalation",
+    "TLT deeper red = yield continuation of ISM prices story, not new shock"
+  ],
+  "shared_x_credits_approx": 54.38,
+  "note": "Clear deltas only; soft color; never orders."
+}

@@ -1,0 +1,71 @@
+{
+  "bundle_id": "72b155a6448703b5112c889507c663e2682688574b19c9c41ced6951cd4fca2a",
+  "files": {
+    "index.html": "../reference-snapshots/72b155a6448703b5112c889507c663e2682688574b19c9c41ced6951cd4fca2a/index.html",
+    "data-sources.html": "../reference-snapshots/72b155a6448703b5112c889507c663e2682688574b19c9c41ced6951cd4fca2a/data-sources.html",
+    "trader-intel.html": "../reference-snapshots/72b155a6448703b5112c889507c663e2682688574b19c9c41ced6951cd4fca2a/trader-intel.html",
+    "catalysts.html": "../reference-snapshots/72b155a6448703b5112c889507c663e2682688574b19c9c41ced6951cd4fca2a/catalysts.html",
+    "soft-grader.html": "../reference-snapshots/72b155a6448703b5112c889507c663e2682688574b19c9c41ced6951cd4fca2a/soft-grader.html",
+    "map.html": "../reference-snapshots/72b155a6448703b5112c889507c663e2682688574b19c9c41ced6951cd4fca2a/map.html",
+    "chart.html": "../reference-snapshots/72b155a6448703b5112c889507c663e2682688574b19c9c41ced6951cd4fca2a/chart.html",
+    "peanut-news.json": "../reference-snapshots/72b155a6448703b5112c889507c663e2682688574b19c9c41ced6951cd4fca2a/peanut-news.json"
+  },
+  "sources": {
+    "index.html": {
+      "url": "https://bold-tulip-nejq.here.now/index.html",
+      "file": "/Users/jb/Documents/Codex/oid-trading-desk/data/reference-snapshots/72b155a6448703b5112c889507c663e2682688574b19c9c41ced6951cd4fca2a/index.html",
+      "sha256": "0e5d274f8763c1fb9ec703949b367d6e9f6426c015e90b66299a672820ea5f71",
+      "collected_at": "2026-10-05T03:11:45.545487Z",
+      "collected_at_basis": "network_response_received"
+    },
+    "data-sources.html": {
+      "url": "https://bold-tulip-nejq.here.now/data-sources.html",
+      "file": "/Users/jb/Documents/Codex/oid-trading-desk/data/reference-snapshots/72b155a6448703b5112c889507c663e2682688574b19c9c41ced6951cd4fca2a/data-sources.html",
+      "sha256": "92d31379685d08a552de8c1ff679ed9fd0b29184af10b0319aadf51849de354e",
+      "collected_at": "2026-10-05T03:11:45.757669Z",
+      "collected_at_basis": "network_response_received"
+    },
+    "trader-intel.html": {
+      "url": "https://bold-tulip-nejq.here.now/trader-intel.html",
+      "file": "/Users/jb/Documents/Codex/oid-trading-desk/data/reference-snapshots/72b155a6448703b5112c889507c663e2682688574b19c9c41ced6951cd4fca2a/trader-intel.html",
+      "sha256": "7eadd6c5f9fbb142453deb552d2fba1581a223d7d565ec562c399819f681b100",
+      "collected_at": "2026-10-05T03:11:46.030685Z",
+      "collected_at_basis": "network_response_received"
+    },
+    "catalysts.html": {
+      "url": "https://bold-tulip-nejq.here.now/catalysts.html",
+      "file": "/Users/jb/Documents/Codex/oid-trading-desk/data/reference-snapshots/72b155a6448703b5112c889507c663e2682688574b19c9c41ced6951cd4fca2a/catalysts.html",
+      "sha256": "c5a1ebf16090c7409826bc75d0ed67b174457c78158426f9c3e481f4714a79e9",
+      "collected_at": "2026-10-05T03:11:46.253980Z",
+      "collected_at_basis": "network_response_received"
+    },
+    "soft-grader.html": {
+      "url": "https://bold-tulip-nejq.here.now/soft-grader.html",
+      "file": "/Users/jb/Documents/Codex/oid-trading-desk/data/reference-snapshots/72b155a6448703b5112c889507c663e2682688574b19c9c41ced6951cd4fca2a/soft-grader.html",
+      "sha256": "4e5c61d201f0a7d92ab62d71586e20793e49e49253af13dbfb83a584d4e27790",
+      "collected_at": "2026-10-05T03:11:46.570097Z",
+      "collected_at_basis": "network_response_received"
+    },
+    "map.html": {
+      "url": "https://bold-tulip-nejq.here.now/map.html",
+      "file": "/Users/jb/Documents/Codex/oid-trading-desk/data/reference-snapshots/72b155a6448703b5112c889507c663e2682688574b19c9c41ced6951cd4fca2a/map.html",
+      "sha256": "b85255a5c8d1565c4c78cc10e4f5a42885ccdfd94f2e08c3c4bafb388072f36b",
+      "collected_at": "2026-10-05T03:11:46.817473Z",
+      "collected_at_basis": "network_response_received"
+    },
+    "chart.html": {
+      "url": "https://bold-tulip-nejq.here.now/chart.html",
+      "file": "/Users/jb/Documents/Codex/oid-trading-desk/data/reference-snapshots/72b155a6448703b5112c889507c663e2682688574b19c9c41ced6951cd4fca2a/chart.html",
+      "sha256": "4d71ecdc087840c4de9c8c32e5ae8901e0f356a0af0905a12e20c7662629b042",
+      "collected_at": "2026-10-05T03:11:47.078375Z",
+      "collected_at_basis": "network_response_received"
+    },
+    "peanut-news.json": {
+      "url": "https://bold-tulip-nejq.here.now/peanut-news.json",
+      "file": "/Users/jb/Documents/Codex/oid-trading-desk/data/reference-snapshots/72b155a6448703b5112c889507c663e2682688574b19c9c41ced6951cd4fca2a/peanut-news.json",
+      "sha256": "85d78a6239bfa8e6e303a5dc913eb711d24ff5102e71f1f746eb28a0bf9b7e6b",
+      "collected_at": "2026-10-05T03:11:47.302151Z",
+      "collected_at_basis": "network_response_received"
+    }
+  }
+}

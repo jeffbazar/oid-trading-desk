@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#08776c"><meta name="description" content="OID paper trading desk: published evidence, trader reviews, source coverage and operating guides.">
+  <title>OID · Trading desk</title><link rel="icon" href="favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <a class="skip" href="#content">Skip to workspace</a>
+  <div class="mode-bar"><strong>RESEARCH / PAPER</strong><span>Published observations · reviews saved locally</span><a href="https://bold-tulip-nejq.here.now/index.html" target="_blank" rel="noopener noreferrer">Production source ↗</a></div>
+  <div class="app">
+    <aside class="sidebar">
+      <a class="brand" href="#desk"><span class="brand-mark">O</span><span>OID<small>Trading desk</small></span></a>
+      <div class="nav-label">WORKSPACE</div>
+      <nav aria-label="Main navigation">
+        <a href="#desk" data-view="desk" aria-current="page"><span>01</span>Daily desk</a>
+        <a href="#evidence" data-view="evidence"><span>02</span>Evidence</a>
+        <a href="#journal" data-view="journal"><span>03</span>Trade journal</a>
+        <a href="#bots" data-view="bots"><span>04</span>Bot operations</a>
+        <a href="#changes" data-view="changes"><span>05</span>Changes</a>
+      </nav>
+      <div class="sidebar-bottom"><span class="dot"></span> Separate local project<small id="connection-state">Connecting to local data…</small><button class="text-button" data-action="clocks">Source clocks ↗</button></div>
+    </aside>
+    <div class="workspace">
+      <header class="topbar"><div><span class="muted">Workspace</span><span class="crumb-sep">/</span><strong id="view-name">Daily desk</strong></div><div class="topbar-right"><span id="snapshot-label">Loading snapshot</span><button class="secondary small" data-action="sync" id="sync-button">Sync published site ↻</button></div></header>
+      <main id="content" tabindex="-1"><div class="loading">Loading the published desk…</div></main>
+      <footer><span>OID · paper decisions and evidence</span><button class="text-button" data-action="clocks">Observation time ≠ page build ≠ review time ↗</button></footer>
+    </div>
+  </div>
+  <dialog id="modal" aria-labelledby="modal-title"><div class="dialog-head"><h2 id="modal-title">Details</h2><button class="icon-button" data-action="close-modal" aria-label="Close details">×</button></div><div id="modal-content"></div></dialog>
+  <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+  <script type="module" src="app.js"></script>
+</body>
+</html>

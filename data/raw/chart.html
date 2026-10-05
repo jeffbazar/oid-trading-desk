@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>OID · Chart</title>
+<style>
+:root{
+  --bg:#070b10; --panel:#0e141c; --panel2:#121a24; --line:#1a2533;
+  --text:#e8eef7; --muted:#7f91a8; --accent:#4da3ff;
+  --good:#3dd68c; --bad:#ff6b7a; --warn:#f0b429; --flat:#9aa8b8;
+  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,system-ui,-apple-system,sans-serif;background:
+  radial-gradient(900px 420px at 8% -8%,#142033 0%,transparent 55%),
+  radial-gradient(700px 380px at 100% 0%,#1a1528 0%,transparent 50%),
+  var(--bg);color:var(--text);min-height:100vh}
+.wrap{max-width:1340px;margin:0 auto;padding:14px 16px 48px}
+h1{font-size:1.35rem;margin:0 0 6px}
+.sub{color:var(--muted);font-size:.88rem;line-height:1.45}
+.tabs{display:flex;gap:8px;margin:0 0 10px;flex-wrap:wrap}
+.tabs a{display:inline-block;padding:7px 14px;border-radius:999px;border:1px solid var(--line);color:var(--muted);text-decoration:none;font-size:.78rem;font-weight:650;letter-spacing:.04em;text-transform:uppercase}
+.tabs a.active,.tabs a:hover{color:var(--text);border-color:#2a4a70;background:#152030}
+.table-wrap{border:1px solid var(--line);border-radius:12px;overflow:auto;background:var(--panel)}
+table{width:100%;border-collapse:collapse;min-width:1100px}
+th,td{padding:9px 11px;text-align:left;font-size:.84rem;border-bottom:1px solid var(--line);vertical-align:middle}
+th{color:var(--muted);font-weight:600;font-size:.68rem;text-transform:uppercase;background:#0a1018;position:sticky;top:0}
+td.num,.num{font-family:var(--mono);font-variant-numeric:tabular-nums;text-align:right}
+td.sym{letter-spacing:.04em}
+.tchip{display:inline-block;font-size:.62rem;padding:2px 6px;border-radius:999px;border:1px solid var(--line);color:var(--muted);background:#0a1018;text-transform:uppercase;letter-spacing:.03em}
+.tchip.ok{color:var(--good);border-color:#1e5c40;background:#123526}
+.tchip.warn{color:var(--warn);border-color:#6a4e18;background:#2a1f0a}
+.tchip.bad{color:var(--bad);border-color:#7a3038;background:#2a1216}
+.tchip.flat{color:var(--muted)}
+.ds-summary{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 14px}
+.ds-summary .tchip{font-size:.72rem;padding:4px 10px}
+tr.group td{background:#121a24;color:var(--text);font-weight:700;font-size:.72rem;letter-spacing:.06em;text-transform:uppercase}
+.note{font-size:.82rem;color:var(--muted);margin:8px 0 16px;line-height:1.45}
+code{font-size:.8em;background:#0a1018;padding:1px 5px;border-radius:4px}
+footer{margin-top:20px;color:var(--muted);font-size:.8rem;line-height:1.45}
+.empty{color:var(--muted);padding:16px;text-align:center}
+</style>
+<meta property="og:title" content="OID Live Book Rose and Hal" />
+<meta property="og:description" content="A shared paper trading ticker and research blotter tracking live market marks, cost basis, and soft watch lists for Rose and Hal." />
+<meta property="og:url" content="https://bold-tulip-nejq.here.now/chart.html" />
+<meta property="og:type" content="website" />
+<meta property="og:image" content="https://here.now/og/bold-tulip-nejq.jpg" />
+<meta property="og:image:width" content="1280" />
+<meta property="og:image:height" content="720" />
+<meta name="twitter:image" content="https://here.now/og/bold-tulip-nejq.jpg" />
+<meta name="twitter:card" content="summary_large_image" /></head><body><div class="wrap">
+<div class="tabs"><a href="index.html">Blotter</a><a href="data-sources.html">Data sources</a><a href="trader-intel.html">Trader intel</a><a href="catalysts.html">Events</a><a href="soft-grader.html">Soft Grader</a><a href="map.html">Map</a><a class="active" href="chart.html">Chart</a></div>
+<h1>Chart Bot daily read</h1>
+<div class="sub">Rule <code>CB-DAILY-V1</code> · Soft only · Never a trade signal · Forecasts off</div>
+<div class="sub">Last completed session <strong>2026-10-02</strong> · calculated_at_pt <strong>2026-10-04 2:33 PM PT</strong> · 37 symbols · Built 2026-10-04 5:26 PM PT</div>
+<div class="ds-summary"><span class="tchip bad">Bearish: 6</span> <span class="tchip warn">Hold: 5</span> <span class="tchip flat">UNAVAILABLE: 2</span> <span class="tchip ok">Bullish: 24</span></div>
+<p class="note">SKHY and SPCX are insufficient history (<code>INSUFFICIENT_HISTORY</code>), not a failed pull. Close is the split-adjusted regular-session close, USD/share. % vs EMA9 / EMA21 / SMA50 / SMA200 is close versus that average. RS is the 20-session close-to-close return minus QQQ or SMH, in percentage points. Nulls are an em dash. Not trade readiness.</p>
+<div class="table-wrap"><table>
+<thead><tr>
+  <th>Symbol</th><th>Trend</th><th>Data status</th><th class="num">Last session</th>
+  <th class="num">Close</th>
+  <th class="num">% vs EMA9</th><th class="num">% vs EMA21</th><th class="num">% vs SMA50</th><th class="num">% vs SMA200</th>
+  <th class="num">RS 20s vs QQQ</th><th class="num">RS 20s vs SMH</th>
+</tr></thead>
+<tbody>
+<tr class="group"><td colspan="11">Bearish · 6</td></tr>
+<tr><td class='sym'><strong>AVGO</strong></td><td><span class='tchip bad'>Bearish</span></td><td>OK</td><td class='num'>2026-10-02</td><td class='num'>355.14</td><td class='num'>+0.8361</td><td class='num'>-0.3303</td><td class='num'>-4.8449</td><td class='num'>-3.3625</td><td class='num'>-5.0119</td><td class='num'>-14.6807</td></tr>
+<tr><td class='sym'><strong>INTU</strong></td><td><span class='tchip bad'>Bearish</span></td><td>OK</td><td class='num'>2026-10-02</td><td class='num'>281.08</td><td class='num'>-0.7887</td><td class='num'>-5.8935</td><td class='num'>-13.0788</td><td class='num'>-28.6083</td><td class='num'>-22.8082</td><td class='num'>-32.477</td></tr>
+<tr><td class='sym'><strong>NFLX</strong></td><td><span class='tchip bad'>Bearish</span></td><td>OK</td><td class='num'>2026-10-02</td><td class='num'>67.06</td><td class='num'>-4.272</td><td class='num'>-7.8822</td><td class='num'>-11.2546</td><td class='num'>-20.2335</td><td class='num'>-23.3286</td><td class='num'>-32.9974</td></tr>
+<tr><td class='sym'><strong>ORCL</strong></td><td><span class='tchip bad'>Bearish</span></td><td>OK</td><td class='num'>2026-10-02</td><td class='num'>142.3</td><td class='num'>+1.3582</td><td class='num'>-0.6315</td><td class='num'>-0.8998</td><td class='num'>-12.6396</td><td class='num'>-12.0677</td><td class='num'>-21.7365</td></tr>
+<tr><td class='sym'><strong>STX</strong></td><td><span class='tchip bad'>Bearish</span></td><td>OK</td><td class='num'>2026-10-02</td><td class='num'>848.99</td><td class='num'>-5.3944</td><td class='num'>-3.4998</td><td class='num'>-0.6709</td><td class='num'>+30.4716</td><td class='num'>+1.8621</td><td class='num'>-7.8066</td></tr>
+<tr><td class='sym'><strong>WDC</strong></td><td><span class='tchip bad'>Bearish</span></td><td>OK</td><td class='num'>2026-10-02</td><td class='num'>415.29</td><td class='num'>-7.0587</td><td class='num'>-7.9756</td><td class='num'>-10.9122</td><td class='num'>+3.8163</td><td class='num'>-10.3978</td><td class='num'>-20.0666</td></tr>
+<tr class="group"><td colspan="11">Hold · 5</td></tr>
+<tr><td class='sym'><strong>AMZN</strong></td><td><span class='tchip warn'>Hold</span></td><td>OK</td><td class='num'>2026-10-02</td><td class='num'>251.52</td><td class='num'>+0.6698</td><td class='num'>-0.1546</td><td class='num'>-1.9583</td><td class='num'>+4.2082</td><td class='num'>-7.2969</td><td class='num'>-16.9656</td></tr>
+<tr><td class='sym'><strong>GOOG</strong></td><td><span class='tchip warn'>Hold</span></td><td>OK</td><td class='num'>2026-10-02</td><td class='num'>340.35</td><td class='num'>+0.2848</td><td class='num'>+0.1245</td><td class='num'>-0.4168</td><td class='num'>+0.8777</td><td class='num'>-4.0718</td><td class='num'>-13.7405</td></tr>
+<tr><td class='sym'><strong>IREN</strong></td><td><span class='tchip warn'>Hold</span></td><td>OK</td><td class='num'>2026-10-02</td><td class='num'>41.76</td><td class='num'>-1.9952</td><td class='num'>-2.8635</td><td class='num'>+0.8817</td><td class='num'>-8.3688</td><td class='num'>-4.1822</td><td class='num'>-13.851</td></tr>
+<tr><td class='sym'><strong>MH</strong></td><td><span class='tchip warn'>Hold</span></td><td>OK</td><td class='num'>2026-10-02</td><td class='num'>12.85</td><td class='num'>-0.9988</td><td class='num'>-0.7805</td><td class='num'>+2.5179</td><td class='num'>-0.2457</td><td class='num'>-7.3186</td><td class='num'>-16.9874</td></tr>
+<tr><td class='sym'><strong>SNDK</strong></td><td><span class='tchip warn'>Hold</span></td><td>OK</td><td class='num'>2026-10-02</td><td class='num'>1719.99</td><td class='num'>-1.2117</td><td class='num'>+1.2846</td><td class='num'>+11.7109</td><td class='num'>+50.1053</td><td class='num'>+6.1647</td><td class='num'>-3.5041</td></tr>
+<tr class="group"><td colspan="11">UNAVAILABLE · 2</td></tr>
+<tr><td class='sym'><strong>SKHY</strong></td><td><span class='tchip flat'>UNAVAILABLE</span></td><td>INSUFFICIENT_HISTORY</td><td class='num'>2026-10-02</td><td class='num'>195.13</td><td class='num'>+3.3291</td><td class='num'>+6.3396</td><td class='num'>+17.1558</td><td class='num'>—</td><td class='num'>+14.768</td><td class='num'>+5.0992</td></tr>
+<tr><td class='sym'><strong>SPCX</strong></td><td><span class='tchip flat'>UNAVAILABLE</span></td><td>INSUFFICIENT_HISTORY</td><td class='num'>2026-10-02</td><td class='num'>158.96</td><td class='num'>+5.2275</td><td class='num'>+6.8487</td><td class='num'>+14.3949</td><td class='num'>—</td><td class='num'>+1.711</td><td class='num'>-7.9578</td></tr>
+<tr class="group"><td colspan="11">Bullish · 24</td></tr>
+<tr><td class='sym'><strong>ADI</strong></td><td><span class='tchip ok'>Bullish</span></td><td>OK</td><td class='num'>2026-10-02</td><td class='num'>417.15</td><td class='num'>+5.1247</td><td class='num'>+8.1572</td><td class='num'>+11.0984</td><td class='num'>+16.0253</td><td class='num'>+12.5663</td><td class='num'>+2.8975</td></tr>
+<tr><td class='sym'><strong>AMD</strong></td><td><span class='tchip ok'>Bullish</span></td><td>OK</td><td class='num'>2026-10-02</td><td class='num'>633.91</td><td class='num'>+4.1131</td><td class='num'>+10.4422</td><td class='num'>+23.4407</td><td class='num'>+69.1674</td><td class='num'>+34.5203</td><td class='num'>+24.8515</td></tr>
+<tr><td class='sym'><strong>ARM</strong></td><td><span class='tchip ok'>Bullish</span></td><td>OK</td><td class='num'>2026-10-02</td><td class='num'>307.49</td><td class='num'>+3.7531</td><td class='num'>+7.8204</td><td class='num'>+15.6938</td><td class='num'>+42.4969</td><td class='num'>+22.3066</td><td class='num'>+12.6379</td></tr>
+<tr><td class='sym'><strong>ASML</strong></td><td><span class='tchip ok'>Bullish</span></td><td>OK</td><td class='num'>2026-10-02</td><td class='num'>1867.31</td><td class='num'>+4.4582</td><td class='num'>+6.8227</td><td class='num'>+8.465</td><td class='num'>+21.0353</td><td class='num'>+8.9859</td><td class='num'>-0.6829</td></tr>
+<tr><td class='sym'><strong>BE</strong></td><td><span class='tchip ok'>Bullish</span></td><td>OK</td><td class='num'>2026-10-02</td><td class='num'>289.15</td><td class='num'>+3.8984</td><td class='num'>+8.3199</td><td class='num'>+22.4404</td><td class='num'>+39.4005</td><td class='num'>+18.3089</td><td class='num'>+8.6402</td></tr>
+<tr><td class='sym'><strong>COHR</strong></td><td><span class='tchip ok'>Bullish</span></td><td>OK</td><td class='num'>2026-10-02</td><td class='num'>337.04</td><td class='num'>+10.0878</td><td class='num'>+12.2399</td><td class='num'>+13.4707</td><td class='num'>+16.6135</td><td class='num'>+23.0224</td><td class='num'>+13.3536</td></tr>
+<tr><td class='sym'><strong>CRDO</strong></td><td><span class='tchip ok'>Bullish</span></td><td>OK</td><td class='num'>2026-10-02</td><td class='num'>218.64</td><td class='num'>+9.5303</td><td class='num'>+12.1465</td><td class='num'>+5.0831</td><td class='num'>+23.269</td><td class='num'>+28.7327</td><td class='num'>+19.0639</td></tr>
+<tr><td class='sym'><strong>EWY</strong></td><td><span class='tchip ok'>Bullish</span></td><td>OK</td><td class='num'>2026-10-02</td><td class='num'>191.88</td><td class='num'>+2.9688</td><td class='num'>+4.1667</td><td class='num'>+8.6213</td><td class='num'>+22.8087</td><td class='num'>+1.8231</td><td class='num'>-7.8457</td></tr>
+<tr><td class='sym'><strong>GLW</strong></td><td><span class='tchip ok'>Bullish</span></td><td>OK</td><td class='num'>2026-10-02</td><td class='num'>164.19</td><td class='num'>+4.2451</td><td class='num'>+5.4204</td><td class='num'>+7.3515</td><td class='num'>+9.0912</td><td class='num'>+8.0126</td><td class='num'>-1.6562</td></tr>
+<tr><td class='sym'><strong>INTC</strong></td><td><span class='tchip ok'>Bullish</span></td><td>OK</td><td class='num'>2026-10-02</td><td class='num'>119.33</td><td class='num'>+1.0258</td><td class='num'>+6.2794</td><td class='num'>+18.2953</td><td class='num'>+46.9964</td><td class='num'>+25.7271</td><td class='num'>+16.0584</td></tr>
+<tr><td class='sym'><strong>KEYS</strong></td><td><span class='tchip ok'>Bullish</span></td><td>OK</td><td class='num'>2026-10-02</td><td class='num'>384.64</td><td class='num'>+5.966</td><td class='num'>+10.1081</td><td class='num'>+15.1251</td><td class='num'>+27.1408</td><td class='num'>+14.7775</td><td class='num'>+5.1088</td></tr>
+<tr><td class='sym'><strong>KLAC</strong></td><td><span class='tchip ok'>Bullish</span></td><td>OK</td><td class='num'>2026-10-02</td><td class='num'>206.89</td><td class='num'>+6.6653</td><td class='num'>+9.8442</td><td class='num'>+10.5071</td><td class='num'>+16.3541</td><td class='num'>+15.1848</td><td class='num'>+5.516</td></tr>
+<tr><td class='sym'><strong>LITE</strong></td><td><span class='tchip ok'>Bullish</span></td><td>OK</td><td class='num'>2026-10-02</td><td class='num'>1085.42</td><td class='num'>+9.8628</td><td class='num'>+14.5302</td><td class='num'>+23.4799</td><td class='num'>+45.6103</td><td class='num'>+23.6465</td><td class='num'>+13.9777</td></tr>
+<tr><td class='sym'><strong>LRCX</strong></td><td><span class='tchip ok'>Bullish</span></td><td>OK</td><td class='num'>2026-10-02</td><td class='num'>347.49</td><td class='num'>+7.3514</td><td class='num'>+11.1619</td><td class='num'>+13.5403</td><td class='num'>+26.3295</td><td class='num'>+14.2887</td><td class='num'>+4.62</td></tr>
+<tr><td class='sym'><strong>META</strong></td><td><span class='tchip ok'>Bullish</span></td><td>OK</td><td class='num'>2026-10-02</td><td class='num'>728.08</td><td class='num'>+0.4176</td><td class='num'>+4.8126</td><td class='num'>+16.4855</td><td class='num'>+15.8657</td><td class='num'>+14.7781</td><td class='num'>+5.1094</td></tr>
+<tr><td class='sym'><strong>MRVL</strong></td><td><span class='tchip ok'>Bullish</span></td><td>OK</td><td class='num'>2026-10-02</td><td class='num'>272.29</td><td class='num'>+4.3118</td><td class='num'>+9.2224</td><td class='num'>+20.0962</td><td class='num'>+63.1328</td><td class='num'>+25.942</td><td class='num'>+16.2733</td></tr>
+<tr><td class='sym'><strong>MU</strong></td><td><span class='tchip ok'>Bullish</span></td><td>OK</td><td class='num'>2026-10-02</td><td class='num'>1074.89</td><td class='num'>+1.0478</td><td class='num'>+4.3864</td><td class='num'>+12.4308</td><td class='num'>+57.6977</td><td class='num'>+7.7364</td><td class='num'>-1.9324</td></tr>
+<tr><td class='sym'><strong>NBIS</strong></td><td><span class='tchip ok'>Bullish</span></td><td>OK</td><td class='num'>2026-10-02</td><td class='num'>242.81</td><td class='num'>+3.4551</td><td class='num'>+5.8107</td><td class='num'>+10.9474</td><td class='num'>+44.7542</td><td class='num'>+10.8316</td><td class='num'>+1.1629</td></tr>
+<tr><td class='sym'><strong>NVDA</strong></td><td><span class='tchip ok'>Bullish</span></td><td>OK</td><td class='num'>2026-10-02</td><td class='num'>233.95</td><td class='num'>+2.5156</td><td class='num'>+4.1308</td><td class='num'>+7.1797</td><td class='num'>+16.5585</td><td class='num'>-2.0388</td><td class='num'>-11.7076</td></tr>
+<tr><td class='sym'><strong>QQQ</strong></td><td><span class='tchip ok'>Bullish</span></td><td>OK</td><td class='num'>2026-10-02</td><td class='num'>749.58</td><td class='num'>+1.3535</td><td class='num'>+2.5202</td><td class='num'>+4.5706</td><td class='num'>+12.1112</td><td class='num'>0</td><td class='num'>-9.6688</td></tr>
+<tr><td class='sym'><strong>SMH</strong></td><td><span class='tchip ok'>Bullish</span></td><td>OK</td><td class='num'>2026-10-02</td><td class='num'>630.6</td><td class='num'>+3.876</td><td class='num'>+6.7475</td><td class='num'>+10.6614</td><td class='num'>+26.2467</td><td class='num'>+9.6688</td><td class='num'>0</td></tr>
+<tr><td class='sym'><strong>SPY</strong></td><td><span class='tchip ok'>Bullish</span></td><td>OK</td><td class='num'>2026-10-02</td><td class='num'>769.64</td><td class='num'>+0.4493</td><td class='num'>+0.5283</td><td class='num'>+0.7775</td><td class='num'>+6.8246</td><td class='num'>-4.9029</td><td class='num'>-14.5717</td></tr>
+<tr><td class='sym'><strong>TSLA</strong></td><td><span class='tchip ok'>Bullish</span></td><td>OK</td><td class='num'>2026-10-02</td><td class='num'>370.59</td><td class='num'>+1.978</td><td class='num'>+2.1894</td><td class='num'>+6.6189</td><td class='num'>-5.746</td><td class='num'>-5.9807</td><td class='num'>-15.6495</td></tr>
+<tr><td class='sym'><strong>TSM</strong></td><td><span class='tchip ok'>Bullish</span></td><td>OK</td><td class='num'>2026-10-02</td><td class='num'>472.78</td><td class='num'>+3.8895</td><td class='num'>+6.5897</td><td class='num'>+11.2697</td><td class='num'>+22.1129</td><td class='num'>+8.9274</td><td class='num'>-0.7413</td></tr>
+</tbody></table></div>
+<footer>
+Research / paper only. Chart Bot MA-state observation from <code>chart-bot/observations/</code>. Soft only. Never a trade signal. Forecasts off. No order instructions. Does not replace the Shay MA table.
+</footer>
+</div></body></html>

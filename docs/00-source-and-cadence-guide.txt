@@ -1,0 +1,109 @@
+FIVE-BOT DATA SOURCE AND OPERATING PLAN
+Prepared October 4, 2026. Recommended specification; no subscriptions, scheduling, bot runtime or website integration has been installed.
+
+HOW TO USE THIS KIT
+Each of 01–05 is a standalone operating prompt: role, sources, intervals, data fields, decision/alert rules and delivery requirements. The Rose/Hal prompts retain the detailed trade-review improvements. source-registry.json is the machine-readable catalog of 27 feed families. record-field-catalog.json specifies the shared envelope and proposed payload fields; it is not a full executable JSON Schema.
+
+Use one shared collection/storage service and five analytical roles. A fast collector and deterministic position-risk monitor run independently from slower reasoning. API retrieval recovers complete records, push wakes a supported recipient, and the shared site presents the same committed state. Do not create five competing broker/news connections.
+
+Customer/Supplier Event Map belongs inside News Alerts as a distinct module in this exactly-five-bot plan. Its relationship/project records and periodic graph maintenance remain separate from the fast headline path. If it later becomes a separate service, reuse these records and evidence, not another competing news collector.
+
+BOT ASSIGNMENTS
+
+ROSE TRADER
+Owns short-term contract recommendations and position management. Primary: live equities/OPRA exact-contract prices, FA walls, UW flow, option IV/Greeks, ledger/risk and product reference data. Consumes Chart 5/15 min, Macro broad/tech judgments, verified News and the event calendar.
+Collect held quotes by stream or 15–30 sec fallback; critical 5–10 sec where genuinely supported. Reason after each completed 5 min bar or material change; broader ranking 15 min. Entry/exit recommendations use new exact quotes. Watch stalled setups, giveback below the 50% trail arm, named failures, expiry and duplicated Hal exposure.
+
+HAL TRADER
+Owns durable thesis, valuation, catalyst timing, suitable duration and campaign outcomes. Primary: issuer/SEC actuals, dated current/PIT consensus, guidance/revisions, customer/supplier exposure, exact options and risk. Consumes Chart daily/weekly, Macro regime/shock and primary News.
+Underlying safety stream/about 60 sec; option valuation 5 min, Greeks/position review 15 min. Deep premarket/midday/preclose and weekly thesis review, immediate material-event/binding-failure review. Tactical exceptions receive faster coverage. Contract remaining DTE, catalyst date and intended holding period are different fields.
+
+MACRO BOT
+Owns canonical economic-release actuals/revisions and separate Daily Macro / Macro Tech judgments. Sources: BLS/BEA/Census/Fed/EIA; frozen Trading Economics economist consensus; genuinely live yields, CME NQ/ES/fed-funds pricing, CME WTI/ICE Brent, VIX/dollar; FRED/ALFRED dated history and daily credit spreads.
+Shared market stream or 30–60 sec; event-window 15–30 sec where supported. Release-driven interpretation and available 1/5/15 min transmission follow-ups; 15 min material-change checks, premarket/noon/preclose briefs. Seven input scores are evidence, never arithmetic addends. Tone labels are not a fixed lookup table.
+
+CHART BOT
+Owns numerical indicators/pattern states and validated forecasts only. Sources: shared numerical OHLCV/quotes, corporate actions, security master, sessions/calendar and benchmarks such as QQQ/SMH or SOXX.
+Ingest 1 min/stream; evaluate completed 5/15/60 min; daily/weekly after actual completion and correction handling. New 1 min prices can monitor risk without pretending a 5 min pattern completed. No predictive probability until a registered calibrated model exists.
+
+NEWS ALERTS BOT
+Owns normalized company/policy/news claims, novelty, insider-filings interpretation and customer/supplier mapping. Sources: SEC filings, issuer IR, Benzinga news/earnings/ratings/transcripts, entitled allowlisted X discovery, official policy/regulatory statements and evidence-backed company relationships.
+Persistent streams preferred; SEC 60–120 sec prioritized polling, IR 2–5 min ordinary/30–60 sec confirmed-release windows when allowed. Material minimum evidence alerts promptly, enrichment follows. Graph updates on evidence, daily active-edge checks and weekly broader audit. X fallback must disclose its limited coverage; existing Hal 2h scan is background until an authorized migration.
+
+WHAT TO ADD FIRST
+1. Verify live equity and exact-contract bid/ask/size/source time; archive quotes and fix signed paper accounting. Retain current RH path only where measured quality suffices.
+2. Establish one numerical market-history/reference foundation: daily/intraday bars, splits/dividends, symbol/contract history and trading calendars.
+3. Add push primary/news/event delivery and a current confirmed calendar; social polling alone does not protect opening-session news.
+4. Add frozen economic consensus and canonical releases, then genuinely live macro instruments with explicit identities.
+5. Enrich contract analysis with IV/Greeks and Hal with dated estimates/revisions/valuation. Current/PIT product timing differs.
+6. Add the customer/supplier evidence module and evaluate patterns/option outcomes prospectively.
+
+Sensible candidate stack: existing FA/UW; one entitled Databento or Massive price/history provider; ORATS as optional analytics enrichment; Benzinga push; official SEC/issuer/government sources; Trading Economics economic consensus; one licensed company-estimates product if needed. Provider names are alternatives or enrichment, not a requirement to buy every product. No exact vendor-price or plan-access claim is made.
+
+CURRENT INVENTORY VERSUS RECOMMENDATIONS
+The source page was refreshed and remains built October 2 at 6:26 PM PT. Existing raw writer assignments include Rose FA/UW/Form 4 and Hal X; preserve these until actual migration. The declared Hal-marks and paper-open caches show NEVER, and Rose X shows DISABLED; this does not prove every alternative path is absent. CARRY outside regular hours is retained data, not a demonstrated outage.
+
+Static 60 sec page refresh does not collect live quotes. Hourly FA pulses plus gated Q5 do not establish continuous 10 min wall freshness without run logs. A newly written close-trigger file does not make an old quote fresh. Existing oil notes describe futures as primary; standardize lineage rather than asserting a proven spot/futures mistake.
+
+PAYLOADS AND SHARING
+Use immutable revisions in PostgreSQL (entities/instruments, documents, observations, setups, releases, assessments, relationships, decisions, positions, subscriptions, alerts/outbox and receipts). Keep raw time-series/history in partitioned storage/Parquet and permitted source evidence in object storage. An additional graph database is optional, not required for the initial map.
+
+Minimum source metadata: feed/provider/instrument, source event/publication time, receipt/availability/evaluation time, units/basis, session/delay, adjustment/vintage, source revision and rights/lineage. Unknowns null; money decimals as strings. Quote last/mid/model/bid/ask are distinct. Actual underlying quotes stay separate from parity-derived ORATS stockPrice. Daily OI and daily FRED observations retain their own ages.
+
+Source authority, confirmed disclosure, allocated economic exposure, expected stock direction, materiality, urgency and predictive confidence are different fields. A verified commitment is not delivered capacity/revenue. A chart fit is not a probability of a call profit.
+
+Producers:
+- Chart: chart_setup.
+- Macro: economic_release, macro_snapshot.
+- News: news_event, event_assessment, company_relationship and project_milestone.
+- Rose/Hal: trader_decision; authorized ledger service handles position_revision.
+- Infrastructure: quotes/bars/analytics/reference/health and recipient_alert delivery records.
+Earlier shared-bot-records.schema.json covers supplier/event families only. Extend and validate each additional payload; do not claim this field catalog supplies full payload validation.
+
+Proposed read API: consistent bootstrap+cursor, committed changes replay, exact record ID/revision lookup, combined context preserving each input's age, and source/coverage health. Producer writes are scoped by record family. Consumer acknowledgments mean durable receipt, not trade acceptance. Maintain existing shared-bot-api-contract recovery semantics; order by committed publication so late commits cannot be skipped.
+
+Alert outbox commits atomically with records. P0 is an urgent held-thesis/risk/expiry/critical-coverage issue; P1 material new evidence or setup/target needing attention; P2 scheduled context. Corrected/retracted evidence reaches prior recipients. Keep unchanged runs quiet and deduplicate. A credible provisional high-severity report may warrant urgent risk review without being called confirmed.
+
+Retention defaults are research proposals subject to storage/rights: 7 days readily queryable raw ticks, 90 days readily queryable candidate quote history, at least 2 years intraday bars where available, 5 years daily/history/corporate-action versions, and durable thesis/decision/evidence history. The 90-day window is a hot-storage target, not a deletion rule. Preserve each held campaign's licensed quote history and coverage records through its full life plus the chosen evaluation period, including multi-quarter Hal campaigns. Retain decision/entry/exit quote evidence with durable campaign records; use permitted derived evidence if raw-data rights expire, and disclose the resulting evaluation limits. Prefer full purchased historical retention where licensed. Track missing ranges; sampled quote history does not establish exact peaks or realistic fills.
+
+HEALTH AND ACCEPTANCE
+For each feed record expected session, coverage-through, actual collection lag, processing/delivery lag, missed ranges, source age, heartbeat, quota/entitlement and fallback status. A quiet stream is healthy if its heartbeat/coverage is intact.
+Before calling a bot operational, demonstrate source availability, correct units/identities, calendar/split handling, source timestamps, replay/correction deduplication, stale-data blocks, role permissions, data-to-alert-to-receipt tracing and relevant paper accounting. Pattern/model validation is a separate stage. Test chronological outcomes with realistic cost/latency; no universal profit improvement is established.
+
+REFERENCE LINKS
+https://databento.com/docs
+https://www.massive.com/stocks
+https://www.massive.com/docs/rest/stocks/aggregates/custom-bars
+https://databento.com/docs/examples/options/equity-options-introduction
+https://www.massive.com/options
+https://orats.com/docs/live-data-api
+https://orats.com/docs/authentication
+https://bold-tulip-nejq.here.now/data-sources.html
+https://www.cboe.com/about/hours/us-options/
+https://bold-tulip-nejq.here.now/index.html
+https://www.sec.gov/search-filings/edgar-application-programming-interfaces
+https://investor.nvidia.com/home/default.aspx
+https://www.microsoft.com/en-us/investor
+https://investor.tsmc.com/english
+https://insight.factset.com/resources/at-a-glance-factset-estimates-point-in-time-consensus?hs_amp=true
+https://developer.factset.com/
+https://www.bls.gov/schedule/news_release/
+https://www.bea.gov/news/schedule
+https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm
+https://docs.benzinga.com/ws-reference/overview
+https://docs.x.com/x-api/posts/filtered-stream/introduction
+https://www.sec.gov/files/forms-3-4-5.pdf
+https://www.census.gov/economic-indicators/calendar
+https://www.eia.gov/petroleum/supply/weekly/
+https://docs.tradingeconomics.com/economic_calendar/schema/
+https://docs.tradingeconomics.com/economic_calendar/streaming/
+https://fred.stlouisfed.org/series/DGS10
+https://fred.stlouisfed.org/series/DFII10
+https://www.federalreserve.gov/releases/h15/
+https://www.cmegroup.com/market-data/market-data-api/fedwatch-api.html
+https://www.cmegroup.com/market-data/connect-data.html
+https://databento.com/blog/ice-futures-market-data
+https://www.cboe.com/tradable_products/vix/
+https://www.ice.com/products/194/US-Dollar-Index-Futures
+https://fred.stlouisfed.org/series/BAMLH0A0HYM2
+https://fred.stlouisfed.org/series/BAMLC0A0CM

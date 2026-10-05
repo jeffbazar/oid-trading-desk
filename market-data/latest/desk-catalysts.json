@@ -1,0 +1,352 @@
+{
+  "as_of": "2026-10-05T07:38:57-07:00",
+  "as_of_pt": "2026-10-05 7:38 AM PT",
+  "feed": "desk-catalysts",
+  "writer": "hal-catalysts-restamp-20261005",
+  "ttl_seconds": 21600,
+  "error": null,
+  "watchlist": [
+    "SPY",
+    "QQQ",
+    "NVDA",
+    "TSLA",
+    "PLTR",
+    "GOOGL",
+    "GOOG",
+    "NFLX",
+    "META",
+    "AMZN",
+    "AMD",
+    "LRCX",
+    "TSM",
+    "AVGO",
+    "MU",
+    "ASML"
+  ],
+  "earnings": [
+    {
+      "symbol": "ASML",
+      "date": "2026-10-14",
+      "timing": "BMO",
+      "confirmed": true,
+      "period": "Q3 FY2026",
+      "importance": 5,
+      "eps_est": 12.54,
+      "implied_move_pct": null,
+      "source": "Robinhood get_earnings_results (verified=true) \u00b7 UW company"
+    },
+    {
+      "symbol": "TSM",
+      "date": "2026-10-15",
+      "timing": "BMO",
+      "confirmed": true,
+      "period": "Q3 FY2026",
+      "importance": 5,
+      "eps_est": 4.45,
+      "implied_move_pct": null,
+      "source": "Robinhood get_earnings_results (verified=true) \u00b7 UW company"
+    },
+    {
+      "symbol": "NFLX",
+      "date": "2026-10-20",
+      "timing": "AMC",
+      "confirmed": true,
+      "period": "Q3 FY2026",
+      "importance": 5,
+      "eps_est": 0.82,
+      "implied_move_pct": null,
+      "source": "Robinhood get_earnings_results (verified=true) \u00b7 UW company"
+    },
+    {
+      "symbol": "LRCX",
+      "date": "2026-10-21",
+      "timing": "AMC",
+      "confirmed": true,
+      "period": "Q1 FY2027",
+      "importance": 5,
+      "eps_est": 2.17,
+      "implied_move_pct": null,
+      "source": "Robinhood get_earnings_results (verified=true) \u00b7 UW company"
+    },
+    {
+      "symbol": "TSLA",
+      "date": "2026-10-21",
+      "timing": "AMC",
+      "confirmed": true,
+      "period": "Q3 FY2026",
+      "importance": 5,
+      "eps_est": 0.42,
+      "implied_move_pct": null,
+      "source": "Robinhood get_earnings_results (verified=true); UW estimation had 2026-10-28 \u2014 RH verified wins"
+    },
+    {
+      "symbol": "GOOGL",
+      "date": "2026-10-28",
+      "timing": "AMC",
+      "confirmed": false,
+      "period": "Q3 FY2026",
+      "importance": 5,
+      "eps_est": 3.0,
+      "implied_move_pct": null,
+      "source": "Robinhood (verified=false) \u00b7 GOOG same stamp; UW estimation 2026-11-04 \u2014 marked estimated"
+    },
+    {
+      "symbol": "META",
+      "date": "2026-10-28",
+      "timing": "AMC",
+      "confirmed": false,
+      "period": "Q3 FY2026",
+      "importance": 5,
+      "eps_est": 6.38,
+      "implied_move_pct": null,
+      "source": "Robinhood (verified=false) \u00b7 UW estimation 2026-11-04 \u2014 marked estimated"
+    },
+    {
+      "symbol": "AMZN",
+      "date": "2026-10-29",
+      "timing": "AMC",
+      "confirmed": false,
+      "period": "Q3 FY2026",
+      "importance": 5,
+      "eps_est": 1.96,
+      "implied_move_pct": null,
+      "source": "Robinhood (verified=false) \u00b7 UW estimation 2026-10-29 \u2014 marked estimated"
+    },
+    {
+      "symbol": "PLTR",
+      "date": "2026-11-02",
+      "timing": "AMC",
+      "confirmed": false,
+      "period": "Q3 FY2026",
+      "importance": 5,
+      "eps_est": 0.4,
+      "implied_move_pct": null,
+      "source": "Robinhood (verified=false) \u00b7 UW estimation same date \u2014 marked estimated"
+    },
+    {
+      "symbol": "AMD",
+      "date": "2026-11-03",
+      "timing": "AMC",
+      "confirmed": false,
+      "period": "Q3 FY2026",
+      "importance": 5,
+      "eps_est": 1.87,
+      "implied_move_pct": null,
+      "source": "Robinhood (verified=false) \u00b7 UW estimation same date \u2014 marked estimated"
+    },
+    {
+      "symbol": "NVDA",
+      "date": "2026-11-17",
+      "timing": "AMC",
+      "confirmed": true,
+      "period": "Q3 FY2027",
+      "importance": 5,
+      "eps_est": 2.34,
+      "implied_move_pct": null,
+      "source": "Robinhood get_earnings_results (verified=true); UW estimation 2026-11-18"
+    }
+  ],
+  "other_events": [
+    {
+      "symbol": "GOOGL",
+      "date": "2026-10-05",
+      "type": "product launch",
+      "title": "Googlebook \u201cOpening Night\u201d",
+      "note": "Prior desk soft pin \u2014 Google event debuting Gemini-focused laptops; confirm on company IR before sizing.",
+      "source_url": "https://www.engadget.com/2259313/a-googlebook-celebration-event-is-set-for-october-5/"
+    },
+    {
+      "symbol": "AMZN",
+      "date": "2026-10-06",
+      "type": "retail event",
+      "title": "Prime Big Deal Days (Oct 6\u20137)",
+      "note": "Prior desk soft pin \u2014 two-day Prime event; holiday demand / device promo read-through.",
+      "source_url": "https://press.aboutamazon.com/2026/9/prime-big-deal-days-is-back-october-6-7-kicking-off-the-season-with-two-days-of-exclusive-savings-for-prime-members"
+    },
+    {
+      "symbol": "NVDA",
+      "date": "2026-10-21",
+      "type": "conference/keynote",
+      "title": "GTC Berlin \u2014 Jensen Huang keynote",
+      "note": "Prior desk soft pin \u2014 Tempodrom keynote; AI infra / robotics / product risk. Soft only.",
+      "source_url": "https://www.nvidia.com/en-eu/gtc/faq/"
+    },
+    {
+      "symbol": "AMD",
+      "date": "2026-11-16",
+      "type": "conference/exhibition",
+      "title": "SC26 Supercomputing (Nov 16\u201319)",
+      "note": "Prior desk soft pin \u2014 AMD booth listed; HPC/AI demand color, no launch confirmed.",
+      "source_url": "https://www.amd.com/en/corporate/events.html"
+    },
+    {
+      "symbol": "AMZN",
+      "date": "2026-11-30",
+      "type": "conference/product event",
+      "title": "AWS re:Invent 2026 (Nov 30\u2013Dec 4)",
+      "note": "Prior desk soft pin \u2014 new service launches / AI-cloud capex catalyst.",
+      "source_url": "https://aws.amazon.com/events/reinvent/"
+    },
+    {
+      "symbol": "NVDA",
+      "date": "2026-12-01",
+      "type": "conference/keynote",
+      "title": "GTC Washington, D.C. \u2014 Jensen Huang keynote",
+      "note": "Prior desk soft pin \u2014 AI factories, physical AI, US scientific infra.",
+      "source_url": "https://www.nvidia.com/gtc/dc/"
+    }
+  ],
+  "notes": [
+    "restamp only \u2014 event set from 20261004 refresh; soft color never elevates",
+    "Soft research color only \u2014 not a live calendar; never elevates gates alone. Writer: hal-catalysts-refresh-20261004 for Mon 2026-10-05 premarket.",
+    "Earnings primary: Robinhood get_earnings_results / get_earnings_calendar (verified=true \u2192 confirmed). Cross-check Unusual Whales get_upcoming_earnings. FlashAlpha NOT burned this refresh (0 FA calls).",
+    "TSLA: RH verified 2026-10-21 AMC (UW estimation had 2026-10-28). GOOGL/META/AMZN/PLTR/AMD: RH unverified \u2192 confirmed=false. AVGO next RH verified 2026-12-09 AMC (outside ~3w window \u2014 omitted). MU Q4 FY2026 printed 2026-09-30 AMC; next RH unverified 2026-12-16 \u2014 omitted from near window.",
+    "Macro: BLS Oct schedule (CPI/PPI/ECI/NFP), Fed FOMC calendar (Oct 27\u201328 decision), BEA release schedule (GDP/PCE Oct 29), EIA weekly petroleum schedule (Wednesdays; Columbus-week Thu), OCC monthly OPEX Oct 16, ISM Services Oct 5.",
+    "SPY/QQQ have no corporate earnings; macro prints live under Market movers. Other events = soft/web carry-forward \u2014 confirm on company IR before sizing."
+  ],
+  "macro_events": [
+    {
+      "date": "2026-10-05",
+      "event": "ISM Services PMI",
+      "time_et": "10:00 AM ET",
+      "importance": 4,
+      "type": "macro",
+      "period": "September 2026",
+      "softOnly": true,
+      "note": "Confirmed via ISM release calendar / August release next-date pin + FinanceCalendar. Soft growth color.",
+      "source_url": "https://www.ismworld.org/supply-management-news-and-reports/reports/rob-report-calendar/"
+    },
+    {
+      "date": "2026-10-07",
+      "event": "FOMC Minutes (Sep 15\u201316 meeting)",
+      "time_et": "2:00 PM ET",
+      "importance": 3,
+      "type": "macro",
+      "period": "Sep 2026 FOMC",
+      "softOnly": true,
+      "note": "Minutes ~3 weeks after decision (Fed practice). Soft path color; not a rate print.",
+      "source_url": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm"
+    },
+    {
+      "date": "2026-10-07",
+      "event": "EIA Weekly Petroleum Status Report",
+      "time_et": "10:30 AM ET",
+      "importance": 3,
+      "type": "macro",
+      "period": "week ending Oct 2, 2026",
+      "softOnly": true,
+      "note": "Standard Wednesday 10:30 AM ET (EIA schedule). Soft oil/inventory color.",
+      "source_url": "https://www.eia.gov/petroleum/supply/weekly/schedule.php"
+    },
+    {
+      "date": "2026-10-14",
+      "event": "CPI (Consumer Price Index)",
+      "time_et": "8:30 AM ET",
+      "importance": 5,
+      "type": "macro",
+      "period": "September 2026",
+      "softOnly": true,
+      "note": "Official BLS Oct schedule + desk calendars/bls-release-calendar.json. Key pre-FOMC inflation.",
+      "source_url": "https://www.bls.gov/schedule/2026/10_sched_list.htm"
+    },
+    {
+      "date": "2026-10-15",
+      "event": "PPI (Producer Price Index)",
+      "time_et": "8:30 AM ET",
+      "importance": 4,
+      "type": "macro",
+      "period": "September 2026",
+      "softOnly": true,
+      "note": "Official BLS Oct schedule. Pipeline inflation soft color day after CPI.",
+      "source_url": "https://www.bls.gov/schedule/2026/10_sched_list.htm"
+    },
+    {
+      "date": "2026-10-15",
+      "event": "EIA Weekly Petroleum Status Report",
+      "time_et": "12:00 PM ET",
+      "importance": 3,
+      "type": "macro",
+      "period": "week ending Oct 9, 2026",
+      "softOnly": true,
+      "note": "Columbus Day week exception \u2014 Thursday 12:00 PM ET per EIA holiday schedule.",
+      "source_url": "https://www.eia.gov/petroleum/supply/weekly/schedule.php"
+    },
+    {
+      "date": "2026-10-16",
+      "event": "Monthly Options Expiration (OPEX)",
+      "time_et": "market close",
+      "importance": 4,
+      "type": "macro",
+      "period": "October 2026",
+      "softOnly": true,
+      "note": "OCC / Cboe 2026 schedule \u2014 Friday Oct 16 monthly equity/index expiration (third Friday).",
+      "source_url": "https://infomemo.theocc.com/infomemos?number=57897"
+    },
+    {
+      "date": "2026-10-21",
+      "event": "EIA Weekly Petroleum Status Report",
+      "time_et": "10:30 AM ET",
+      "importance": 3,
+      "type": "macro",
+      "period": "week ending Oct 16, 2026",
+      "softOnly": true,
+      "note": "Standard Wednesday 10:30 AM ET (EIA schedule).",
+      "source_url": "https://www.eia.gov/petroleum/supply/weekly/schedule.php"
+    },
+    {
+      "date": "2026-10-28",
+      "event": "FOMC Rate Decision",
+      "time_et": "2:00 PM ET",
+      "importance": 5,
+      "type": "macro",
+      "period": "Oct 27\u201328 meeting",
+      "softOnly": true,
+      "note": "Statement-only (no SEP*). Official Fed calendar. Statement ~2pm ET; press conference usual ~2:30pm ET.",
+      "source_url": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm"
+    },
+    {
+      "date": "2026-10-28",
+      "event": "EIA Weekly Petroleum Status Report",
+      "time_et": "10:30 AM ET",
+      "importance": 3,
+      "type": "macro",
+      "period": "week ending Oct 23, 2026",
+      "softOnly": true,
+      "note": "Standard Wednesday 10:30 AM ET \u2014 same day as FOMC decision; soft oil color only.",
+      "source_url": "https://www.eia.gov/petroleum/supply/weekly/schedule.php"
+    },
+    {
+      "date": "2026-10-29",
+      "event": "GDP (Advance) Q3 + PCE (Sep)",
+      "time_et": "8:30 AM ET",
+      "importance": 5,
+      "type": "macro",
+      "period": "Q3 2026 / Sep 2026",
+      "softOnly": true,
+      "note": "Official BEA schedule \u2014 advance GDP + Personal Income and Outlays (PCE) same stamp, day after FOMC.",
+      "source_url": "https://www.bea.gov/news/schedule"
+    },
+    {
+      "date": "2026-10-30",
+      "event": "Employment Cost Index (ECI)",
+      "time_et": "8:30 AM ET",
+      "importance": 4,
+      "type": "macro",
+      "period": "Q3 2026",
+      "softOnly": true,
+      "note": "Official BLS Oct schedule. Soft wages/inflation color.",
+      "source_url": "https://www.bls.gov/schedule/2026/10_sched_list.htm"
+    },
+    {
+      "date": "2026-11-06",
+      "event": "Employment Situation (NFP)",
+      "time_et": "8:30 AM ET",
+      "importance": 5,
+      "type": "macro",
+      "period": "October 2026",
+      "softOnly": true,
+      "note": "Official BLS schedule (desk bls-release-calendar.json). Next jobs print after Oct 2 NFP.",
+      "source_url": "https://www.bls.gov/schedule/news_release/"
+    }
+  ]
+}

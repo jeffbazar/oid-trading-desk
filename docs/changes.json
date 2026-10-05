@@ -1,0 +1,79 @@
+{
+  "version": "2026-10-04-local-desk-v1.1-box-adaptation",
+  "changes": [
+    {
+      "title": "Separate local trading desk",
+      "before": "A long static public blotter with tabs and retained source records.",
+      "after": "Daily Desk, Evidence, Trade journal, Bot Operations and Changes views in a separate local dashboard.",
+      "status": "implemented"
+    },
+    {
+      "title": "Eight original resources preserved",
+      "before": "Data and context spread across seven published HTML pages and Peanut news JSON.",
+      "after": "Allowlisted manual import retains the original source files and normalized provenance; Chart and Map data already present in production are carried forward.",
+      "status": "implemented"
+    },
+    {
+      "title": "Distinct evidence clocks",
+      "before": "Page-build, mark-refresh and market-observation dates can appear beside a retained LIVE session badge.",
+      "after": "Collection time, page build, marks, macro judgment and completed chart session are shown independently. Imported snapshots are not advertised as live market feeds.",
+      "status": "implemented"
+    },
+    {
+      "title": "Ticker evidence and filters",
+      "before": "Watches, technical observations, events, news and claims require moving between large tables.",
+      "after": "Ticker drilldowns and search/filter controls organize the imported evidence with source links and original fields.",
+      "status": "implemented"
+    },
+    {
+      "title": "Reported performance scope made explicit",
+      "before": "Reported closed-ticket P&L and header day/week figures have different scopes.",
+      "after": "Trade journal uses reported paper-ledger rows and explicit denominators; unavailable account NAV, cash flows and verified settlement remain unavailable.",
+      "status": "implemented"
+    },
+    {
+      "title": "Persistent paper review notes",
+      "before": "The static site cannot store a local review note or review state through an application API.",
+      "after": "Append-only SQLite review records support reviewed, needs-review and hold statuses on imported trade/evidence rows, bind notes to the inspected snapshot and preserve retry identity without authorizing execution.",
+      "status": "implemented"
+    },
+    {
+      "title": "Local API and change notifications",
+      "before": "Browser refresh reloads static publication; Peanut JSON is the only published JSON request identified in inspected HTML.",
+      "after": "A local snapshot API, CSV export, manual public-source sync and SSE for local snapshot/review changes support the new interface.",
+      "status": "implemented"
+    },
+    {
+      "title": "Current versus proposed bot operation",
+      "before": "Production cadences, missing writers and soft mandates coexist with a newer five-role design.",
+      "after": "Bot Operations distinguishes reported production state from proposed sources/cadence and exposes the actual copied Rose, Hal, Macro, Chart and News prompts.",
+      "status": "implemented"
+    },
+    {
+      "title": "Visible production limitations",
+      "before": "Flat-book warning, quota-panel conflict, older calendar, unbuilt feeds and empty supplier graph can be misread.",
+      "after": "Audit notes explain these findings while retaining source values and provenance. No predictions, supplier edges, account returns or market connectivity are invented.",
+      "status": "documented"
+    },
+    {
+      "title": "Live collector and brokerage integration",
+      "before": "Private production collectors and receiving daemons are unavailable in this project.",
+      "after": "Manual public-snapshot synchronization is available by design; licensed live feeds, collector deployment and bot push receivers remain outside this local build.",
+      "status": "not_implemented"
+    },
+    {
+      "title": "Chart cadence: weekday collector",
+      "date": "2026-10-04",
+      "before": "Audit and Bot Operations text described Chart as a one-shot daily history with no weekday collector.",
+      "after": "Chart Bot refreshes Robinhood daily bars for the 37-name Tech∪chip play on weekdays at about 2:24 PM PT; weekends and holidays keep the last completed session. Intraday/weekly bars, 1-min RVOL, patterns, SOXX and forecasts remain N/A. Preserved raw snapshot text is unchanged.",
+      "status": "documented"
+    },
+    {
+      "title": "Durable box copy aligned to live production",
+      "date": "2026-10-04",
+      "before": "Project lived only as a tmp unzip with Mac paths; production-vs-proposed status, API ownership and duplicate vendor queries were not recorded together.",
+      "after": "Copied to /workspace/oid-trading-desk with SETUP-VS-PRODUCTION, API-INVENTORY, QUERY-ARCHITECTURE (mermaid, owner/reader split, RH watch-quote duplicate, FA Growth shared limit, single X pool, archive path), HANDBOOK-ERRATA and data/live-bridge.md. No collectors installed, no quota used, no orders.",
+      "status": "documented"
+    }
+  ]
+}

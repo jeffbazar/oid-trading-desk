@@ -1,0 +1,140 @@
+{
+  "version": 1,
+  "source": "Peanut \u00b7 News Alerts",
+  "mandate": "Research / alerts only \u00b7 zero RH orders",
+  "updatedAt": "2026-10-02 5:33 AM PT",
+  "items": [
+    {
+      "id": "20261002-amzn-8b-gb-spv",
+      "ticker": "AMZN",
+      "score": 3,
+      "gist": "FT/Reuters: exploring $8B Grace Blackwell SPV sale-leaseback (debt + \u226410% equity) for AWS AI infra \u2014 talks only",
+      "link": "https://www.reuters.com/business/retail-consumer/amazon-seeks-offload-8-billion-nvidia-chips-investors-ft-reports-2026-10-02/",
+      "why": "New overnight hyperscaler AI-capex financing structure; balance-sheet / AWS funding optics",
+      "readThrough": [
+        "NVDA"
+      ],
+      "asOfPt": "5:33 AM PT",
+      "asOfIso": "2026-10-02T05:33:41.934066-07:00"
+    },
+    {
+      "id": "20261002-wdc-toshiba-hdd-double",
+      "ticker": "WDC",
+      "score": -3,
+      "gist": "Same Toshiba HDD double-capacity report \u2014 peer share/pricing fear after ~170% YTD; premkt ~\u22127%",
+      "link": "https://www.investing.com/news/stock-market-news/seagate-and-western-digital-shares-fall-on-toshiba-hdd-expansion-4929584",
+      "why": "Direct peer to STX on Toshiba AI-HDD expansion; actionable gap open",
+      "readThrough": [
+        "STX",
+        "SNDK"
+      ],
+      "asOfPt": "5:33 AM PT",
+      "asOfIso": "2026-10-02T05:33:41.897474-07:00"
+    },
+    {
+      "id": "20261002-stx-toshiba-hdd-double",
+      "ticker": "STX",
+      "score": -4,
+      "gist": "Toshiba \u00a5~60B (~$380\u2013400M) Philippines plant to double AI-DC HDD capacity by FY2027; share aim ~10%\u219230% \u2014 oligopoly supply threat; premkt ~\u221211%",
+      "link": "https://asia.nikkei.com/business/electronics/toshiba-to-double-hard-disk-drive-supply-to-fill-ai-chip-memory-gap",
+      "why": "Fresh Oct 2 Nikkei supply-side catalyst in 3-player HDD AI-storage boom after huge YTD run",
+      "readThrough": [
+        "WDC",
+        "SNDK"
+      ],
+      "asOfPt": "5:33 AM PT",
+      "asOfIso": "2026-10-02T05:33:41.860004-07:00"
+    },
+    {
+      "id": "20261001-amzn-aws-gpu-15",
+      "ticker": "AMZN",
+      "score": 2,
+      "gist": "AWS raising EC2 Capacity Blocks reserved GPU prices ~15% effective Oct 7 (H100/H200/B200/B300); 4th straight quarterly hike; Wells Fargo OW on pricing power",
+      "link": "https://aws.amazon.com/ec2/capacityblocks/pricing/",
+      "why": null,
+      "readThrough": [
+        "NVDA"
+      ],
+      "asOfPt": "6:16 AM PT",
+      "asOfIso": "2026-10-01T06:16:30.000485-07:00"
+    },
+    {
+      "id": "20261001-nbis-inferize",
+      "ticker": "NBIS",
+      "score": 2,
+      "gist": "Nebius acquires Inferize (AI inference cold-start/GPU idle optimization) for Token Factory; reports estimate ~$100\u2013150M, terms not officially disclosed",
+      "link": "https://www.eqs-news.com/news/corporate/nebius-acquires-inferize-to-strengthen-nebius-token-factorys-production-inference-stack/f17d6c50-11a1-4f87-b8d8-89c91afc33d6_en",
+      "why": null,
+      "readThrough": [],
+      "asOfPt": "6:16 AM PT",
+      "asOfIso": "2026-10-01T06:16:29.959455-07:00"
+    },
+    {
+      "id": "20261001-avgo-anthropic-42b",
+      "ticker": "AVGO",
+      "score": 3,
+      "gist": "Reuters exclusive: Broadcom to lend Anthropic up to $42B to lease chips; Anthropic set to be AVGO's largest compute customer in 2027; AI semi rev ~$115B FY27 / ~$230B FY28 projected (convertible notes; circular-financing skepticism noted)",
+      "link": "https://www.reuters.com/business/broadcom-lend-anthropic-up-42-billion-lease-its-chips-filing-says-2026-10-01/",
+      "why": null,
+      "readThrough": [
+        "GOOG",
+        "AMZN",
+        "NVDA"
+      ],
+      "asOfPt": "6:16 AM PT",
+      "asOfIso": "2026-10-01T06:16:29.917734-07:00"
+    },
+    {
+      "id": "20261001-orcl-tencent-7b",
+      "ticker": "ORCL",
+      "score": 3,
+      "gist": "FT: Tencent $7B 5-yr Oracle SEA lease for ~100k AI chips (~30% upfront); ORCL ~+1.8% premarket",
+      "link": "https://www.benzinga.com/markets/tech/26/10/62102026/oracle-lands-7-billion-tencent-ai-deal-chinese-tech-giant-to-access-100000-advanced-chips-through-southeast-asia-data-centers-report",
+      "why": null,
+      "readThrough": [],
+      "asOfPt": "5:38 AM PT",
+      "asOfIso": "2026-10-01T05:38:14.932868-07:00"
+    },
+    {
+      "id": "20260930-mu-q4-beat",
+      "ticker": "MU",
+      "score": 5,
+      "gist": "Q4 FY26 beat: rev $54.23B (vs $50B\u00b11B guide) / non-GAAP EPS $33.42; guides Q1FY27 rev $61.5B\u00b11.5B, GM ~86%, EPS ~$38.15",
+      "link": "https://markets.financialcontent.com/stocks/article/gnwcq-2026-9-30-micron-technology-inc-reports-record-fiscal-fourth-quarter-and-full-year-2026-results",
+      "why": "AMC print: revenue crushed high end of prior guide and Street; sequential guide to $61.5B with ~86% GM keeps AI-memory upcycle intact \u2014 after-hours tape mover for MU and memory/storage peers.",
+      "readThrough": [
+        "SNDK",
+        "WDC",
+        "STX",
+        "SMH"
+      ],
+      "asOfPt": "1:16 PM PT",
+      "asOfIso": "2026-09-30T13:16:40.412671-07:00"
+    },
+    {
+      "id": "20260930-amd-helios-vultr",
+      "ticker": "AMD",
+      "score": 3,
+      "gist": "HPE first $1.2B Vultr order for AMD Helios AI racks (72\u00d7 MI455X + EPYC Venice)",
+      "link": "https://www.reuters.com/business/hpe-boosts-networking-growth-outlook-gets-12-billion-ai-order-cloud-firm-vultr-2026-09-30/",
+      "why": "First disclosed commercial Helios rack order",
+      "readThrough": [],
+      "asOfPt": "10:27 AM PT",
+      "asOfIso": "2026-09-30T10:27:44.187053-07:00"
+    },
+    {
+      "id": "20260930-nvda-vera-rubin",
+      "ticker": "NVDA",
+      "score": 3,
+      "gist": "CoreWeave put NVIDIA Vera Rubin NVL72 into limited production; Cognition first customer, up to 4.8x token throughput vs GB200",
+      "link": "https://blogs.nvidia.com/blog/coreweave-agentic-ai-vera-rubin/",
+      "why": "Quantified customer benchmark on next rack",
+      "readThrough": [
+        "TSM",
+        "SMH"
+      ],
+      "asOfPt": "10:27 AM PT",
+      "asOfIso": "2026-09-30T10:27:44.142032-07:00"
+    }
+  ]
+}
