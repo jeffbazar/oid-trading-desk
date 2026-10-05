@@ -61,7 +61,22 @@
         "https://databento.com/docs",
         "https://www.massive.com/stocks"
       ],
-      "notes": "Consolidated quotes and single-venue BBO are different; record scope. Use an actual equity quote rather than ORATS parity-derived stockPrice.",
+      "notes": "Consolidated quotes and single-venue BBO are different; record scope. Use an actual equity quote rather than ORATS parity-derived stockPrice. Production Tech\u222achip equity quotes are not a second Hal writer: Rose solely writes market-data/latest/rh-quotes.json (owner rose, writer refresh_marks.py via dashboard/refresh_marks.py, ttl_seconds 120, 38 Tech\u222achip+index symbols). Hal reads that file for soft tape. Elevate/invalidate stays live Robinhood <=120s and is never served from rh-quotes. This feed entry remains a recommendation for a future entitled stream; it does not authorize another Robinhood quote loop.",
+      "production_rh_quotes": {
+        "feed": "rh-quotes",
+        "path": "market-data/latest/rh-quotes.json",
+        "owner": "rose",
+        "sole_writer": true,
+        "writer": "refresh_marks.py",
+        "writer_path": "dashboard/refresh_marks.py",
+        "ttl_seconds": 120,
+        "symbols": "Tech union chip plus indexes",
+        "symbol_count": 38,
+        "hal_role": "reader",
+        "use": "scan and soft tape / wall-distance color",
+        "elevate_invalidate": "live Robinhood <=120s; never this cache",
+        "agreement": "Jeffrey + Rose 2026-10-05"
+      },
       "implementation_priority": "FOUNDATION",
       "operational_status": "PROPOSED_OR_UNVERIFIED_NOT_DEPLOYED_BY_THIS_TASK"
     },

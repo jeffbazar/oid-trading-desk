@@ -1,6 +1,6 @@
 {
   "bot": "Hal - Options Trader 2",
-  "as_of_pt": "2026-10-05 10:27 AM PT",
+  "as_of_pt": "2026-10-05",
   "repo": "https://github.com/jeffbazar/oid-trading-desk",
   "package_path": "hal/",
   "authority": "research_alerts_paper_only",
@@ -11,11 +11,29 @@
       "cadence": "weekday_rth_15m_11_26_41_56_et"
     },
     {
+      "id": "rh-quotes",
+      "file": "market-data/latest/rh-quotes.json",
+      "role": "reader",
+      "owner": "rose",
+      "writer": "refresh_marks.py",
+      "writer_path": "dashboard/refresh_marks.py",
+      "ttl_seconds": 120,
+      "symbols": "Tech union chip plus indexes (38 on the live file)",
+      "use": "scan and soft tape / wall-distance color",
+      "fresh_rule": "read_fresh; do not call get_equity_quotes for the Tech union chip set when fresh",
+      "miss_rule": "prefer wait for Rose refresh; optional one-shot get_equity_quotes only for symbols missing from a fresh file",
+      "elevate_invalidate": "live Robinhood <=120s; never this cache",
+      "doc": "hal/RH-QUOTES-READER.md"
+    },
+    {
       "id": "hal-rh-watch",
       "file": "market-data/latest/hal-rh-watch-pulse.json",
       "cadence": "weekday_rth_05_35_et",
       "neverElevateAlone": true,
-      "duplicateOf": "Rose live RH pulse / proposed rh-quotes"
+      "role": "soft_a_annotate",
+      "quotes_from": "rh-quotes",
+      "quotes_owner": "rose",
+      "doc": "hal/RH-QUOTES-READER.md"
     },
     {
       "id": "hal-x-scan",
@@ -42,10 +60,20 @@
     "hal/HAL-CADENCE-V1.md",
     "hal/HAL-X-ALLOWLIST.md",
     "hal/FA-READER.md",
+    "hal/RH-QUOTES-READER.md",
     "hal/DESK-CATALYSTS.md",
     "hal/DUPLICATE-RH-QUOTES.md"
   ],
-  "duplicate_todo": "hal-rh-watch vs Rose live pulse \u2014 one writer to rh-quotes; see hal/DUPLICATE-RH-QUOTES.md",
+  "rh_quotes": {
+    "status": "resolved",
+    "agreed": "2026-10-05",
+    "agreed_by": "Jeffrey + Rose",
+    "owner": "rose",
+    "sole_writer": "dashboard/refresh_marks.py",
+    "writer_string": "refresh_marks.py",
+    "hal": "reader",
+    "note": "Hal Tech union chip get_equity_quotes duplicate is closed. See hal/DUPLICATE-RH-QUOTES.md."
+  },
   "not_applicable": [
     "databento",
     "massive",

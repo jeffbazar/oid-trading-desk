@@ -32,3 +32,10 @@ Implementation status for each item is recorded in `changes.json`. Verification 
 - Added `data/live-bridge.md`, which documents how this project archives from the live `market-data/latest/` cache and the eight public here.now resources for backtesting, without redistributing licensed data.
 - Recorded Hal's `desk-catalysts` refresh (2026-10-04 9:45 PM PT, 30 events, no FlashAlpha calls) and Peanut's production registry (X/web only, shared X pool).
 - No collectors installed, no schedules changed, no vendor quota used, no orders placed. The hosted site is not modified by this project.
+
+## 2026-10-05: Rose owns shared RH equity quotes
+
+- **Resolved** the Hal vs Rose Tech∪chip `get_equity_quotes` duplicate (Jeffrey + Rose, 2026-10-05). Rose (`dashboard/refresh_marks.py`) is the sole writer of `market-data/latest/rh-quotes.json` (writer string `refresh_marks.py`, `owner: rose`, TTL 120s, 38 Tech∪chip+index symbols).
+- Hal reads that file for soft tape and wall-distance color. The `:05`/`:35` ET pulse stays Soft A annotation only and must not call `get_equity_quotes` for the union while `rh-quotes` is fresh. Elevate / invalidate still requires live Robinhood ≤120s, never the cache.
+- Reader note: `hal/RH-QUOTES-READER.md`. Query diagram, handbook errata, API inventory, setup-vs-production, and the equity-quote registry entry match that contract.
+- No collector cutover, no Vercel change, no vendor calls, no orders. Live production collectors remain on `options-intelligence-desk`.
