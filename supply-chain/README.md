@@ -3,7 +3,7 @@
 Folder drop for https://github.com/jeffbazar/oid-trading-desk
 
 ## Contents
-- `supply-chain.db` — SQLite paper store (identity only; WAL; `PRAGMA foreign_keys=ON` per connection)
+- `supply-chain.db` — **not committed** (Rose seed policy: no sqlite in this repo). Lives on the box at `/workspace/options-intelligence-desk/supply-chain/supply-chain.db`; rebuild with `bootstrap_store.py`.
 - `schema.md` — table contract
 - `bootstrap_store.py` — rebuild script (replaces the db)
 - `supply-chain-identity.json` — published identity snapshot (also mirrored under `market-data/latest/`)
