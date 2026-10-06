@@ -8,7 +8,7 @@ The imported October 4 publication reports **zero open positions**. Its page bui
 >
 > **Live blotter** remains https://bold-tulip-nejq.here.now/. **Local review server:** http://127.0.0.1:8768.
 >
-> This seed is docs, the review UI, and bot package stubs (`chart-bot/`, `hal/`, `macro/`, `peanut/`, `supply-chain/`). There is no live collector cutover. Live production stays on the separate box tree. Research/paper only. Zero brokerage orders.
+> Production root on the box is this tree (`/workspace/oid-trading-desk`). `/workspace/options-intelligence-desk` is a symlink to it (`CUTOVER-20261005.md`). Rose is the sole `rh-quotes` writer. Support-map and market-tape piggyback on that file. Research/paper only. Zero brokerage orders.
 >
 > Read `docs/SETUP-VS-PRODUCTION.md`, `docs/API-INVENTORY.md`, `docs/QUERY-ARCHITECTURE.md`, `docs/HANDBOOK-ERRATA.md` and `data/live-bridge.md` before treating any feed as live.
 

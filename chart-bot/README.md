@@ -37,7 +37,7 @@ Chart does **not** share the Rose / Hal live quote pulse.
 | `market-data/latest/chart-daily-observations.json` | Data-sources copy |
 | https://bold-tulip-nejq.here.now/chart.html | Public Chart page |
 
-Live desk compute also lives under `/workspace/options-intelligence-desk/chart-bot/` until this repo is the single tree.
+Live desk compute is this tree. `/workspace/options-intelligence-desk/chart-bot/` reaches it through the 2026-10-05 symlink (`CUTOVER-20261005.md`).
 
 ## Indicators
 

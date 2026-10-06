@@ -3,3 +3,14 @@ __pycache__/
 data/reviews.sqlite3*
 work/
 .DS_Store
+
+# Cutover 2026-10-05 — keep off-repo / local-only
+secrets/
+**/supply-chain.db
+*.db
+.env
+.env.*
+market-data/latest/rh-quotes.json
+**/__pycache__/
+tmp/
+paper-trades/tmp/

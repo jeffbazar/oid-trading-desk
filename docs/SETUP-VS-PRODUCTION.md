@@ -9,9 +9,7 @@ Adapted 2026-10-05 (PT) for the durable desk copy at `/workspace/oid-trading-des
 - **Published production:** what the live desk's routines actually write, and what the here.now site shows.
 - **Proposed / N/A:** in the handbook, prompts or `source-registry.json` but **not deployed**. Every N/A item from the teammate registry is tagged **N/A**.
 
-> **Chart package (folded 2026-10-05).** Feed `chart-daily` / `chart-daily-observations`, owner Chart Bot, rule **CB-DAILY-V1**, routine `chart-daily-refresh` weekdays **2:24 PM PT** after cash close. Universe **RH-TECH-CHIP-20261004** (37; GOOG Class C only; QQQ+SMH benchmarks on lists; SOXX not fetched). Sole writer of post-close daily historicals — does **not** share Rose `rh-quotes`. Preserved `data/raw/` snapshots remain immutable evidence of earlier page text.
->
-> **`rh-quotes` (agreed 2026-10-05).** Rose is the sole writer (`dashboard/refresh_marks.py` → `market-data/latest/rh-quotes.json`, TTL 120s). Hal reads that file for Tech∪chip soft tape. This document does not cut the live collector over.
+> **Chart package (folded 2026-10-05).** Feed `chart-daily` / `chart-daily-observations`, owner Chart Bot, rule **CB-DAILY-V1**, routine `chart-daily-refresh` weekdays **2:24 PM PT** after cash close. Universe **RH-TECH-CHIP-20261004** (37; GOOG Class C only; QQQ+SMH benchmarks on lists; SOXX not fetched). Sole writer of post-close daily historicals — does **not** share Rose/Hal live quote pulse. Preserved `data/raw/` snapshots remain immutable evidence of earlier page text.
 
 ## 1. By bot
 
@@ -38,12 +36,12 @@ Adapted 2026-10-05 (PT) for the durable desk copy at `/workspace/oid-trading-des
 ### Hal
 | Implemented locally | Published production | Proposed / N/A |
 | --- | --- | --- |
-| Imports Hal rows and lessons. | **`hal-intraday-marks` / `hal-marks`:** RH option marks on held Hal seats every 15 min RTH (`:11/:26/:41/:56` ET). Flat book = idle. **`rh-quotes`:** Hal **reads** Rose's file (TTL 120s) for Tech∪chip soft tape / wall-distance color. **`hal-rh-watch`:** `:05`/`:35` ET Soft A annotation only — **no `get_equity_quotes` for the union when `rh-quotes` is fresh** (resolved 2026-10-05; see `hal/RH-QUOTES-READER.md`). **`fa-levels`:** Hal reads Rose file; any Hal FA burn logs against shared pool. **`hal-x-scan`:** Hal only, every 2h, 11 allowlisted accounts, shared X credits. **`desk-catalysts`:** Hal owns soft calendar; restamped **2026-10-05 ~7:38 AM PT** (30 events); never elevates alone. Authority: research/alerts/paper only — never place/modify/cancel/exercise RH unless Jeffrey separately names a live Agentic ticket. Elevate/invalidate still needs live RH ≤120s, never the `rh-quotes` cache. | **N/A:** Databento/Massive bars · 60s quote cadence (design only) · second Tech∪chip equity-quote writer · second EDGAR/Form-4 collector (Rose owns) · Benzinga · live RH order path. Handbook FA/UW reader-only stands. |
+| Imports Hal rows and lessons. | **`hal-intraday-marks` / `hal-marks`:** RH option marks on held Hal seats every 15 min RTH (`:11/:26/:41/:56` ET). Flat book = idle. **`hal-rh-watch`:** Tech∪chip soft tape `:05/:35` ET — **reads Rose `rh-quotes`** (ownership **resolved 2026-10-05**; Soft A annotate; elevate still live RH ≤120s). **`fa-levels`:** Hal reads Rose file; any Hal FA burn logs against shared pool. **`hal-x-scan`:** Hal only, every 2h, 11 allowlisted accounts, shared X credits. **`desk-catalysts`:** Hal owns soft calendar; restamped **2026-10-05 ~7:38 AM PT** (30 events); never elevates alone. Authority: research/alerts/paper only — never place/modify/cancel/exercise RH unless Jeffrey separately names a live Agentic ticket. | **N/A:** Databento/Massive bars · 60s quote cadence (design only) · second EDGAR/Form-4 collector (Rose owns) · Benzinga · live RH order path. Handbook FA/UW reader-only stands. |
 
 ### Rose (OID)
 | Implemented locally | Published production | Proposed / N/A |
 | --- | --- | --- |
-| Imports Rose rows, watches and closed ledger. | **Primary FA writer** (`fa-levels`: walls pulse + Q5 gated). UW flow/Form 4 when runs pull. **Sole writer of `rh-quotes`** (`dashboard/refresh_marks.py`, writer string `refresh_marks.py`, `owner: rose`, TTL 120s, 38 Tech∪chip+index symbols; scan/soft tape). **Live RH quotes for elevate/invalidate ≤120 s** (never from `rh-quotes`). Live RH book pulse both accounts. `support-map` every 15 min. Paper ledger. Site publisher via `dashboard/live_refresh.py` + `publish.sh` (bold-tulip-nejq). | **NOT_BUILT (no writer):** `fa-soft` · `uw-oe` · `rh-rvol`. Rose X Core-8 drafted but **disabled**. |
+| Imports Rose rows, watches and closed ledger. | **Primary FA writer** (`fa-levels`: walls pulse + Q5 gated). UW flow/Form 4 when runs pull. **Sole writer of shared `rh-quotes`** (TTL 120s; Jeffrey confirmed 2026-10-05). **Live RH quotes for elevate/invalidate ≤120 s**. Live RH book pulse both accounts. `support-map` every 15 min. Paper ledger. Site publisher via `dashboard/live_refresh.py` + `publish.sh` (bold-tulip-nejq). | **NOT_BUILT (no writer):** `fa-soft` · `uw-oe` · `rh-rvol`. Rose X Core-8 drafted but **disabled**. |
 
 ## 2. By layer
 
@@ -52,13 +50,13 @@ Adapted 2026-10-05 (PT) for the durable desk copy at `/workspace/oid-trading-des
 | Vendor calls | None (public-page import only) | Robinhood, FlashAlpha, UW, X, FRED CSV, Yahoo public, official BLS/BEA/Census/EIA (see API-INVENTORY) | Databento, Massive, Benzinga, FactSet, Trading Economics, CME FedWatch: **N/A** |
 | Shared cache | Bridge documented in `data/live-bridge.md` | `market-data/latest/{feed}.json` with `cache_io.py` read-before-pull. Chart = sole post-close daily historicals writer. | Immutable dated snapshot bundles for backtesting: **not built** |
 | Publication | Local server on 127.0.0.1:8768 | here.now static site (bold-tulip-nejq), rebuilt by `rebuild.py` / `live_refresh.py` | Push/receiver/outbox, record API: **N/A** |
-| Coverage speed | n/a | RH ≤120 s gate at elevate (live, not `rh-quotes`). Rose `rh-quotes` TTL 120s for scan/soft tape. Hal marks every 15 min. Hal watch `:05`/`:35` annotates Rose quotes | 5–10 s Rose / 10–30 s Hal / Hal 60s quote cadence: **targets only** |
+| Coverage speed | n/a | RH ≤120 s gate at elevate. Hal marks every 15 min. Watch :05/:35 | 5–10 s Rose / 10–30 s Hal / Hal 60s quote cadence: **targets only** |
 | Forecasts | null | null (Chart / C&S profit probs null) | Calibrated models: **N/A** until validated |
 
 ## 3. Known production gaps (kept visible)
 - `fa-soft`, `uw-oe`, `rh-rvol`: NOT_BUILT, no writer.
-- Chart does not share Rose `rh-quotes` — post-close history only; do not duplicate `get_equity_historicals`.
-- `support-map` (every 15 min) and `live_refresh` `market-tape` should still piggyback on fresh `rh-quotes` instead of re-quoting the same names (QUERY-ARCHITECTURE §Duplicates #2). Hal is not that writer.
+- **Resolved 2026-10-05:** Rose sole writer of `rh-quotes`; Hal `hal-rh-watch` reads + Soft A annotate (elevate still live RH ≤120s). See `hal/DUPLICATE-RH-QUOTES.md`.
+- Chart does not share that live pulse — post-close history only; do not duplicate `get_equity_historicals`.
 - Handbook five-bot guide put Map under News; production owner is **Customer/Supplier Bot**.
 - Google Calendar MCP may be `needsAuth` (Macro falls back to official calendar).
 - GitHub/Origin repo for this project: blocked until Jeffrey connects (README still notes waiting).

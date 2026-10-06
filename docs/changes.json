@@ -81,6 +81,13 @@
       "before": "Hal hal-rh-watch at :05/:35 ET and Rose's live book pulse both called Robinhood get_equity_quotes for the Tech\u222achip union. The overlap was open debt.",
       "after": "Jeffrey + Rose agreed Rose (dashboard/refresh_marks.py) is the sole writer of market-data/latest/rh-quotes.json (owner rose, TTL 120s, 38 Tech\u222achip+index symbols). Hal reads that file for soft tape and annotates Soft A only. No get_equity_quotes for the union while the file is fresh. Elevate/invalidate still uses live Robinhood \u2264120s, never the cache. No collector cutover.",
       "status": "documented"
+    },
+    {
+      "title": "Cutover plus rh-quotes piggyback",
+      "date": "2026-10-05",
+      "before": "Support-map and market-tape could re-quote names Rose had already written. The box tree and this GitHub repo were separate, and Architecture/Setup were not in the repo rebuild.",
+      "after": "Production root is /workspace/oid-trading-desk with options-intelligence-desk as a symlink. Rose refresh_marks.py stays the sole rh-quotes writer. Tape and support-map call piggyback_rh_quotes and never write that file. live_refresh is tape cache-first. Architecture and Setup nav rebuild locally. No vendor payloads, supply-chain.db, secrets, tmp backups, or the live paper ledger are in the PR. Research/paper only. Zero brokerage execution.",
+      "status": "documented"
     }
   ]
 }
