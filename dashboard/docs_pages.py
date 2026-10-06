@@ -1,17 +1,18 @@
 #!/usr/bin/env python3
-"""Render architecture.html and setup.html with the blotter nav.
-
-The live blotter already publishes these pages on
-https://bold-tulip-nejq.here.now/. This module rebuilds them from the desk
-markdown so the nav tabs stay on Architecture and Setup. It does not publish.
-"""
+"""Build architecture.html + setup.html from desk markdown docs (static blotter style)."""
 from __future__ import annotations
 
 import html
 import re
+from datetime import datetime
 from pathlib import Path
+from typing import Optional
+from zoneinfo import ZoneInfo
 
-NAV = (
+PT = ZoneInfo("America/Los_Angeles")
+ROOT = Path(__file__).resolve().parent.parent
+
+NAV_ITEMS = [
     ("index.html", "Blotter"),
     ("data-sources.html", "Data sources"),
     ("architecture.html", "Architecture"),
@@ -22,9 +23,243 @@ NAV = (
     ("news-archive.html", "News Archive"),
     ("map.html", "Map"),
     ("chart.html", "Chart"),
-)
+]
 
-PAGE_CSS = """
+
+def make_tab_nav(active: str) -> str:
+    """active is the href filename, e.g. 'architecture.html'."""
+    parts = []
+    for href, label in NAV_ITEMS:
+        cls = ' class="active"' if href == active else ""
+        parts.append(f'<a{cls} href="{href}">{label}</a>')
+    return '<div class="tabs">' + "".join(parts) + "</div>"
+
+
+def _esc(s: object) -> str:
+    return html.escape(str(s if s is not None else ""), quote=True)
+
+
+def _inline(text: str) -> str:
+    """Escape then apply limited inline markdown."""
+    s = html.escape(text, quote=False)
+    # code first
+    s = re.sub(r"`([^`]+)`", r"<code>\1</code>", s)
+    # bold / italic
+    s = re.sub(r"\*\*([^*]+)\*\*", r"<strong>\1</strong>", s)
+    s = re.sub(r"(?<!\*)\*([^*]+)\*(?!\*)", r"<em>\1</em>", s)
+    # links
+    s = re.sub(
+        r"\[([^\]]+)\]\((https?://[^)\s]+)\)",
+        r'<a href="\2" target="_blank" rel="noopener">\1</a>',
+        s,
+    )
+    s = re.sub(
+        r"\[([^\]]+)\]\(([^)\s]+)\)",
+        r'<a href="\2">\1</a>',
+        s,
+    )
+    return s
+
+
+def md_to_html(md: str) -> str:
+    """Small subset converter: headings, tables, fences, lists, quotes, paragraphs."""
+    lines = md.replace("\r\n", "\n").replace("\r", "\n").split("\n")
+    out: list[str] = []
+    i = 0
+    n = len(lines)
+
+    def flush_para(buf: list[str]) -> None:
+        if not buf:
+            return
+        text = " ".join(x.strip() for x in buf if x.strip())
+        if text:
+            out.append(f"<p>{_inline(text)}</p>")
+        buf.clear()
+
+    while i < n:
+        line = lines[i]
+        # fenced code
+        if line.startswith("```"):
+            lang = line[3:].strip()
+            i += 1
+            body: list[str] = []
+            while i < n and not lines[i].startswith("```"):
+                body.append(lines[i])
+                i += 1
+            if i < n:
+                i += 1  # closing fence
+            code = html.escape("\n".join(body), quote=False)
+            cls = f' class="lang-{_esc(lang)}"' if lang else ""
+            note = ""
+            if lang.lower() == "mermaid":
+                note = '<div class="md-note">Diagram source (mermaid) — rendered as text on this static page.</div>'
+                cls = ' class="lang-mermaid"'
+            out.append(f'{note}<pre{cls}><code>{code}</code></pre>')
+            continue
+
+        # table block
+        if "|" in line and i + 1 < n and re.match(r"^\s*\|?\s*:?-+:?\s*(\|\s*:?-+:?\s*)+\|?\s*$", lines[i + 1]):
+            rows: list[list[str]] = []
+            while i < n and "|" in lines[i]:
+                raw = lines[i].strip()
+                if re.match(r"^\|?\s*:?-+:?\s*(\|\s*:?-+:?\s*)+\|?\s*$", raw):
+                    i += 1
+                    continue
+                cells = [c.strip() for c in raw.strip("|").split("|")]
+                rows.append(cells)
+                i += 1
+            if rows:
+                head, *body = rows
+                th = "".join(f"<th>{_inline(c)}</th>" for c in head)
+                trs = []
+                for r in body:
+                    # pad/truncate to head width
+                    while len(r) < len(head):
+                        r.append("")
+                    tds = "".join(f"<td>{_inline(c)}</td>" for c in r[: len(head)])
+                    trs.append(f"<tr>{tds}</tr>")
+                out.append(
+                    '<div class="table-wrap"><table>'
+                    f"<thead><tr>{th}</tr></thead>"
+                    f"<tbody>{''.join(trs)}</tbody>"
+                    "</table></div>"
+                )
+            continue
+
+        # headings
+        hm = re.match(r"^(#{1,4})\s+(.*)$", line)
+        if hm:
+            level = len(hm.group(1))
+            title = hm.group(2).strip()
+            slug = re.sub(r"[^a-z0-9]+", "-", title.lower()).strip("-")
+            out.append(f'<h{level} id="{_esc(slug)}">{_inline(title)}</h{level}>')
+            i += 1
+            continue
+
+        # blockquote
+        if line.startswith(">"):
+            buf_q: list[str] = []
+            while i < n and lines[i].startswith(">"):
+                buf_q.append(lines[i].lstrip("> ").rstrip())
+                i += 1
+            out.append(f'<blockquote>{_inline(" ".join(buf_q))}</blockquote>')
+            continue
+
+        # unordered list
+        if re.match(r"^[-*]\s+", line):
+            items: list[str] = []
+            while i < n and re.match(r"^[-*]\s+", lines[i]):
+                items.append(f"<li>{_inline(re.sub(r'^[-*]\s+', '', lines[i]))}</li>")
+                i += 1
+            out.append("<ul>" + "".join(items) + "</ul>")
+            continue
+
+        # ordered list
+        if re.match(r"^\d+\.\s+", line):
+            items = []
+            while i < n and re.match(r"^\d+\.\s+", lines[i]):
+                items.append(f"<li>{_inline(re.sub(r'^\d+\.\s+', '', lines[i]))}</li>")
+                i += 1
+            out.append("<ol>" + "".join(items) + "</ol>")
+            continue
+
+        # blank
+        if not line.strip():
+            i += 1
+            continue
+
+        # paragraph
+        buf: list[str] = []
+        while i < n and lines[i].strip() and not lines[i].startswith("#") and not lines[i].startswith("```") \
+                and not lines[i].startswith(">") and not re.match(r"^[-*]\s+", lines[i]) \
+                and not re.match(r"^\d+\.\s+", lines[i]) \
+                and not ("|" in lines[i] and i + 1 < n and re.match(r"^\s*\|?\s*:?-+:?\s*(\|\s*:?-+:?\s*)+\|?\s*$", lines[i + 1])):
+            buf.append(lines[i])
+            i += 1
+        flush_para(buf)
+
+    return "\n".join(out)
+
+
+def _read(path: Path) -> str:
+    if not path.exists():
+        return f"_Missing source: `{path.relative_to(ROOT) if path.is_relative_to(ROOT) else path}`._\n"
+    return path.read_text(encoding="utf-8")
+
+
+def _cutover_brief() -> str:
+    """Short cutover status for the site (not full backup/rollback playbook)."""
+    raw = _read(ROOT / "CUTOVER-20261005.md")
+    # Prefer Outcome + Open gaps (non-blockers summary) without long bash blocks
+    outcome = ""
+    gaps = ""
+    section = None
+    buf: list[str] = []
+    for line in raw.splitlines():
+        if line.startswith("## "):
+            if section == "Outcome":
+                outcome = "\n".join(buf).strip()
+            elif section == "Open gaps":
+                gaps = "\n".join(buf).strip()
+            section = line[3:].strip()
+            buf = []
+            continue
+        if section in ("Outcome", "Open gaps"):
+            # skip fenced smoke/rollback dumps inside Open gaps later sections handled by heading
+            buf.append(line)
+    if section == "Outcome":
+        outcome = "\n".join(buf).strip()
+    elif section == "Open gaps":
+        gaps = "\n".join(buf).strip()
+
+    parts = ["# Cutover status — 2026-10-05 (PT)\n", "Research/paper only. Live blotter: https://bold-tulip-nejq.here.now/\n"]
+    if outcome:
+        parts.append("## Outcome\n")
+        parts.append(outcome + "\n")
+    if gaps:
+        # Trim to first ~40 lines of open gaps to keep page readable
+        gap_lines = gaps.splitlines()
+        # Drop nested ### Blockers fluff if huge — keep whole Open gaps (it's short enough)
+        parts.append("## Open gaps\n")
+        parts.append("\n".join(gap_lines) + "\n")
+    parts.append(
+        "\nFull cutover note on desk: `CUTOVER-20261005.md`. "
+        "Publish slug **bold-tulip-nejq** only (swift-dune is review-only).\n"
+    )
+    return "\n".join(parts)
+
+
+def _ownership_note() -> str:
+    dedup = ROOT / "market-data" / "QUERY-DEDUP.md"
+    dup = ROOT / "hal" / "DUPLICATE-RH-QUOTES.md"
+    if not dup.exists():
+        dup = ROOT / "DUPLICATE-RH-QUOTES.md"
+    # Pull RH ownership section from QUERY-DEDUP
+    dedup_text = _read(dedup)
+    rh_chunk = ""
+    capture = False
+    for line in dedup_text.splitlines():
+        if line.startswith("## RH quotes ownership"):
+            capture = True
+            rh_chunk = line + "\n"
+            continue
+        if capture:
+            if line.startswith("## ") and not line.startswith("## RH"):
+                break
+            rh_chunk += line + "\n"
+    body = [
+        "# Query ownership notes\n",
+        "Short ownership excerpts from `market-data/QUERY-DEDUP.md` and `hal/DUPLICATE-RH-QUOTES.md`. "
+        "Full query architecture is above.\n",
+    ]
+    if rh_chunk.strip():
+        body.append(rh_chunk)
+    body.append("\n---\n\n")
+    body.append(_read(dup))
+    return "\n".join(body)
+
+
+DOC_CSS = """
 :root{
   --bg:#070b10; --panel:#0e141c; --panel2:#121a24; --line:#1a2533;
   --text:#e8eef7; --muted:#7f91a8; --accent:#4da3ff;
@@ -55,203 +290,128 @@ h4{font-size:.88rem;margin:14px 0 6px;color:var(--muted)}
 .doc code{font-family:var(--mono);font-size:.8em;background:#0a1018;padding:1px 5px;border-radius:4px}
 .doc pre{background:#0a1018;border:1px solid var(--line);border-radius:10px;padding:12px 14px;overflow:auto;margin:0 0 14px;font-size:.76rem;line-height:1.4}
 .doc pre code{background:none;padding:0;font-size:inherit}
+.md-note{font-size:.72rem;color:var(--muted);margin:0 0 6px}
 .table-wrap{border:1px solid var(--line);border-radius:12px;overflow:auto;background:var(--panel);margin:0 0 16px}
 table{width:100%;border-collapse:collapse;min-width:640px}
 th,td{padding:8px 10px;text-align:left;font-size:.8rem;border-bottom:1px solid var(--line);vertical-align:top}
 th{color:var(--muted);font-weight:600;font-size:.66rem;text-transform:uppercase;background:#0a1018;position:sticky;top:0}
+.toc{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 18px}
+.toc a{font-size:.75rem;padding:5px 10px;border-radius:999px;border:1px solid var(--line);color:var(--muted);text-decoration:none;background:#0a1018}
+.toc a:hover{color:var(--text);border-color:#2a4a70}
+.section-card{margin:18px 0 8px;padding:8px 0}
+.src-chip{display:inline-block;font-size:.68rem;color:var(--muted);margin-bottom:6px}
+.src-chip code{font-size:.72rem}
 footer{margin-top:28px;color:var(--muted);font-size:.8rem;line-height:1.45}
+hr{border:none;border-top:1px solid var(--line);margin:22px 0}
 """
 
 
-def desk_root(root=None) -> Path:
-    if root is not None:
-        return Path(root).resolve()
-    return Path(__file__).resolve().parents[1]
-
-
-def nav_html(active: str) -> str:
-    parts = ['<div class="tabs">']
-    for href, label in NAV:
-        cls = ' class="active"' if href == active else ""
-        parts.append(f'<a{cls} href="{html.escape(href, quote=True)}">{html.escape(label)}</a>')
-    parts.append("</div>")
-    return "".join(parts)
-
-
-def inject_nav(page: str, active: str) -> str:
-    """Replace an existing tab strip, or insert one at the start of body."""
-    nav = nav_html(active)
-    if 'class="tabs"' in page:
-        return re.sub(r'<div class="tabs">.*?</div>', nav, page, count=1, flags=re.S)
-    if "<body>" in page:
-        return page.replace("<body>", "<body>" + nav, 1)
-    return nav + page
-
-
-def _slug(text: str) -> str:
-    cleaned = re.sub(r"[^a-z0-9]+", "-", text.lower()).strip("-")
-    return cleaned or "section"
-
-
-def _inline(text: str) -> str:
-    escaped = html.escape(text, quote=True)
-
-    def link(match):
-        label, url = match.group(1), match.group(2)
-        safe = html.escape(url, quote=True)
-        if url.startswith(("http://", "https://", "#", "/")) or url.endswith((".html", ".md")):
-            return f'<a href="{safe}">{label}</a>'
-        return match.group(0)
-
-    escaped = re.sub(r"`([^`]+)`", r"<code>\1</code>", escaped)
-    escaped = re.sub(r"\*\*([^*]+)\*\*", r"<strong>\1</strong>", escaped)
-    escaped = re.sub(r"\[([^\]]+)\]\(([^)]+)\)", link, escaped)
-    return escaped
-
-
-def _table(lines: list[str]) -> str:
-    rows = []
-    for line in lines:
-        cells = [cell.strip() for cell in line.strip().strip("|").split("|")]
-        if cells and set(re.sub(r"[:\- ]", "", "".join(cells))) == set():
-            continue
-        rows.append(cells)
-    if not rows:
-        return ""
-    head = rows[0]
-    body = rows[1:]
-    html_rows = ["<thead><tr>" + "".join(f"<th>{_inline(cell)}</th>" for cell in head) + "</tr></thead>"]
-    if body:
-        html_rows.append("<tbody>")
-        for row in body:
-            html_rows.append("<tr>" + "".join(f"<td>{_inline(cell)}</td>" for cell in row) + "</tr>")
-        html_rows.append("</tbody>")
-    return '<div class="table-wrap"><table>' + "".join(html_rows) + "</table></div>"
-
-
-def markdown_to_html(markdown: str) -> str:
-    """Render the desk's markdown subset: headings, lists, tables, quotes, fences."""
-    lines = markdown.replace("\r\n", "\n").split("\n")
-    blocks = []
-    index = 0
-    while index < len(lines):
-        line = lines[index]
-        if line.startswith("```"):
-            fence = []
-            index += 1
-            while index < len(lines) and not lines[index].startswith("```"):
-                fence.append(lines[index])
-                index += 1
-            index += 1
-            code = html.escape("\n".join(fence), quote=False)
-            blocks.append(f"<pre><code>{code}</code></pre>")
-            continue
-        if line.startswith("|") and line.rstrip().endswith("|"):
-            table = []
-            while index < len(lines) and lines[index].startswith("|"):
-                table.append(lines[index])
-                index += 1
-            blocks.append(_table(table))
-            continue
-        if line.startswith(">"):
-            quote = []
-            while index < len(lines) and lines[index].startswith(">"):
-                quote.append(lines[index][1:].lstrip())
-                index += 1
-            blocks.append("<blockquote>" + _inline(" ".join(quote)) + "</blockquote>")
-            continue
-        heading = re.match(r"^(#{1,4})\s+(.*)$", line)
-        if heading:
-            level = len(heading.group(1))
-            title = heading.group(2).strip()
-            blocks.append(f'<h{level} id="{_slug(title)}">{_inline(title)}</h{level}>')
-            index += 1
-            continue
-        if re.match(r"^[-*]\s+", line):
-            items = []
-            while index < len(lines) and re.match(r"^[-*]\s+", lines[index]):
-                items.append(re.sub(r"^[-*]\s+", "", lines[index]))
-                index += 1
-            blocks.append("<ul>" + "".join(f"<li>{_inline(item)}</li>" for item in items) + "</ul>")
-            continue
-        if re.match(r"^\d+\.\s+", line):
-            items = []
-            while index < len(lines) and re.match(r"^\d+\.\s+", lines[index]):
-                items.append(re.sub(r"^\d+\.\s+", "", lines[index]))
-                index += 1
-            blocks.append("<ol>" + "".join(f"<li>{_inline(item)}</li>" for item in items) + "</ol>")
-            continue
-        if not line.strip():
-            index += 1
-            continue
-        para = [line.strip()]
-        index += 1
-        while index < len(lines) and lines[index].strip() and not _block_start(lines[index]):
-            para.append(lines[index].strip())
-            index += 1
-        blocks.append("<p>" + _inline(" ".join(para)) + "</p>")
-    return "\n".join(block for block in blocks if block)
-
-
-def _block_start(line: str) -> bool:
-    return bool(
-        line.startswith("```")
-        or line.startswith("|")
-        or line.startswith(">")
-        or line.startswith("#")
-        or re.match(r"^[-*]\s+", line)
-        or re.match(r"^\d+\.\s+", line)
-    )
-
-
-def _read(root: Path, relative: str) -> str:
-    path = root / relative
-    if not path.is_file():
-        return f"# Missing {relative}\n\nThis source file is not in the desk tree.\n"
-    return path.read_text(encoding="utf-8")
-
-
-def _page(title: str, active: str, sections: list[tuple[str, str]], built_at: str) -> str:
-    body = []
-    for label, markdown in sections:
-        body.append(f'<p class="src-chip"><code>{html.escape(label)}</code></p>')
-        body.append(markdown_to_html(markdown))
+def _page(title: str, tab_nav: str, sub: str, body_html: str, *, now_pt: str, toc_links: list[tuple[str, str]]) -> str:
+    toc = ""
+    if toc_links:
+        toc = '<div class="toc">' + "".join(f'<a href="{_esc(h)}">{_esc(lab)}</a>' for h, lab in toc_links) + "</div>"
     return f"""<!DOCTYPE html>
 <html lang="en"><head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>{html.escape(title)}</title>
-<style>{PAGE_CSS}</style>
+<meta http-equiv="refresh" content="600"/>
+<title>OID · {_esc(title)}</title>
+<style>
+{DOC_CSS}
+</style>
 </head><body><div class="wrap">
-{nav_html(active)}
+{tab_nav}
+<h1>{_esc(title)}</h1>
+<div class="sub">{sub}</div>
+{toc}
 <div class="doc">
-{''.join(body)}
+{body_html}
 </div>
 <footer>
 Research / paper only · Zero RH execution · Alert-only close language.
 Sources stay in the desk tree; this page is a readable static mirror for bold-tulip.
-Built {html.escape(built_at)}.
+Built {_esc(now_pt)}.
 </footer>
 </div></body></html>
 """
 
 
-def render_architecture(root=None, built_at: str = "2026-10-05") -> str:
-    base = desk_root(root)
-    sections = [
-        ("docs/QUERY-ARCHITECTURE.md", _read(base, "docs/QUERY-ARCHITECTURE.md")),
-        ("market-data/QUERY-DEDUP.md", _read(base, "market-data/QUERY-DEDUP.md")),
-        ("DUPLICATE-RH-QUOTES.md", _read(base, "DUPLICATE-RH-QUOTES.md")),
-        ("CUTOVER-20261005.md", _read(base, "CUTOVER-20261005.md")),
-    ]
-    return _page("OID · Architecture", "architecture.html", sections, built_at)
+def _section(src_label: str, md: str) -> str:
+    return (
+        f'<div class="section-card"><div class="src-chip">Source · <code>{_esc(src_label)}</code></div>'
+        f"{md_to_html(md)}</div>"
+    )
 
 
-def render_setup(root=None, built_at: str = "2026-10-05") -> str:
-    base = desk_root(root)
-    sections = [
-        ("docs/SETUP-VS-PRODUCTION.md", _read(base, "docs/SETUP-VS-PRODUCTION.md")),
-        ("docs/API-INVENTORY.md", _read(base, "docs/API-INVENTORY.md")),
-        ("CUTOVER-20261005.md", _read(base, "CUTOVER-20261005.md")),
-    ]
-    return _page("OID · Setup vs production", "setup.html", sections, built_at)
+def build_architecture_html(tab_nav: str | None = None, *, now_pt: Optional[str] = None) -> str:
+    now_pt = now_pt or datetime.now(PT).strftime("%Y-%m-%d %-I:%M %p PT")
+    tab_nav = tab_nav or make_tab_nav("architecture.html")
+    arch = _read(ROOT / "docs" / "QUERY-ARCHITECTURE.md")
+    ownership = _ownership_note()
+    cutover = _cutover_brief()
+    body = (
+        _section("docs/QUERY-ARCHITECTURE.md", arch)
+        + "<hr/>"
+        + _section("market-data/QUERY-DEDUP.md · hal/DUPLICATE-RH-QUOTES.md", ownership)
+        + "<hr/>"
+        + _section("CUTOVER-20261005.md (brief)", cutover)
+    )
+    sub = (
+        "One-call / many-readers policy · RH quote ownership · cutover snapshot · "
+        f"Built {_esc(now_pt)}"
+    )
+    return _page(
+        "Architecture",
+        tab_nav,
+        sub,
+        body,
+        now_pt=now_pt,
+        toc_links=[
+            ("#query-architecture-one-call-many-readers", "Query architecture"),
+            ("#query-ownership-notes", "Ownership notes"),
+            ("#cutover-status-2026-10-05-pt", "Cutover status"),
+            ("setup.html", "Setup page →"),
+            ("data-sources.html", "Data sources →"),
+        ],
+    )
+
+
+def build_setup_html(tab_nav: str | None = None, *, now_pt: Optional[str] = None) -> str:
+    now_pt = now_pt or datetime.now(PT).strftime("%Y-%m-%d %-I:%M %p PT")
+    tab_nav = tab_nav or make_tab_nav("setup.html")
+    setup = _read(ROOT / "docs" / "SETUP-VS-PRODUCTION.md")
+    api = _read(ROOT / "docs" / "API-INVENTORY.md")
+    cutover = _cutover_brief()
+    body = (
+        _section("docs/SETUP-VS-PRODUCTION.md", setup)
+        + "<hr/>"
+        + _section("docs/API-INVENTORY.md", api)
+        + "<hr/>"
+        + _section("CUTOVER-20261005.md (brief)", cutover)
+    )
+    sub = (
+        "What is local vs published production · API inventory · cutover snapshot · "
+        f"Built {_esc(now_pt)}"
+    )
+    return _page(
+        "Setup vs production",
+        tab_nav,
+        sub,
+        body,
+        now_pt=now_pt,
+        toc_links=[
+            ("#setup-vs-production-what-is-real", "Setup vs production"),
+            ("#api-inventory-what-the-desk-actually-uses", "API inventory"),
+            ("#cutover-status-2026-10-05-pt", "Cutover status"),
+            ("architecture.html", "Architecture page →"),
+            ("data-sources.html", "Data sources →"),
+        ],
+    )
+
+
+if __name__ == "__main__":
+    dash = Path(__file__).resolve().parent
+    (dash / "architecture.html").write_text(build_architecture_html())
+    (dash / "setup.html").write_text(build_setup_html())
+    print("wrote", dash / "architecture.html")
+    print("wrote", dash / "setup.html")

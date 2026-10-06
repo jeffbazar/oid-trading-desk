@@ -46,4 +46,4 @@ Implementation status for each item is recorded in `changes.json`. Verification 
 - Duplicates #2 closed. `cache_io.piggyback_rh_quotes` feeds `refresh_market_tape.py` (SPY · QQQ · DIA plus RSP / VTV / VUG) and `refresh_support_map.py` (primary + extended book, NVDA on the primary book). `live_refresh.py` is tape cache-first. None of those builders write `rh-quotes`.
 - `refresh_marks.py` unwraps a local equity-quotes file and is the only writer (`owner: rose`, TTL 120s). `support_notify_diff.py` emits soft distance lines and does not write quotes.
 - `docs_pages.py` / `rebuild.py` render Architecture and Setup with the blotter nav. Those pages are already on bold-tulip. This package does not publish and does not call Robinhood.
-- Gitignore keeps new `market-data/latest` vendor dumps, `supply-chain.db`, secrets, `tmp/`, backup trees, and `paper-trades/` out of the PR. The live paper ledger is omitted.
+- The box `.gitignore` excludes `secrets/`, `*.db` (including `supply-chain.db`), `market-data/latest/rh-quotes.json`, and `tmp/`. This PR does not add vendor `latest/` payloads, `paper-trades/trades.json`, or cutover backup trees.

@@ -1,191 +1,207 @@
 #!/usr/bin/env python3
-"""Diff two support-map payloads and emit a soft notify.
+"""OID support-levels notify diff — companion to refresh_support_map.py.
 
-``oid-support-levels-watch`` runs this after ``refresh_support_map.py``.
-It must not call ``write_feed("rh-quotes")``. Crosses and distance jumps are
-research color only. They never elevate and never submit an order.
+Run AFTER `refresh_support_map.py` (non-dry-run). Reads the freshly written
+paper-trades/universe-support-watch.json + market-data/latest/support-map.json,
+compares PRIMARY names vs tmp/support-levels-last.json, and decides notify.
+
+Notify semantics (unchanged from the pre-2026-10-05 per-run rebuild scripts):
+  - Only PRIMARY names; only hints GOOD_LOW / THRU_PUT.
+  - Reasons: new_entry / reenter (was not near last run), hard_roll (put wall
+    changed while near), hint_change (GOOD_LOW <-> THRU_PUT) — at most once per
+    symbol+hint per RTH half-day (AM < 12:30 PM PT <= PM) unless leave+reenter.
+  - Extended names are listed as soft color only, never notify alone.
+  - Soft only — never elevates; never PAPER_CANDIDATE from support alone.
+
+Writes (unless --dry-run):
+  tmp/support-levels-last.json, tmp/support-levels-notify-this-run.json,
+  tmp/support-levels-desk-ping.txt (cleared when notify=false),
+  journal/runs + journals/runs OID-SUPPORT-YYYYMMDD-HHMM.md (notify only),
+  NVDA-SUPPORT-WATCH.md "## Last support-levels run" line.
+
+NEVER writes rh-quotes or any market-data feed. Zero RH calls / orders.
 """
 from __future__ import annotations
 
 import argparse
 import json
-import sys
+import shutil
+from copy import deepcopy
+from datetime import datetime, timezone
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
-if __package__ in {None, ""}:
-    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-
-from dashboard._cache import cache_io
-
-DEFAULT_JUMP = 0.005
-
-
-def _rows(payload) -> dict:
-    if not isinstance(payload, dict):
-        return {}
-    body = payload
-    if "rows" not in body and isinstance(body.get("payload"), dict):
-        body = body["payload"]
-    rows = body.get("rows") or []
-    indexed = {}
-    for row in rows:
-        if isinstance(row, dict) and row.get("symbol"):
-            indexed[row["symbol"]] = row
-    return indexed
+ROOT = Path(__file__).resolve().parent
+OID = ROOT.parent
+PT = ZoneInfo("America/Los_Angeles")
+PRIMARY = [
+    "SPY", "QQQ", "NVDA", "TSLA", "PLTR", "GOOGL", "NFLX",
+    "META", "AMZN", "AMD", "CBRS", "INTC", "TSM",
+]
+NEAR = ("GOOD_LOW", "THRU_PUT")
+LAST = OID / "tmp" / "support-levels-last.json"
+BACKUP_LAST = Path(
+    "/workspace/tmp/oid-cutover-backup-20261005/options-intelligence-desk-FULL/tmp/support-levels-last.json"
+)
 
 
-def diff_support(previous, current, jump: float = DEFAULT_JUMP) -> list:
-    """Compare put-wall distances. Empty previous is a baseline, not 37 adds."""
-    previous_rows = _rows(previous)
-    current_rows = _rows(current)
-    if not current_rows:
-        return []
-    if not previous_rows:
-        return [{
-            "kind": "baseline",
-            "symbols": len(current_rows),
-            "soft_only": True,
-            "elevate": False,
-            "execution": "none",
-        }]
-    events = []
-    for symbol, row in current_rows.items():
-        old = previous_rows.get(symbol)
-        new_distance = row.get("distance")
-        if old is None:
-            events.append({
-                "symbol": symbol,
-                "kind": "added",
-                "distance": new_distance,
-                "soft_only": True,
-                "elevate": False,
-                "execution": "none",
+def main() -> int:
+    ap = argparse.ArgumentParser(description="OID support-levels notify diff (no feed writes)")
+    ap.add_argument("--dry-run", action="store_true", help="Compute notify; write nothing")
+    args = ap.parse_args()
+
+    now = datetime.now(timezone.utc)
+    now_pt = now.astimezone(PT)
+    as_of_pt = now_pt.strftime("%Y-%m-%d %-I:%M %p PT")
+    hm = now_pt.hour * 60 + now_pt.minute
+    half = f"{now_pt:%Y-%m-%d}-{'AM' if hm < 12 * 60 + 30 else 'PM'}"
+
+    watch = json.loads((OID / "paper-trades" / "universe-support-watch.json").read_text())
+    smap = json.loads((OID / "market-data" / "latest" / "support-map.json").read_text())
+    sp = smap.get("payload") or {}
+    rows = {r["symbol"]: r for r in watch.get("symbols") or []}
+    near = list(watch.get("nearSupportNow") or [])
+    session_label = watch.get("sessionLabel") or sp.get("sessionLabel") or "?"
+
+    if not LAST.exists() and BACKUP_LAST.exists() and not args.dry_run:
+        LAST.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(BACKUP_LAST, LAST)  # one-time seed after 2026-10-05 cutover
+    src = LAST if LAST.exists() else (BACKUP_LAST if BACKUP_LAST.exists() else None)
+    prev = json.loads(src.read_text()) if src else {}
+    prev_put = prev.get("putBySymbol") or {}
+    prev_status = prev.get("statusBySymbol") or {}
+    prev_notified = deepcopy(prev.get("notified") or {})
+
+    status_by, put_by, hard_rolls, items, left_band = {}, {}, [], [], []
+    for sym in PRIMARY:
+        row = rows.get(sym) or {}
+        new_h = row.get("statusHint") or "WALLS_DATA_INSUFFICIENT"
+        put = row.get("faPutWall")
+        status_by[sym] = new_h
+        if put is not None:
+            put_by[sym] = put
+        old_put = prev_put.get(sym)
+        hard = None
+        if old_put is not None and put is not None and float(old_put) != float(put) and row.get("last") is not None:
+            hard = {"from": old_put, "to": put}
+            hard_rolls.append({"symbol": sym, "put_old": old_put, "put_new": put})
+        old_h = prev_status.get(sym)
+        near_now = new_h in NEAR
+        was_near = old_h in NEAR + ("AT_PUT",)
+        if was_near and not near_now:
+            left_band.append(sym)
+        reason = None
+        if near_now:
+            nrec = prev_notified.get(sym) or {}
+            already = nrec.get("half_key") == half and nrec.get("hint") == new_h
+            if not was_near:
+                reason = "reenter" if already else "new_entry"
+            elif hard:
+                if not already or nrec.get("put") != put:
+                    reason = "hard_roll"
+            elif old_h != new_h and not already:
+                reason = "hint_change"
+        if reason:
+            items.append({
+                "symbol": sym, "hint": new_h, "reason": reason, "last": row.get("last"),
+                "put": put, "call": row.get("faCallWall"), "distPct": row.get("distanceToPutWallPct"),
+                "dayPct": row.get("dayPct"), "note": row.get("softNote"), "flip": row.get("faFlip"),
             })
-            continue
-        old_distance = old.get("distance")
-        if old_distance is None or new_distance is None:
-            continue
-        event = {
-            "symbol": symbol,
-            "put_wall": row.get("put_wall"),
-            "last": row.get("last"),
-            "distance": new_distance,
-            "previous_distance": old_distance,
-            "soft_only": True,
-            "elevate": False,
-            "execution": "none",
+
+    ext_near = [s for s in near if s not in PRIMARY]
+    notify = bool(items)
+    new_notified = deepcopy(prev_notified)
+    for it in items:
+        new_notified[it["symbol"]] = {
+            "hint": it["hint"], "half_key": half, "at_pt": as_of_pt,
+            "reason": it["reason"], "put": it["put"], "last": it["last"],
         }
-        if old_distance >= 0 and new_distance < 0:
-            event["kind"] = "crossed_under"
-            events.append(event)
-        elif old_distance < 0 and new_distance >= 0:
-            event["kind"] = "crossed_over"
-            events.append(event)
-        elif abs(new_distance - old_distance) >= jump:
-            event["kind"] = "distance_jump"
-            events.append(event)
-    return events
 
-
-def format_notify(events) -> str:
-    if not events:
-        return (
-            "Support map: no material put-wall distance change. "
-            "Soft only. No elevate. Zero RH execution."
-        )
-    lines = []
-    for event in events:
-        kind = event.get("kind")
-        if kind == "baseline":
+    ping = None
+    if notify:
+        lines = [
+            f"OID soft support ping · {as_of_pt} · {session_label}",
+            "Soft take-look only — never elevate on support alone. Elevate stays with Q5/opening.",
+            "",
+        ]
+        for it in items:
+            d = it["distPct"]
+            sign = "+" if d is not None and d >= 0 else ""
             lines.append(
-                f"Support map baseline ({event.get('symbols')} names). "
-                "Soft only. No elevate. Zero RH execution."
+                f"• {it['symbol']} {it['hint']} · spot {it['last']} · put {it['put']} "
+                f"({sign}{d}% vs put) · call {it['call']} · day {it['dayPct']}% · {it['note']} [{it['reason']}]"
             )
-            continue
-        symbol = event.get("symbol")
-        if kind == "crossed_under":
-            lines.append(
-                f"{symbol} crossed under put wall {event.get('put_wall')} "
-                f"(last {event.get('last')}, distance {event.get('distance')}). "
-                "Soft only. No elevate. Zero RH execution."
-            )
-        elif kind == "crossed_over":
-            lines.append(
-                f"{symbol} reclaimed put wall {event.get('put_wall')} "
-                f"(last {event.get('last')}, distance {event.get('distance')}). "
-                "Soft only. No elevate. Zero RH execution."
-            )
-        elif kind == "distance_jump":
-            lines.append(
-                f"{symbol} put-wall distance {event.get('previous_distance')} → "
-                f"{event.get('distance')} (last {event.get('last')}). "
-                "Soft only. No elevate. Zero RH execution."
-            )
-        elif kind == "added":
-            lines.append(
-                f"{symbol} added to the support map. Soft only. No elevate. Zero RH execution."
-            )
-    return "\n".join(lines)
+        lines.append("")
+        if left_band:
+            lines.append(f"Left band: {', '.join(left_band)}")
+        if ext_near:
+            lines.append(f"Extended near (no PRIMARY notify): {', '.join(ext_near)}")
+        lines += ["", "Research/paper only — zero RH execution."]
+        ping = "\n".join(lines)
 
-
-def load_payload(path):
-    return cache_io().strip_secrets(json.loads(Path(path).read_text(encoding="utf-8")))
-
-
-def run(previous_path, current_path, jump=DEFAULT_JUMP, write_notify=False, root=None):
-    previous = load_payload(previous_path) if previous_path else {}
-    current = load_payload(current_path)
-    events = diff_support(previous, current, jump=jump)
-    text = format_notify(events)
-    written = None
-    if write_notify:
-        io = cache_io()
-        destination = io.latest_dir(root) / "support-map-notify.txt"
-        destination.parent.mkdir(parents=True, exist_ok=True)
-        destination.write_text(text + "\n", encoding="utf-8")
-        written = str(destination)
-    return {
-        "events": events,
-        "text": text,
-        "written": written,
-        "rh_quotes_write": False,
-        "execution": "none",
+    doc = {
+        "notify": notify, "items": items, "left_band": left_band, "hard_rolls": hard_rolls,
+        "nearSupportNow": near, "extendedNear": ext_near, "statusBySymbol": status_by,
+        "as_of_pt": as_of_pt, "half_key": half, "session": session_label,
+        "fa": {"freshness": sp.get("faFreshness"), "as_of_pt": sp.get("faAsOfPT"),
+               "writer": sp.get("faWriter"), "age_sec": sp.get("faAgeSec")},
+        "rh": {"source": sp.get("quoteSource"), "as_of_pt": sp.get("rhAsOfPT"),
+               "writer": sp.get("rhWriter"), "age_sec": sp.get("rhAgeSec"), "label": sp.get("rhLabel")},
+        "ping": ping, "dry_run": bool(args.dry_run), "wrote_rh_quotes": False,
+        "prev_state_source": str(src) if src else None,
     }
+    if args.dry_run:
+        print(json.dumps(doc, indent=2))
+        return 0
 
+    tmp = OID / "tmp"
+    tmp.mkdir(parents=True, exist_ok=True)
+    LAST.write_text(json.dumps({
+        "as_of": now.strftime("%Y-%m-%dT%H:%M:%SZ"), "as_of_pt": as_of_pt, "half_key": half,
+        "nearSupportNow": near, "statusBySymbol": status_by, "putBySymbol": put_by,
+        "notified": new_notified, "writer": "oid-support-levels-watch (support_notify_diff.py)",
+    }, indent=2) + "\n")
+    (tmp / "support-levels-notify-this-run.json").write_text(json.dumps(doc, indent=2) + "\n")
+    (tmp / "support-levels-desk-ping.txt").write_text((ping + "\n") if ping else "")
 
-def _blocked(argv) -> bool:
-    for arg in argv:
-        text = arg.lower()
-        if "rh-quotes" in text and "write" in text:
-            return True
-        if any(token in text for token in ("place_", "cancel_", "exercise", "--order", "--submit")):
-            return True
-    return False
+    if notify:
+        body = "\n".join([
+            f"# OID support levels · {as_of_pt}", "",
+            f"Session: {session_label}. Soft color only — never elevate on support alone.", "",
+            "## Notify", "", "```", ping, "```", "## Hard rolls", "",
+            "```json", json.dumps(hard_rolls, indent=2), "```", "",
+        ])
+        name = f"OID-SUPPORT-{now_pt:%Y%m%d-%H%M}.md"
+        for d in (OID / "journal" / "runs", OID / "journals" / "runs"):
+            d.mkdir(parents=True, exist_ok=True)
+            (d / name).write_text(body)
 
-
-def main(argv=None) -> int:
-    argv = list(sys.argv[1:] if argv is None else argv)
-    if _blocked(argv):
-        print(
-            "support_notify_diff does not write rh-quotes and does not submit orders",
-            file=sys.stderr,
-        )
-        return 2
-    parser = argparse.ArgumentParser(description="Soft support-map diff. Does not write rh-quotes.")
-    parser.add_argument("--previous", default=None)
-    parser.add_argument("--current", required=True)
-    parser.add_argument("--jump", type=float, default=DEFAULT_JUMP)
-    parser.add_argument("--write-notify", action="store_true")
-    parser.add_argument("--root", default=None)
-    args = parser.parse_args(argv)
-    result = run(
-        args.previous,
-        args.current,
-        jump=args.jump,
-        write_notify=args.write_notify,
-        root=args.root,
+    md_path = OID / "NVDA-SUPPORT-WATCH.md"
+    lines = md_path.read_text().rstrip().splitlines()
+    fa_age, rh_age = sp.get("faAgeSec"), sp.get("rhAgeSec")
+    bullet = (
+        f"- {as_of_pt} — {session_label} soft map rebuild via refresh_support_map.py; "
+        f"FA walls {sp.get('faFreshness')} (writer {sp.get('faWriter')}, age ~{round(fa_age) if fa_age is not None else '?'}s); "
+        f"RH quotes {sp.get('quoteSource')} (writer {sp.get('rhWriter')}, age ~{round(rh_age) if rh_age is not None else '?'}s; piggyback, no rh-quotes write). "
+        f"nearSupportNow: {', '.join(near) if near else '(none)'}. notify={'true' if notify else 'false'}"
+        + (f" left_band={','.join(left_band)}" if left_band else "") + ". Soft color only."
     )
-    print(json.dumps(result, indent=2, default=str))
+    out, done = [], False
+    for i, ln in enumerate(lines):
+        if ln.startswith("## Last support-levels run"):
+            out += [ln, bullet]
+            j = i + 1
+            while j < len(lines) and (lines[j].startswith("- ") or not lines[j].strip()):
+                j += 1
+            out += lines[j:]
+            done = True
+            break
+        out.append(ln)
+    if not done:
+        out += ["", "## Last support-levels run", bullet]
+    md_path.write_text("\n".join(out) + "\n")
+
+    print(json.dumps(doc, indent=2))
     return 0
 
 
