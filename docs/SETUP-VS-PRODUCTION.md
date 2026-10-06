@@ -1,6 +1,6 @@
 # Setup vs production: what is real
 
-Adapted 2026-10-05 (PT) for the durable desk copy at `/workspace/oid-trading-desk`. Research/paper only. Alert-only close language. Zero Robinhood orders.
+Adapted 2026-10-05 (PT) for the durable desk copy at `/workspace/oid-trading-desk`. That path is the production root after the same-day cutover; `/workspace/options-intelligence-desk` is a symlink to it (`CUTOVER-20261005.md`). Research/paper only. Alert-only close language. Zero Robinhood orders.
 
 **Sources:** the live desk at `/workspace/options-intelligence-desk/` (`dashboard/data_sources.py` `FEED_CATALOG`), live caches in `market-data/latest/`, `market-data/QUERY-DEDUP.md`, teammate registry packages (Chart, C&S, Hal, Macro), and the published site https://bold-tulip-nejq.here.now/. No collector was installed, scheduled or run for this document beyond folding registry text. No vendor quota was used for order tools.
 
@@ -11,7 +11,7 @@ Adapted 2026-10-05 (PT) for the durable desk copy at `/workspace/oid-trading-des
 
 > **Chart package (folded 2026-10-05).** Feed `chart-daily` / `chart-daily-observations`, owner Chart Bot, rule **CB-DAILY-V1**, routine `chart-daily-refresh` weekdays **2:24 PM PT** after cash close. Universe **RH-TECH-CHIP-20261004** (37; GOOG Class C only; QQQ+SMH benchmarks on lists; SOXX not fetched). Sole writer of post-close daily historicals — does **not** share Rose `rh-quotes`. Preserved `data/raw/` snapshots remain immutable evidence of earlier page text.
 >
-> **`rh-quotes` (agreed 2026-10-05).** Rose is the sole writer (`dashboard/refresh_marks.py` → `market-data/latest/rh-quotes.json`, TTL 120s). Hal reads that file for Tech∪chip soft tape. This document does not cut the live collector over.
+> **`rh-quotes` (agreed 2026-10-05).** Rose is the sole writer (`dashboard/refresh_marks.py` → `market-data/latest/rh-quotes.json`, TTL 120s). Hal reads that file for Tech∪chip soft tape. **Duplicates #2 (same day):** `refresh_support_map.py` and `refresh_market_tape.py` piggyback on a fresh file and never write it. `live_refresh.py` is tape cache-first. Architecture and Setup pages are on https://bold-tulip-nejq.here.now/architecture.html and `setup.html`.
 
 ## 1. By bot
 
@@ -28,7 +28,7 @@ Adapted 2026-10-05 (PT) for the durable desk copy at `/workspace/oid-trading-des
 ### Peanut (News Alerts)
 | Implemented locally | Published production | Proposed / N/A |
 | --- | --- | --- |
-| Imports `peanut-news.json` + news-archive. | Feed **`peanut-news`**: weekdays **5:30 AM PT** premarket + **every 5 min 6:11 AM–1:56 PM PT**. Universe RH Tech∪chip (~37). Sources: **X news search + public web only** (shared X pool). **No FA / UW / RH quote calls.** Outputs: chat + Rose/Hal alerts; `market-data/latest/peanut-news.json` → Live Book marquee (alerts after prior RTH close) + `news-archive.html`. Quiet scans do not rewrite the file (stamp = last alert). **Lane split:** Peanut = wire/headline; X Summarizer = X-edge — do not double-count. On-disk: feed + `dashboard/peanut_news.py` present; package path `peanut/` **not created yet**. | **N/A:** SEC · IR · Form 4 · policy feed · Benzinga websocket · immutable revisions · read API. Map/identity is **C&S**, not Peanut. |
+| Imports `peanut-news.json` + news-archive. | Feed **`peanut-news`**: weekdays **5:30 AM PT** premarket + **every 5 min 6:11 AM–1:56 PM PT**. Universe RH Tech∪chip (~37). Sources: **X news search + public web only** (shared X pool). **No FA / UW / RH quote calls.** Outputs: chat + Rose/Hal alerts; `market-data/latest/peanut-news.json` → Live Book marquee (alerts after prior RTH close) + `news-archive.html`. Quiet scans do not rewrite the file (stamp = last alert). **Lane split:** Peanut = wire/headline; X Summarizer = X-edge — do not double-count. Package path `peanut/` is on disk after the 2026-10-05 cutover; the writer remains `dashboard/peanut_news.py`. | **N/A:** SEC · IR · Form 4 · policy feed · Benzinga websocket · immutable revisions · read API. Map/identity is **C&S**, not Peanut. |
 
 ### Macro Bot
 | Implemented locally | Published production | Proposed / N/A |
@@ -43,7 +43,7 @@ Adapted 2026-10-05 (PT) for the durable desk copy at `/workspace/oid-trading-des
 ### Rose (OID)
 | Implemented locally | Published production | Proposed / N/A |
 | --- | --- | --- |
-| Imports Rose rows, watches and closed ledger. | **Primary FA writer** (`fa-levels`: walls pulse + Q5 gated). UW flow/Form 4 when runs pull. **Sole writer of `rh-quotes`** (`dashboard/refresh_marks.py`, writer string `refresh_marks.py`, `owner: rose`, TTL 120s, 38 Tech∪chip+index symbols; scan/soft tape). **Live RH quotes for elevate/invalidate ≤120 s** (never from `rh-quotes`). Live RH book pulse both accounts. `support-map` every 15 min. Paper ledger. Site publisher via `dashboard/live_refresh.py` + `publish.sh` (bold-tulip-nejq). | **NOT_BUILT (no writer):** `fa-soft` · `uw-oe` · `rh-rvol`. Rose X Core-8 drafted but **disabled**. |
+| Imports Rose rows, watches and closed ledger. | **Primary FA writer** (`fa-levels`: walls pulse + Q5 gated). UW flow/Form 4 when runs pull. **Sole writer of `rh-quotes`** (`dashboard/refresh_marks.py`, writer string `refresh_marks.py`, `owner: rose`, TTL 120s, 38 Tech∪chip+index symbols; scan/soft tape). **Live RH quotes for elevate/invalidate ≤120 s** (never from `rh-quotes`). Live RH book pulse both accounts. `support-map` every 15 min, piggybacking fresh `rh-quotes` (never a second writer). Paper ledger. Site publisher via `dashboard/live_refresh.py` (tape cache-first) + `publish.sh` (bold-tulip-nejq). | **NOT_BUILT (no writer):** `fa-soft` · `uw-oe` · `rh-rvol`. Rose X Core-8 drafted but **disabled**. |
 
 ## 2. By layer
 
@@ -51,14 +51,14 @@ Adapted 2026-10-05 (PT) for the durable desk copy at `/workspace/oid-trading-des
 | --- | --- | --- | --- |
 | Vendor calls | None (public-page import only) | Robinhood, FlashAlpha, UW, X, FRED CSV, Yahoo public, official BLS/BEA/Census/EIA (see API-INVENTORY) | Databento, Massive, Benzinga, FactSet, Trading Economics, CME FedWatch: **N/A** |
 | Shared cache | Bridge documented in `data/live-bridge.md` | `market-data/latest/{feed}.json` with `cache_io.py` read-before-pull. Chart = sole post-close daily historicals writer. | Immutable dated snapshot bundles for backtesting: **not built** |
-| Publication | Local server on 127.0.0.1:8768 | here.now static site (bold-tulip-nejq), rebuilt by `rebuild.py` / `live_refresh.py` | Push/receiver/outbox, record API: **N/A** |
+| Publication | Local server on 127.0.0.1:8768. `dashboard/rebuild.py` writes `architecture.html` and `setup.html` locally and does not publish | here.now static site (bold-tulip-nejq), including Architecture and Setup nav, rebuilt by `rebuild.py` / `live_refresh.py` | Push/receiver/outbox, record API: **N/A**. swift-dune stays review-only |
 | Coverage speed | n/a | RH ≤120 s gate at elevate (live, not `rh-quotes`). Rose `rh-quotes` TTL 120s for scan/soft tape. Hal marks every 15 min. Hal watch `:05`/`:35` annotates Rose quotes | 5–10 s Rose / 10–30 s Hal / Hal 60s quote cadence: **targets only** |
 | Forecasts | null | null (Chart / C&S profit probs null) | Calibrated models: **N/A** until validated |
 
 ## 3. Known production gaps (kept visible)
 - `fa-soft`, `uw-oe`, `rh-rvol`: NOT_BUILT, no writer.
 - Chart does not share Rose `rh-quotes` — post-close history only; do not duplicate `get_equity_historicals`.
-- `support-map` (every 15 min) and `live_refresh` `market-tape` should still piggyback on fresh `rh-quotes` instead of re-quoting the same names (QUERY-ARCHITECTURE §Duplicates #2). Hal is not that writer.
+- Duplicates #2 is closed: `support-map` and `market-tape` piggyback on fresh `rh-quotes` (`cache_io.piggyback_rh_quotes`). Hal is not that writer, and neither builder writes the file. Notes: `docs/MARKET-TAPE.md`, `docs/NVDA-SUPPORT-WATCH.md`.
 - Handbook five-bot guide put Map under News; production owner is **Customer/Supplier Bot**.
 - Google Calendar MCP may be `needsAuth` (Macro falls back to official calendar).
-- GitHub/Origin repo for this project: blocked until Jeffrey connects (README still notes waiting).
+- GitHub repo is https://github.com/jeffbazar/oid-trading-desk. The box tree itself is not a git clone; code and docs sync by PR. Vendor `market-data/latest` payloads, `supply-chain.db`, secrets, `tmp/`, and the live paper ledger stay off the PR.

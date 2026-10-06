@@ -3,3 +3,18 @@ __pycache__/
 data/reviews.sqlite3*
 work/
 .DS_Store
+
+# Box-local state. Already-tracked review samples under market-data/latest/
+# stay in git history; this ignore blocks new vendor dumps from a cutover sync.
+market-data/latest/
+supply-chain.db
+**/supply-chain.db
+*.sqlite
+*.sqlite3
+secrets/
+*.env
+.env*
+paper-trades/
+tmp/
+**/oid-cutover-backup*
+site/

@@ -40,9 +40,9 @@ As of 2026-10-05 (PT). Research/paper only. **No `place_*`, `cancel_*` or `exerc
 Databento · Massive · Benzinga · FactSet · Trading Economics (frozen consensus) · CME FedWatch · licensed cash-Treasury/TIPS yields · licensed relationship data · Chart intraday (5/15/60-min) / weekly bars / 1-min RVOL / pattern detector / SOXX / forecasts · Chart/C&S/Macro/Hal push receiver · changes API · Hal 60s quote cadence (design only) · Macro 15-min material-change / three briefs/day / versioned release records / Macro API · C&S immutable Postgres / read API / Form4·issuer-IR·policy feeds.
 
 ## Rules that go with every call
-1. **Read before pull.** `python3 /workspace/options-intelligence-desk/market-data/cache_io.py get <feed>`. Call the vendor only on a miss, and only if you are the owner for that feed (QUERY-DEDUP owner matrix).
+1. **Read before pull.** `python3 market-data/cache_io.py get <feed>` from `/workspace/oid-trading-desk` (production root after the 2026-10-05 cutover; `/workspace/options-intelligence-desk` is a symlink to that tree). Call the vendor only on a miss, and only if you are the owner for that feed (`market-data/QUERY-DEDUP.md`).
 2. **Write back** with `write_feed(...)`, including error records (`error` set, never presented as fresh).
-3. **Elevate / invalidate / liquidity gates need live RH**, never cache (≤120 s). `rh-quotes` (TTL 120s) is scan and soft-tape color only. Rose is the sole writer; Hal reads it.
+3. **Elevate / invalidate / liquidity gates need live RH**, never cache (≤120 s). `rh-quotes` (TTL 120s) is scan and soft-tape color only. Rose is the sole writer; Hal reads it. `refresh_market_tape.py` and `refresh_support_map.py` piggyback and must not `write_feed("rh-quotes")`.
 4. **FA:** log every non-Rose call (bot, tool, symbol, PT time) in `api-quotas.json` notes. When the quota is 0, write STALE_CARRY and do not retry.
 5. **X:** spend is pooled. Each bot keeps to its own cadence; Hal updates `x-spend.json` after scans.
 6. **No order tools.** Zero RH orders. Alerts / research / paper only. Hal never places/modifies/cancels/exercises RH unless Jeffrey separately names a live Agentic ticket.

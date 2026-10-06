@@ -20,6 +20,7 @@ Both had been pulling live Robinhood `get_equity_quotes` for **Tech ∪ chip** (
 3. Miss, stale, or `error`: prefer the next Rose refresh. Optional one-shot quotes only for symbols missing from a fresh file. No second parallel quote architecture.
 4. Hal may keep Soft A structure annotation and pulse logic in `hal-rh-watch-pulse.json`. That file is not a quote writer.
 5. Elevate / invalidate still re-pulls **live Robinhood ≤120s**. Never serve those gates from `rh-quotes` or the Hal pulse.
+6. **Duplicates #2 closed 2026-10-05.** `support-map` and `market-tape` call `cache_io.piggyback_rh_quotes` and never write `rh-quotes`. Hal is not that writer either. Desk note: `DUPLICATE-RH-QUOTES.md` (repo root). Watch prompt: `automations/oid-support-levels-watch-prompt.md`.
 
 The checked-in `market-data/latest/hal-rh-watch-pulse.json` is a pre-resolution sample (it records a live union pull). It is evidence of the old overlap, not permission to keep quoting.
 
@@ -27,4 +28,6 @@ The checked-in `market-data/latest/hal-rh-watch-pulse.json` is a pre-resolution 
 
 - `hal/RH-QUOTES-READER.md` — path, TTL, owner, read_fresh, Soft A annotate-only
 - `hal/registry.json` — `rh-quotes` reader; `hal-rh-watch` no longer a duplicate writer
-- `docs/QUERY-ARCHITECTURE.md` — Duplicates #1 closed
+- `docs/QUERY-ARCHITECTURE.md` — Duplicates #1 and #2 closed
+- `DUPLICATE-RH-QUOTES.md` (repo root) — tape and support-map piggyback
+- `market-data/QUERY-DEDUP.md` — owner line for `rh-quotes`

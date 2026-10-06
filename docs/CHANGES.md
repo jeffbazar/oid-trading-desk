@@ -39,3 +39,11 @@ Implementation status for each item is recorded in `changes.json`. Verification 
 - Hal reads that file for soft tape and wall-distance color. The `:05`/`:35` ET pulse stays Soft A annotation only and must not call `get_equity_quotes` for the union while `rh-quotes` is fresh. Elevate / invalidate still requires live Robinhood ≤120s, never the cache.
 - Reader note: `hal/RH-QUOTES-READER.md`. Query diagram, handbook errata, API inventory, setup-vs-production, and the equity-quote registry entry match that contract.
 - No collector cutover, no Vercel change, no vendor calls, no orders. Live production collectors remain on `options-intelligence-desk`.
+
+## 2026-10-05: Production cutover and rh-quotes piggyback
+
+- Box production root is `/workspace/oid-trading-desk`. `/workspace/options-intelligence-desk` is a symlink to that tree. Publish slug stays bold-tulip-nejq. swift-dune stays review-only. Note: `CUTOVER-20261005.md`.
+- Duplicates #2 closed. `cache_io.piggyback_rh_quotes` feeds `refresh_market_tape.py` (SPY · QQQ · DIA plus RSP / VTV / VUG) and `refresh_support_map.py` (primary + extended book, NVDA on the primary book). `live_refresh.py` is tape cache-first. None of those builders write `rh-quotes`.
+- `refresh_marks.py` unwraps a local equity-quotes file and is the only writer (`owner: rose`, TTL 120s). `support_notify_diff.py` emits soft distance lines and does not write quotes.
+- `docs_pages.py` / `rebuild.py` render Architecture and Setup with the blotter nav. Those pages are already on bold-tulip. This package does not publish and does not call Robinhood.
+- Gitignore keeps new `market-data/latest` vendor dumps, `supply-chain.db`, secrets, `tmp/`, backup trees, and `paper-trades/` out of the PR. The live paper ledger is omitted.
