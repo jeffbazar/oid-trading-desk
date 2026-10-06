@@ -2,8 +2,23 @@
   "version": 1,
   "source": "Peanut \u00b7 News Alerts",
   "mandate": "Research / alerts only \u00b7 zero RH orders",
-  "updatedAt": "2026-10-05 6:37 AM PT",
+  "updatedAt": "2026-10-06 6:56 AM PT",
   "items": [
+    {
+      "id": "20261006-mrvl-investor-day-raise",
+      "ticker": "MRVL",
+      "score": 4,
+      "gist": "Marvell Investor Day: FY28 revenue outlook raised to ~$20B (from ~$18B), data center ~+80%, FY29 custom silicon >$12B, FY31 target $70-90B; stock ~+9.6% premarket",
+      "link": "https://x.com/i/trending/2107466721728811314",
+      "why": "Second guidance raise in ~6 weeks plus a long-range target well above the Street; custom-silicon read-through to AVGO/CRDO",
+      "readThrough": [
+        "AVGO",
+        "CRDO",
+        "SMH"
+      ],
+      "asOfPt": "6:56 AM PT",
+      "asOfIso": "2026-10-06T06:56:43.922192-07:00"
+    },
     {
       "id": "20261005-stx-hdd-analyst-rebound",
       "ticker": "STX",
@@ -180,7 +195,7 @@
       "asOfIso": "2026-09-30T10:27:44.142032-07:00"
     }
   ],
-  "as_of": "2026-10-05T06:37:00.175130-07:00",
-  "as_of_pt": "2026-10-05 6:37 AM PT",
+  "as_of": "2026-10-06T06:56:43.922277-07:00",
+  "as_of_pt": "2026-10-06 6:56 AM PT",
   "writer": "Peanut"
 }
