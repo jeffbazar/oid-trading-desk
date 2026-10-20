@@ -1,0 +1,16 @@
+{
+  "_comment": "Copied to ~/oid-quote/config.json on first install (never overwritten). Keys starting with _ are ignored. Restart after edits: launchctl kickstart -k gui/$(id -u)/com.oid.quote-collector",
+  "host": "0.0.0.0",
+  "port": 8787,
+  "stock_feed": "sip",
+  "stock_feed_fallback": "iex",
+  "options_feed": "opra",
+  "options_feed_fallback": null,
+  "option_cap": 1000,
+  "enable_options": true,
+  "snapshot_interval_s": 2.0,
+  "subs_poll_interval_s": 5.0,
+  "stale_after_s": 120,
+  "log_max_bytes": 5000000,
+  "log_backups": 5
+}

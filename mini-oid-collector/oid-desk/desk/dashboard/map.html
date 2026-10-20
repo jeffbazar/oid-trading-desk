@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<meta http-equiv="refresh" content="300"/>
+<title>OID · Map</title>
+<style>
+:root{
+  --bg:#070b10; --panel:#0e141c; --line:#1a2533;
+  --text:#e8eef7; --muted:#7f91a8; --accent:#4da3ff;
+  --good:#3dd68c; --warn:#f0b429;
+  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,system-ui,-apple-system,sans-serif;background:
+  radial-gradient(900px 420px at 8% -8%,#142033 0%,transparent 55%),
+  radial-gradient(700px 380px at 100% 0%,#1a1528 0%,transparent 50%),
+  var(--bg);color:var(--text);min-height:100vh}
+.wrap{max-width:1340px;margin:0 auto;padding:22px 18px 56px}
+h1{font-size:1.35rem;margin:0 0 6px}
+h2{font-size:1.05rem;margin:22px 0 10px}
+.sub{color:var(--muted);font-size:.88rem}
+.tabs{display:flex;gap:8px;margin:0 0 16px;flex-wrap:wrap}
+.tabs a{display:inline-block;padding:7px 14px;border-radius:999px;border:1px solid var(--line);color:var(--muted);text-decoration:none;font-size:.78rem;font-weight:650;letter-spacing:.04em;text-transform:uppercase}
+.tabs a.active,.tabs a:hover{color:var(--text);border-color:#2a4a70;background:#152030}
+.table-wrap{border:1px solid var(--line);border-radius:12px;overflow:auto;background:var(--panel)}
+table{width:100%;border-collapse:collapse;min-width:720px}
+th,td{padding:9px 11px;text-align:left;font-size:.84rem;border-bottom:1px solid var(--line);vertical-align:top}
+th{color:var(--muted);font-weight:600;font-size:.68rem;text-transform:uppercase;background:#0a1018;position:sticky;top:0}
+td.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+td.notes,.empty{font-size:.78rem;color:var(--muted);line-height:1.35}
+.callout{margin:14px 0;padding:12px 14px;border:1px solid #5a4a1e;border-radius:12px;background:#1a160c;color:var(--warn);font-size:.9rem}
+footer{margin-top:20px;color:var(--muted);font-size:.8rem;line-height:1.45}
+</style>
+</head><body><div class="wrap">
+<div class="tabs"><a href="index.html">Blotter</a><a href="data-sources.html">Data sources</a><a href="architecture.html">Architecture</a><a href="setup.html">Setup</a><a href="trader-intel.html">Trader intel</a><a href="catalysts.html">Events</a><a href="soft-grader.html">Soft Grader</a><a href="news-archive.html">News Archive</a><a class="active" href="map.html">Map</a><a href="chart.html">Chart</a></div>
+<h1>Map · customers and suppliers</h1>
+<div class="sub">Tech and chip play identity · Built 2026-10-16 2:12 PM PT · 0 companies, 0 funds, 0 edges</div>
+<div class="callout">No evidenced customer, supplier, or project edges. Soft color only. This does not open a seat, and it is not a live graph.</div>
+
+<h2>Relationships</h2>
+<div class="table-wrap"><table>
+<thead><tr><th>From</th><th>Edge</th><th>To</th><th>Certainty</th><th>Stage</th><th>Scope</th><th>Evidence</th><th>Verified</th></tr></thead>
+<tbody>
+<tr><td colspan='8' class='empty'>No evidenced edges. An empty map is not a failed fetch.</td></tr>
+</tbody></table></div>
+
+<h2>Companies</h2>
+<div class="table-wrap"><table>
+<thead><tr><th>Ticker</th><th>Name</th><th>Share class</th><th>Country</th><th>Gap</th></tr></thead>
+<tbody>
+<tr><td colspan='5' class='empty'>None</td></tr>
+</tbody></table></div>
+
+<h2>Funds</h2>
+<p class="sub">These are funds, not operating companies. They are not demand.</p>
+<div class="table-wrap"><table>
+<thead><tr><th>Ticker</th><th>Name</th><th>Share class</th><th>Country</th><th>Gap</th></tr></thead>
+<tbody>
+<tr><td colspan='5' class='empty'>None</td></tr>
+</tbody></table></div>
+
+<h2>Sources</h2>
+<div class="table-wrap"><table>
+<thead><tr><th>Id</th><th>Provider</th><th>Status</th><th>Last success</th></tr></thead>
+<tbody>
+<tr><td colspan='4' class='empty'>No source registry</td></tr>
+</tbody></table></div>
+
+<footer>
+Research / paper only. One Alphabet entity; GOOG is Class C and GOOGL is not listed. Empty edges stay empty until a filing or issuer statement supports them. The suppressed hypothetical capex example is not shown as a company event.
+</footer>
+</div></body></html>

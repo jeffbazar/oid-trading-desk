@@ -1,0 +1,380 @@
+{
+ "_doc": "OID Mac mini desk jobs (MINI-MIGRATION-PLAN.md). Every job ships DISABLED: install.sh renders plists into <root>/launchd/ and writes <root>/flags/<job>.disabled; only `oidctl enable <job>` copies a plist into ~/Library/LaunchAgents and bootstraps it. cwd = <root>/desk (same relative layout as the box desk). kind: daemon (KeepAlive unless clean exit) | interval (StartInterval seconds). secrets = files under <secrets_dir> exported as env vars of the same name. heartbeat = desk-relative file whose mtime proves the job is alive; ttl by session (rth/ext/closed seconds, null = not checked).",
+ "version": "MINI-JOBS-V1",
+ "label_prefix": "com.oid.desk.",
+ "jobs": {
+  "data-api": {
+   "group": "core",
+   "kind": "daemon",
+   "cmd": [
+    "{py}",
+    "-m",
+    "oid_desk.api"
+   ],
+   "cwd": "app",
+   "secrets": [],
+   "heartbeat": null,
+   "desc": "Read-only feed API :8788 (+ POST /v1/desk-state with write token)"
+  },
+  "status": {
+   "group": "status",
+   "kind": "interval",
+   "interval_s": 60,
+   "cmd": [
+    "{py}",
+    "-m",
+    "oid_desk.status",
+    "--write"
+   ],
+   "cwd": "app",
+   "secrets": [],
+   "heartbeat": "market-data/latest/mini-status.json",
+   "ttl": {
+    "rth": 180,
+    "ext": 180,
+    "closed": 180
+   },
+   "desc": "Mini source status + alarm -> market-data/latest/mini-status.json, served as /v1/status"
+  },
+  "option-subs": {
+   "group": "marks",
+   "kind": "daemon",
+   "cmd": [
+    "{py}",
+    "quotes/mini_poller.py"
+   ],
+   "secrets": [],
+   "heartbeat": "cache/mini-quotes.json",
+   "ttl": {
+    "rth": 60,
+    "ext": 60,
+    "closed": 600
+   },
+   "desc": "5s mini_poller against the local collector: cache/mini-quotes.json, OPRA subs declare, cache/mini-option-quotes.json"
+  },
+  "marks": {
+   "group": "marks",
+   "kind": "daemon",
+   "cmd": [
+    "{py}",
+    "-m",
+    "oid_desk.marks",
+    "loop"
+   ],
+   "cwd": "app",
+   "secrets": [
+    "APCA_API_KEY_ID",
+    "APCA_API_SECRET_KEY"
+   ],
+   "heartbeat": "cache/mini-marks.json",
+   "ttl": {
+    "rth": 300,
+    "ext": 900,
+    "closed": null
+   },
+   "desc": "SIP quotes + Alpaca snapshot prev-close -> live_refresh.py --equity-quotes-file --options-from-mini --skip-rebuild (rh-quotes, marks, tape, support map)"
+  },
+  "fa-focus": {
+   "group": "fa",
+   "kind": "daemon",
+   "cmd": [
+    "{py}",
+    "quotes/focus_watch.py"
+   ],
+   "secrets": [],
+   "heartbeat": "cache/focus-watch.json",
+   "ttl": {
+    "rth": 120,
+    "ext": 600,
+    "closed": null
+   },
+   "desc": "5s spot-vs-wall focus watch + in-process fa_focus_refresh (FA key via desk/secrets/flashalpha-api-key symlink)"
+  },
+  "uw-refresh": {
+   "group": "uw",
+   "kind": "daemon",
+   "cmd": [
+    "{py}",
+    "-u",
+    "quotes/uw_refresh.py"
+   ],
+   "secrets": [
+    "UW_API_KEY"
+   ],
+   "heartbeat": "cache/uw-refresh.json",
+   "ttl": {
+    "rth": 600,
+    "ext": null,
+    "closed": null
+   },
+   "desc": "UW market tide / net premium / flow alerts every 240s RTH"
+  },
+  "whale-flow": {
+   "group": "uw",
+   "kind": "daemon",
+   "cmd": [
+    "{py}",
+    "-u",
+    "whale_flow.py",
+    "--loop"
+   ],
+   "cwd": "desk/chart-bot/whale-flow",
+   "secrets": [
+    "UW_API_KEY"
+   ],
+   "heartbeat": "chart-bot/whale-flow/latest/summary.json",
+   "ttl": {
+    "rth": 300,
+    "ext": null,
+    "closed": null
+   },
+   "desc": "UW flow-alerts 60s RTH -> chart-bot/whale-flow/latest"
+  },
+  "bars": {
+   "group": "bars",
+   "kind": "daemon",
+   "cmd": [
+    "{py}",
+    "quotes/mini_bars.py",
+    "loop"
+   ],
+   "secrets": [],
+   "heartbeat": "cache/bars/summary.json",
+   "ttl": {
+    "rth": 900,
+    "ext": null,
+    "closed": null
+   },
+   "desc": "5m/15m bars + RVOL from local collector /v1/bars"
+  },
+  "edgar": {
+   "group": "edgar",
+   "kind": "interval",
+   "interval_s": 3600,
+   "cmd": [
+    "{py}",
+    "-m",
+    "oid_desk.edgar_form4",
+    "--if-due"
+   ],
+   "cwd": "app",
+   "secrets": [],
+   "heartbeat": "market-data/latest/premarket-edgar-mini.json",
+   "ttl": {
+    "rth": 7200,
+    "ext": 7200,
+    "closed": null
+   },
+   "desc": "SEC EDGAR submissions JSON (Form 4 / 8-K / 10-Q / 10-K) for the desk universe; needs config sec_user_agent"
+  },
+  "macro-public": {
+   "group": "macro",
+   "kind": "interval",
+   "interval_s": 900,
+   "cmd": [
+    "{py}",
+    "-m",
+    "oid_desk.macro_public"
+   ],
+   "cwd": "app",
+   "secrets": [
+    "EIA_API_KEY"
+   ],
+   "optional_secrets": [
+    "EIA_API_KEY"
+   ],
+   "heartbeat": "market-data/latest/macro-public.json",
+   "ttl": {
+    "rth": 2700,
+    "ext": 2700,
+    "closed": null
+   },
+   "desc": "FRED HY/IG OAS, DGS10/30, WTI/Brent daily; EIA WPSR (if key); VIX via pluggable provider (default agent_rh)"
+  },
+  "publish": {
+   "group": "publish",
+   "kind": "daemon",
+   "cmd": [
+    "{py}",
+    "scripts/extended_publisher.py"
+   ],
+   "secrets": [
+    "HERENOW_API_KEY"
+   ],
+   "env": {
+    "OID_PUBLISH_ALL_SESSIONS": "1"
+   },
+   "heartbeat": "cache/extended-publisher.json",
+   "ttl": {
+    "rth": 900,
+    "ext": 900,
+    "closed": null
+   },
+   "desc": "rebuild + here.now publish every 5 min, all sessions (Phase 5 only: single publisher)"
+  },
+  "short-borrow": {
+   "group": "shortint",
+   "kind": "interval",
+   "interval_s": 3600,
+   "cmd": [
+    "{py}",
+    "-m",
+    "oid_desk.short_borrow",
+    "--if-due"
+   ],
+   "cwd": "app",
+   "secrets": [
+    "UW_API_KEY"
+   ],
+   "optional_secrets": [
+    "UW_API_KEY"
+   ],
+   "heartbeat": "market-data/latest/short-borrow.json",
+   "ttl": {
+    "rth": 302400,
+    "ext": 302400,
+    "closed": null
+   },
+   "desc": "S5 daily append-only archive: UW borrow fee + shares available (desk universe) + FINRA short interest by settlement date -> data/short-borrow/"
+  },
+  "alerts": {
+   "group": "status",
+   "kind": "interval",
+   "interval_s": 60,
+   "cmd": [
+    "{py}",
+    "-m",
+    "oid_desk.alerts"
+   ],
+   "cwd": "app",
+   "secrets": [
+    "OID_ALERT_WEBHOOK_KEY"
+   ],
+   "heartbeat": "../state/alerts-state.json",
+   "ttl": {
+    "rth": null,
+    "ext": null,
+    "closed": null
+   },
+   "desc": "Push alarm-state changes (stale/down/failed/recovered) from mini-status.json to the OID alert webhook; 2-check debounce, 30-min repeat suppression"
+  },
+  "benzinga": {
+   "group": "news",
+   "kind": "daemon",
+   "cmd": [
+    "{py}",
+    "benzinga_ratings_stream.py",
+    "--minutes",
+    "0"
+   ],
+   "cwd": "desk/news-pulse",
+   "secrets": [
+    "BENZINGA_API_TOKEN"
+   ],
+   "heartbeat": null,
+   "hold": "Owned by X Summarizer. Do not enable until X Summarizer agrees (hook only; code is not shipped in this package).",
+   "desc": "HOOK ONLY: Benzinga ratings websocket"
+  },
+  "selfheal": {
+   "kind": "interval",
+   "interval_s": 60,
+   "group": "status",
+   "cwd": "app",
+   "cmd": [
+    "{py}",
+    "-m",
+    "oid_desk.selfheal"
+   ],
+   "heartbeat": "../state/selfheal-state.json",
+   "ttl": {
+    "rth": 300,
+    "ext": 300,
+    "closed": null
+   },
+   "secrets": [],
+   "desc": "local self-heal: kickstart stale-but-alive daemons / silent collector, max 3 per 30 min"
+  },
+  "vix-live": {
+   "group": "macro",
+   "kind": "interval",
+   "interval_s": 120,
+   "cwd": "app",
+   "cmd": [
+    "{py}",
+    "-m",
+    "oid_desk.vix_live"
+   ],
+   "secrets": [
+    "FLASHALPHA_API_KEY"
+   ],
+   "heartbeat": "market-data/latest/vix-live.json",
+   "ttl": {
+    "rth": 600,
+    "ext": null,
+    "closed": null
+   },
+   "desc": "real-time VIX from FlashAlpha /stockquote/VIX every 120 s (RTH/ext); FRED/Cboe stay labelled fallbacks"
+  },
+  "position-trigger": {
+   "group": "status",
+   "kind": "interval",
+   "interval_s": 30,
+   "cwd": "app",
+   "cmd": [
+    "{py}",
+    "-m",
+    "oid_desk.position_trigger"
+   ],
+   "secrets": [],
+   "heartbeat": "market-data/latest/position-triggers.json",
+   "ttl": {
+    "rth": 180,
+    "ext": 180,
+    "closed": null
+   },
+   "desc": "paper/live position guard: INVALIDATE / WALL_BREAK / LOSS_BACKSTOP / GIVEBACK -> webhook + flag file. NEVER trades"
+  },
+  "futures-live": {
+   "group": "macro",
+   "kind": "interval",
+   "interval_s": 60,
+   "cwd": "app",
+   "cmd": [
+    "{py}",
+    "-m",
+    "oid_desk.futures_live"
+   ],
+   "secrets": [
+    "FLASHALPHA_API_KEY"
+   ],
+   "heartbeat": "market-data/latest/futures-quotes.json",
+   "ttl": {
+    "rth": 600,
+    "ext": null,
+    "closed": null
+   },
+   "desc": "real WTI/Brent front-month futures (FlashAlpha CL=F/BZ=F, one call/min alternating, quota guard <300) -> futures-quotes.json for the live page"
+  },
+  "fa-walls": {
+   "group": "walls",
+   "kind": "interval",
+   "interval_s": 600,
+   "cwd": "app",
+   "cmd": [
+    "{py}",
+    "-m",
+    "oid_desk.fa_walls"
+   ],
+   "secrets": [
+    "FLASHALPHA_API_KEY"
+   ],
+   "heartbeat": "/Users/jake/oid-live-page/data/fa-walls-pulse.json",
+   "ttl": {
+    "rth": 1500,
+    "ext": null,
+    "closed": null
+   },
+   "desc": "live FlashAlpha walls (/v1/flow/levels) for the private live page, 10 min core + 40 min rotation, 6:30 AM-1 PM PT weekdays, quota guard -> ~/oid-live-page/data/fa-walls-pulse.json"
+  }
+ }
+}

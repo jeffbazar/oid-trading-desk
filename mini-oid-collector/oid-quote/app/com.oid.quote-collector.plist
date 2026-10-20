@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!-- Template: install.sh replaces __ROOT__ with the install root (default /Users/jake/oid-quote)
+     and writes the result to ~/Library/LaunchAgents/com.oid.quote-collector.plist -->
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.oid.quote-collector</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>__ROOT__/venv/bin/python</string>
+    <string>-m</string>
+    <string>oid_quote</string>
+    <string>--root</string>
+    <string>__ROOT__</string>
+    <string>--quiet</string>
+  </array>
+  <key>WorkingDirectory</key>
+  <string>__ROOT__/app</string>
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>PYTHONPATH</key>
+    <string>__ROOT__/app</string>
+    <key>PYTHONUNBUFFERED</key>
+    <string>1</string>
+    <key>PATH</key>
+    <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+  </dict>
+  <key>RunAtLoad</key>
+  <true/>
+  <key>KeepAlive</key>
+  <true/>
+  <key>ThrottleInterval</key>
+  <integer>10</integer>
+  <key>ProcessType</key>
+  <string>Interactive</string>
+  <key>StandardOutPath</key>
+  <string>__ROOT__/logs/launchd.out.log</string>
+  <key>StandardErrorPath</key>
+  <string>__ROOT__/logs/launchd.err.log</string>
+</dict>
+</plist>

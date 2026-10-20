@@ -1,0 +1,4 @@
+# OID quote collector — runtime deps (Python 3.12+). Data-only; no brokerage SDK.
+aiohttp>=3.9,<4      # HTTP API server + websocket client
+msgpack>=1.0,<2      # Alpaca OPRA options stream is msgpack-only
+certifi>=2024.2.2    # CA bundle for wss:// TLS

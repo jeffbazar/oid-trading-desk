@@ -1,0 +1,1113 @@
+{
+ "_note": "Sector watch (wide tier) groups for the private live page, from research/sector-options-universe-20261020.csv (144 starter names; WDC/STX/SNDK and the core 61 excluded). Streamed as SIP trades + 1-min bars only (no quotes). Never added to Robinhood watchlists. Edit + reload; tickers must also be in ~/oid-quote/wide-allowlist.json to stream.",
+ "as_of_pt": "2026-10-20",
+ "source": "research/sector-options-universe-20261020.csv (Unusual Whales screener, 30d avg options volume)",
+ "groups": [
+  {
+   "id": "w-energy",
+   "name": "Energy (oil & gas, LNG)",
+   "tickers": [
+    "PBR",
+    "XOM",
+    "OXY",
+    "CVX",
+    "ET",
+    "RIG",
+    "FRO",
+    "DVN",
+    "VG",
+    "NUAI"
+   ]
+  },
+  {
+   "id": "w-financials-banks-brokers",
+   "name": "Financials: banks/brokers/fintech",
+   "tickers": [
+    "SOFI",
+    "HOOD",
+    "BAC",
+    "NU",
+    "RKT",
+    "GRAB",
+    "JPM",
+    "C",
+    "WFC",
+    "BULL"
+   ]
+  },
+  {
+   "id": "w-crypto-linked",
+   "name": "Crypto-linked (miners, treasuries, exchanges)",
+   "tickers": [
+    "MSTR",
+    "MARA",
+    "CIFR",
+    "COIN",
+    "BMNR",
+    "APLD",
+    "RIOT",
+    "CRCL",
+    "CORZ",
+    "CLSK"
+   ]
+  },
+  {
+   "id": "w-industrials-defense-aero",
+   "name": "Industrials & Defense/Aerospace",
+   "tickers": [
+    "RKLB",
+    "BA",
+    "ACHR",
+    "GFL",
+    "QXO",
+    "CAT",
+    "RDW"
+   ]
+  },
+  {
+   "id": "w-transportation-airlines",
+   "name": "Transportation/Airlines",
+   "tickers": [
+    "UBER",
+    "AAL",
+    "JBLU",
+    "HTZ",
+    "DAL",
+    "UAL",
+    "JOBY",
+    "UPS"
+   ]
+  },
+  {
+   "id": "w-healthcare-biotech-pharm",
+   "name": "Healthcare/Biotech/Pharma",
+   "tickers": [
+    "MRNA",
+    "PFE",
+    "HIMS",
+    "UNH",
+    "NVO",
+    "SLS",
+    "LLY",
+    "TEM",
+    "VKTX",
+    "BMY"
+   ]
+  },
+  {
+   "id": "w-consumer-discretionary-r",
+   "name": "Consumer Discretionary/Retail",
+   "tickers": [
+    "GME",
+    "NKE",
+    "BABA",
+    "CCL",
+    "CMG",
+    "MCD",
+    "LULU",
+    "CVNA",
+    "DKNG",
+    "PDD"
+   ]
+  },
+  {
+   "id": "w-autos-ev",
+   "name": "Autos/EV",
+   "tickers": [
+    "RIVN",
+    "F",
+    "NIO",
+    "LCID",
+    "QS",
+    "XPEV",
+    "GM"
+   ]
+  },
+  {
+   "id": "w-consumer-staples",
+   "name": "Consumer Staples",
+   "tickers": [
+    "WMT",
+    "KO",
+    "COST",
+    "PEP",
+    "KHC",
+    "PG",
+    "MO"
+   ]
+  },
+  {
+   "id": "w-communication-media",
+   "name": "Communication/Media",
+   "tickers": [
+    "ASTS",
+    "AMC",
+    "SNAP",
+    "T",
+    "VZ",
+    "RDDT",
+    "CMCSA",
+    "DIS",
+    "BIDU",
+    "RBLX"
+   ]
+  },
+  {
+   "id": "w-materials-metals-mining",
+   "name": "Materials/Metals & Mining (incl. gold, uranium)",
+   "tickers": [
+    "CLF",
+    "USAR",
+    "FCX",
+    "AG",
+    "VALE",
+    "CCJ",
+    "MP",
+    "HL",
+    "UUUU"
+   ]
+  },
+  {
+   "id": "w-utilities-power",
+   "name": "Utilities/Power (incl. nuclear, AI power)",
+   "tickers": [
+    "PCG",
+    "EOSE",
+    "OKLO",
+    "VST",
+    "SMR",
+    "FSLR",
+    "TE",
+    "RUN",
+    "NEE"
+   ]
+  },
+  {
+   "id": "w-real-estate",
+   "name": "Real Estate",
+   "tickers": [
+    "AGNC",
+    "OPEN",
+    "FRMI",
+    "MPT",
+    "NLY",
+    "GEO",
+    "O"
+   ]
+  },
+  {
+   "id": "w-tech-software-not-in-uni",
+   "name": "Tech/software not in universe",
+   "tickers": [
+    "NOK",
+    "CRWD",
+    "ONDS",
+    "NOW",
+    "IONQ",
+    "HPE",
+    "CRM",
+    "SHOP",
+    "IBM",
+    "CSCO"
+   ]
+  },
+  {
+   "id": "w-sector-thematic-etfs",
+   "name": "Sector & thematic ETFs",
+   "tickers": [
+    "XLF",
+    "XLE",
+    "GDX",
+    "XLU",
+    "KRE",
+    "XBI",
+    "XLK",
+    "XLP",
+    "XLI",
+    "JETS"
+   ]
+  },
+  {
+   "id": "w-macro-commodity-intl-etf",
+   "name": "Macro/commodity/intl ETFs",
+   "tickers": [
+    "TLT",
+    "EWZ",
+    "IBIT",
+    "HYG",
+    "GLD",
+    "SLV",
+    "USO",
+    "ETHA",
+    "LQD",
+    "IEF"
+   ]
+  }
+ ],
+ "info": {
+  "PBR": {
+   "industry": "Oil & Gas",
+   "liq": "good",
+   "opt30": 62694,
+   "note": null
+  },
+  "XOM": {
+   "industry": "Oil & Gas",
+   "liq": "good",
+   "opt30": 56972,
+   "note": null
+  },
+  "OXY": {
+   "industry": "Oil & Gas",
+   "liq": "good",
+   "opt30": 43018,
+   "note": null
+  },
+  "CVX": {
+   "industry": "Oil & Gas",
+   "liq": "ok",
+   "opt30": 36902,
+   "note": null
+  },
+  "ET": {
+   "industry": "Oil & Gas",
+   "liq": "ok",
+   "opt30": 25762,
+   "note": null
+  },
+  "RIG": {
+   "industry": "Oil & Gas",
+   "liq": "ok",
+   "opt30": 24329,
+   "note": null
+  },
+  "FRO": {
+   "industry": "Oil & Gas",
+   "liq": "ok",
+   "opt30": 23534,
+   "note": null
+  },
+  "DVN": {
+   "industry": "Oil & Gas",
+   "liq": "ok",
+   "opt30": 22780,
+   "note": null
+  },
+  "VG": {
+   "industry": "Telecom Services",
+   "liq": "ok",
+   "opt30": 22753,
+   "note": "UW tags it Telecom Services; placed in Energy assuming LNG exporter; verify"
+  },
+  "NUAI": {
+   "industry": "Oil & Gas",
+   "liq": "ok",
+   "opt30": 20589,
+   "note": "small cap <$1B, speculative"
+  },
+  "SOFI": {
+   "industry": "Credit Services",
+   "liq": "deep",
+   "opt30": 354808,
+   "note": null
+  },
+  "HOOD": {
+   "industry": "Software Infrastructure",
+   "liq": "deep",
+   "opt30": 296103,
+   "note": "UW tags it Technology"
+  },
+  "BAC": {
+   "industry": "Banks",
+   "liq": "deep",
+   "opt30": 171029,
+   "note": null
+  },
+  "NU": {
+   "industry": "Banks",
+   "liq": "deep",
+   "opt30": 125706,
+   "note": null
+  },
+  "RKT": {
+   "industry": "Mortgage Finance",
+   "liq": "good",
+   "opt30": 71189,
+   "note": null
+  },
+  "GRAB": {
+   "industry": "Asset Management",
+   "liq": "good",
+   "opt30": 63881,
+   "note": null
+  },
+  "JPM": {
+   "industry": "Banks",
+   "liq": "good",
+   "opt30": 57449,
+   "note": null
+  },
+  "C": {
+   "industry": "Banks",
+   "liq": "good",
+   "opt30": 55564,
+   "note": null
+  },
+  "WFC": {
+   "industry": "Banks",
+   "liq": "good",
+   "opt30": 53405,
+   "note": null
+  },
+  "BULL": {
+   "industry": "Software",
+   "liq": "good",
+   "opt30": 52631,
+   "note": "UW tags it Software; broker"
+  },
+  "MSTR": {
+   "industry": "Software",
+   "liq": "deep",
+   "opt30": 467732,
+   "note": null
+  },
+  "MARA": {
+   "industry": "Capital Markets",
+   "liq": "deep",
+   "opt30": 211718,
+   "note": null
+  },
+  "CIFR": {
+   "industry": "Capital Markets",
+   "liq": "deep",
+   "opt30": 167018,
+   "note": "AI-hosting/miner hybrid"
+  },
+  "COIN": {
+   "industry": "Software",
+   "liq": "good",
+   "opt30": 160643,
+   "note": null
+  },
+  "BMNR": {
+   "industry": "Capital Markets",
+   "liq": "deep",
+   "opt30": 141345,
+   "note": null
+  },
+  "APLD": {
+   "industry": "Capital Markets",
+   "liq": "good",
+   "opt30": 96675,
+   "note": "AI-hosting/miner hybrid"
+  },
+  "RIOT": {
+   "industry": "Software",
+   "liq": "good",
+   "opt30": 83240,
+   "note": null
+  },
+  "CRCL": {
+   "industry": "Capital Markets",
+   "liq": "good",
+   "opt30": 80563,
+   "note": null
+  },
+  "CORZ": {
+   "industry": "Software Infrastructure",
+   "liq": "good",
+   "opt30": 59040,
+   "note": "AI-hosting/miner hybrid"
+  },
+  "CLSK": {
+   "industry": "Software Infrastructure",
+   "liq": "good",
+   "opt30": 48240,
+   "note": null
+  },
+  "RKLB": {
+   "industry": "Aerospace & Defense",
+   "liq": "deep",
+   "opt30": 135619,
+   "note": null
+  },
+  "BA": {
+   "industry": "Aerospace & Defense",
+   "liq": "good",
+   "opt30": 96895,
+   "note": null
+  },
+  "ACHR": {
+   "industry": "Aerospace & Defense",
+   "liq": "ok",
+   "opt30": 33426,
+   "note": null
+  },
+  "GFL": {
+   "industry": "Waste Management",
+   "liq": "ok",
+   "opt30": 33380,
+   "note": null
+  },
+  "QXO": {
+   "industry": "Industrial Distribution",
+   "liq": "ok",
+   "opt30": 23390,
+   "note": null
+  },
+  "CAT": {
+   "industry": "Farm & Heavy Construction Machinery",
+   "liq": "ok",
+   "opt30": 21306,
+   "note": null
+  },
+  "RDW": {
+   "industry": "Aerospace & Defense",
+   "liq": "ok",
+   "opt30": 21287,
+   "note": null
+  },
+  "UBER": {
+   "industry": "Software",
+   "liq": "deep",
+   "opt30": 105439,
+   "note": "UW tags it Technology"
+  },
+  "AAL": {
+   "industry": "Airlines",
+   "liq": "good",
+   "opt30": 91131,
+   "note": null
+  },
+  "JBLU": {
+   "industry": "Airlines",
+   "liq": "good",
+   "opt30": 46226,
+   "note": null
+  },
+  "HTZ": {
+   "industry": "Rental & Leasing Services",
+   "liq": "good",
+   "opt30": 44190,
+   "note": "small cap <$1B, speculative"
+  },
+  "DAL": {
+   "industry": "Airlines",
+   "liq": "ok",
+   "opt30": 39950,
+   "note": null
+  },
+  "UAL": {
+   "industry": "Airlines",
+   "liq": "ok",
+   "opt30": 21810,
+   "note": null
+  },
+  "JOBY": {
+   "industry": "Airports & Air Services",
+   "liq": "ok",
+   "opt30": 21545,
+   "note": null
+  },
+  "UPS": {
+   "industry": "Integrated Freight & Logistics",
+   "liq": "ok",
+   "opt30": 20513,
+   "note": null
+  },
+  "MRNA": {
+   "industry": "Biotechnology",
+   "liq": "good",
+   "opt30": 126597,
+   "note": null
+  },
+  "PFE": {
+   "industry": "Drug Manufacturers",
+   "liq": "good",
+   "opt30": 76974,
+   "note": null
+  },
+  "HIMS": {
+   "industry": "Household & Personal Products",
+   "liq": "good",
+   "opt30": 71148,
+   "note": "UW tags it Consumer Defensive (Household & Personal Products)"
+  },
+  "UNH": {
+   "industry": "Healthcare Plans",
+   "liq": "good",
+   "opt30": 65509,
+   "note": null
+  },
+  "NVO": {
+   "industry": "Drug Manufacturers",
+   "liq": "good",
+   "opt30": 58736,
+   "note": null
+  },
+  "SLS": {
+   "industry": "Biotechnology",
+   "liq": "ok",
+   "opt30": 33338,
+   "note": null
+  },
+  "LLY": {
+   "industry": "Drug Manufacturers",
+   "liq": "ok",
+   "opt30": 32661,
+   "note": null
+  },
+  "TEM": {
+   "industry": "Health Information Services",
+   "liq": "ok",
+   "opt30": 31874,
+   "note": null
+  },
+  "VKTX": {
+   "industry": "Biotechnology",
+   "liq": "ok",
+   "opt30": 31629,
+   "note": null
+  },
+  "BMY": {
+   "industry": "Drug Manufacturers",
+   "liq": "ok",
+   "opt30": 28049,
+   "note": null
+  },
+  "GME": {
+   "industry": "Specialty Retail",
+   "liq": "deep",
+   "opt30": 308269,
+   "note": null
+  },
+  "NKE": {
+   "industry": "Footwear & Accessories",
+   "liq": "deep",
+   "opt30": 186757,
+   "note": null
+  },
+  "BABA": {
+   "industry": "Internet Retail",
+   "liq": "deep",
+   "opt30": 122109,
+   "note": null
+  },
+  "CCL": {
+   "industry": "Travel & Leisure",
+   "liq": "good",
+   "opt30": 57492,
+   "note": null
+  },
+  "CMG": {
+   "industry": "Restaurants",
+   "liq": "good",
+   "opt30": 54382,
+   "note": null
+  },
+  "MCD": {
+   "industry": "Restaurants",
+   "liq": "good",
+   "opt30": 52999,
+   "note": null
+  },
+  "LULU": {
+   "industry": "Apparel Retail",
+   "liq": "good",
+   "opt30": 43235,
+   "note": null
+  },
+  "CVNA": {
+   "industry": "Internet Retail",
+   "liq": "good",
+   "opt30": 42059,
+   "note": null
+  },
+  "DKNG": {
+   "industry": "Gambling",
+   "liq": "good",
+   "opt30": 41198,
+   "note": null
+  },
+  "PDD": {
+   "industry": "Internet Retail",
+   "liq": "ok",
+   "opt30": 29649,
+   "note": null
+  },
+  "RIVN": {
+   "industry": "Automotive",
+   "liq": "good",
+   "opt30": 96146,
+   "note": null
+  },
+  "F": {
+   "industry": "Automotive",
+   "liq": "good",
+   "opt30": 79255,
+   "note": null
+  },
+  "NIO": {
+   "industry": "Automotive",
+   "liq": "good",
+   "opt30": 55359,
+   "note": null
+  },
+  "LCID": {
+   "industry": "Automotive",
+   "liq": "ok",
+   "opt30": 34510,
+   "note": null
+  },
+  "QS": {
+   "industry": "Automotive",
+   "liq": "thin",
+   "opt30": 17902,
+   "note": null
+  },
+  "XPEV": {
+   "industry": "Automotive",
+   "liq": "thin",
+   "opt30": 16937,
+   "note": null
+  },
+  "GM": {
+   "industry": "Automotive",
+   "liq": "thin",
+   "opt30": 15051,
+   "note": null
+  },
+  "WMT": {
+   "industry": "Discount Stores",
+   "liq": "deep",
+   "opt30": 139901,
+   "note": null
+  },
+  "KO": {
+   "industry": "Food & Beverage",
+   "liq": "good",
+   "opt30": 48314,
+   "note": null
+  },
+  "COST": {
+   "industry": "Discount Stores",
+   "liq": "good",
+   "opt30": 42437,
+   "note": null
+  },
+  "PEP": {
+   "industry": "Food & Beverage",
+   "liq": "ok",
+   "opt30": 36060,
+   "note": null
+  },
+  "KHC": {
+   "industry": "Packaged Foods",
+   "liq": "ok",
+   "opt30": 33110,
+   "note": null
+  },
+  "PG": {
+   "industry": "Household & Personal Products",
+   "liq": "ok",
+   "opt30": 21046,
+   "note": null
+  },
+  "MO": {
+   "industry": "Tobacco",
+   "liq": "ok",
+   "opt30": 20853,
+   "note": null
+  },
+  "ASTS": {
+   "industry": "Telecom Services",
+   "liq": "deep",
+   "opt30": 136018,
+   "note": null
+  },
+  "AMC": {
+   "industry": "Entertainment",
+   "liq": "good",
+   "opt30": 100893,
+   "note": null
+  },
+  "SNAP": {
+   "industry": "Internet Content & Information",
+   "liq": "good",
+   "opt30": 77104,
+   "note": null
+  },
+  "T": {
+   "industry": "Telecom Services",
+   "liq": "good",
+   "opt30": 62327,
+   "note": null
+  },
+  "VZ": {
+   "industry": "Telecom Services",
+   "liq": "good",
+   "opt30": 57024,
+   "note": null
+  },
+  "RDDT": {
+   "industry": "Internet Content & Information",
+   "liq": "good",
+   "opt30": 42288,
+   "note": null
+  },
+  "CMCSA": {
+   "industry": "Entertainment",
+   "liq": "ok",
+   "opt30": 28581,
+   "note": null
+  },
+  "DIS": {
+   "industry": "Entertainment",
+   "liq": "ok",
+   "opt30": 27069,
+   "note": null
+  },
+  "BIDU": {
+   "industry": "Internet Content & Information",
+   "liq": "ok",
+   "opt30": 24848,
+   "note": null
+  },
+  "RBLX": {
+   "industry": "Electronic Gaming & Multimedia",
+   "liq": "ok",
+   "opt30": 24719,
+   "note": null
+  },
+  "CLF": {
+   "industry": "Steel",
+   "liq": "good",
+   "opt30": 54475,
+   "note": null
+  },
+  "USAR": {
+   "industry": "Metals & Mining",
+   "liq": "ok",
+   "opt30": 39026,
+   "note": null
+  },
+  "FCX": {
+   "industry": "Copper",
+   "liq": "ok",
+   "opt30": 35858,
+   "note": null
+  },
+  "AG": {
+   "industry": "Silver",
+   "liq": "ok",
+   "opt30": 29027,
+   "note": null
+  },
+  "VALE": {
+   "industry": "Metals & Mining",
+   "liq": "ok",
+   "opt30": 26297,
+   "note": null
+  },
+  "CCJ": {
+   "industry": "Uranium",
+   "liq": "ok",
+   "opt30": 25048,
+   "note": null
+  },
+  "MP": {
+   "industry": "Metals & Mining",
+   "liq": "ok",
+   "opt30": 24482,
+   "note": null
+  },
+  "HL": {
+   "industry": "Gold",
+   "liq": "ok",
+   "opt30": 22872,
+   "note": null
+  },
+  "UUUU": {
+   "industry": "Uranium",
+   "liq": "ok",
+   "opt30": 21538,
+   "note": null
+  },
+  "PCG": {
+   "industry": "Utilities - Regulated Electric",
+   "liq": "deep",
+   "opt30": 103668,
+   "note": null
+  },
+  "EOSE": {
+   "industry": "Electrical Equipment & Parts",
+   "liq": "good",
+   "opt30": 54775,
+   "note": "small cap <$1B, speculative"
+  },
+  "OKLO": {
+   "industry": "Utilities - Regulated Electric",
+   "liq": "good",
+   "opt30": 54240,
+   "note": null
+  },
+  "VST": {
+   "industry": "Utilities - Independent Power Producers",
+   "liq": "good",
+   "opt30": 49270,
+   "note": null
+  },
+  "SMR": {
+   "industry": "Specialty Industrial Machinery",
+   "liq": "good",
+   "opt30": 48991,
+   "note": null
+  },
+  "FSLR": {
+   "industry": "Solar",
+   "liq": "ok",
+   "opt30": 33691,
+   "note": "UW tags it Technology (solar)"
+  },
+  "TE": {
+   "industry": "Electrical Equipment & Parts",
+   "liq": "ok",
+   "opt30": 25225,
+   "note": "small cap <$1B, speculative; UW tags it Electrical Equipment"
+  },
+  "RUN": {
+   "industry": "Solar",
+   "liq": "ok",
+   "opt30": 22569,
+   "note": "UW tags it Technology (solar)"
+  },
+  "NEE": {
+   "industry": "Utilities - Regulated Electric",
+   "liq": "ok",
+   "opt30": 21216,
+   "note": null
+  },
+  "AGNC": {
+   "industry": "REIT - Mortgage",
+   "liq": "good",
+   "opt30": 55472,
+   "note": null
+  },
+  "OPEN": {
+   "industry": "Real Estate Services",
+   "liq": "good",
+   "opt30": 42534,
+   "note": null
+  },
+  "FRMI": {
+   "industry": "REIT",
+   "liq": "ok",
+   "opt30": 23397,
+   "note": null
+  },
+  "MPT": {
+   "industry": "REIT",
+   "liq": "thin",
+   "opt30": 15229,
+   "note": null
+  },
+  "NLY": {
+   "industry": "REIT - Mortgage",
+   "liq": "thin",
+   "opt30": 14496,
+   "note": null
+  },
+  "GEO": {
+   "industry": "REIT",
+   "liq": "thin",
+   "opt30": 10132,
+   "note": null
+  },
+  "O": {
+   "industry": "REIT",
+   "liq": "thin",
+   "opt30": 8521,
+   "note": null
+  },
+  "NOK": {
+   "industry": "Communication Equipment",
+   "liq": "deep",
+   "opt30": 131255,
+   "note": null
+  },
+  "CRWD": {
+   "industry": "Software Infrastructure",
+   "liq": "deep",
+   "opt30": 102140,
+   "note": null
+  },
+  "ONDS": {
+   "industry": "Communication Equipment",
+   "liq": "good",
+   "opt30": 96276,
+   "note": null
+  },
+  "NOW": {
+   "industry": "Software",
+   "liq": "good",
+   "opt30": 82638,
+   "note": null
+  },
+  "IONQ": {
+   "industry": "Computer Hardware",
+   "liq": "good",
+   "opt30": 78177,
+   "note": null
+  },
+  "HPE": {
+   "industry": "Communication Equipment",
+   "liq": "good",
+   "opt30": 62776,
+   "note": null
+  },
+  "CRM": {
+   "industry": "Software",
+   "liq": "good",
+   "opt30": 58280,
+   "note": null
+  },
+  "SHOP": {
+   "industry": "Software",
+   "liq": "good",
+   "opt30": 51336,
+   "note": null
+  },
+  "IBM": {
+   "industry": "Information Technology Services",
+   "liq": "good",
+   "opt30": 50138,
+   "note": null
+  },
+  "CSCO": {
+   "industry": "Communication Equipment",
+   "liq": "good",
+   "opt30": 49887,
+   "note": null
+  },
+  "XLF": {
+   "industry": "ETF",
+   "liq": "deep",
+   "opt30": 271473,
+   "note": null
+  },
+  "XLE": {
+   "industry": "ETF",
+   "liq": "deep",
+   "opt30": 152298,
+   "note": null
+  },
+  "GDX": {
+   "industry": "ETF",
+   "liq": "deep",
+   "opt30": 137654,
+   "note": null
+  },
+  "XLU": {
+   "industry": "ETF",
+   "liq": "deep",
+   "opt30": 130302,
+   "note": null
+  },
+  "KRE": {
+   "industry": "ETF",
+   "liq": "good",
+   "opt30": 90737,
+   "note": null
+  },
+  "XBI": {
+   "industry": "ETF",
+   "liq": "good",
+   "opt30": 40563,
+   "note": null
+  },
+  "XLK": {
+   "industry": "ETF",
+   "liq": "ok",
+   "opt30": 36826,
+   "note": null
+  },
+  "XLP": {
+   "industry": "ETF",
+   "liq": "ok",
+   "opt30": 33514,
+   "note": null
+  },
+  "XLI": {
+   "industry": "ETF",
+   "liq": "ok",
+   "opt30": 26279,
+   "note": null
+  },
+  "JETS": {
+   "industry": "ETF",
+   "liq": "ok",
+   "opt30": 22334,
+   "note": null
+  },
+  "TLT": {
+   "industry": "ETF",
+   "liq": "deep",
+   "opt30": 1086837,
+   "note": null
+  },
+  "EWZ": {
+   "industry": "ETF",
+   "liq": "deep",
+   "opt30": 665370,
+   "note": null
+  },
+  "IBIT": {
+   "industry": "ETF",
+   "liq": "deep",
+   "opt30": 662644,
+   "note": null
+  },
+  "HYG": {
+   "industry": "ETF",
+   "liq": "deep",
+   "opt30": 602626,
+   "note": null
+  },
+  "GLD": {
+   "industry": "ETF",
+   "liq": "deep",
+   "opt30": 404333,
+   "note": null
+  },
+  "SLV": {
+   "industry": "ETF",
+   "liq": "deep",
+   "opt30": 362889,
+   "note": null
+  },
+  "USO": {
+   "industry": "Asset Management",
+   "liq": "deep",
+   "opt30": 239706,
+   "note": "UW tags it Financial Services"
+  },
+  "ETHA": {
+   "industry": "ETF",
+   "liq": "good",
+   "opt30": 145509,
+   "note": null
+  },
+  "LQD": {
+   "industry": "ETF",
+   "liq": "deep",
+   "opt30": 141960,
+   "note": null
+  },
+  "IEF": {
+   "industry": "ETF",
+   "liq": "deep",
+   "opt30": 116706,
+   "note": null
+  }
+ }
+}

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0"><dict>
+<key>Label</key><string>com.oid.tailscaled</string>
+<key>ProgramArguments</key><array>
+<string>/opt/homebrew/bin/tailscaled</string>
+<string>--tun=userspace-networking</string>
+<string>--socket=/Users/jake/oid-quote/tailscale/tailscaled.sock</string>
+<string>--statedir=/Users/jake/oid-quote/tailscale</string>
+</array>
+<key>RunAtLoad</key><true/><key>KeepAlive</key><true/>
+<key>StandardOutPath</key><string>/Users/jake/oid-quote/tailscale/tailscaled.log</string>
+<key>StandardErrorPath</key><string>/Users/jake/oid-quote/tailscale/tailscaled.log</string>
+</dict></plist>

@@ -1,0 +1,8 @@
+{
+ "_doc": "Keeps the S5 short_borrow section when the box re-pushes mini-desk.json via desk-state.",
+ "short_borrow": {
+  "_doc": "S5 short-interest/borrow archive (oid_desk.short_borrow). Daily on weekdays at/after due_et (ET). Append-only under data/short-borrow/.",
+  "due_et": "16:45",
+  "finra_lookback_days": 75
+ }
+}

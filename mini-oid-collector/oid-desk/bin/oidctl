@@ -1,0 +1,5 @@
+#!/bin/bash
+# OID mini desk job control (see oid_desk/ctl.py). Never prints secrets.
+ROOT="${OID_DESK_ROOT:-$HOME/oid-desk}"
+export OID_DESK_ROOT="$ROOT" OID_DESK_DIR="${OID_DESK_DIR:-$ROOT/desk}" PYTHONPATH="$ROOT/app"
+exec "${OID_DESK_PY:-$ROOT/venv/bin/python}" -m oid_desk.ctl "$@"

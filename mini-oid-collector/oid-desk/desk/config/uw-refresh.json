@@ -1,0 +1,27 @@
+{
+ "_doc": "Box-side Unusual Whales refresher (Jeffrey 2026-10-10: UW flow / net-premium feeds kept going stale between routine runs). quotes/uw_refresh.py pulls UW REST directly with the desk-injected UW_API_KEY during RTH only and writes market-data/latest/uw-market-tide.json, uw-net-prem.json, uw-flow-alerts.json in the cache_io envelope. Research / paper only - zero broker calls. Edits are picked up on the next cycle, no restart needed.",
+ "enabled": true,
+ "interval_s": 240,
+ "sectors": [
+  "Technology",
+  "Communication Services",
+  "Consumer Cyclical"
+ ],
+ "include_core20": true,
+ "include_focus": true,
+ "extra_symbols": [],
+ "flow_alerts": {
+  "min_premium": 250000,
+  "etf_min_premium": 500000,
+  "etfs": [
+   "SPY",
+   "QQQ"
+  ],
+  "chunk": 9,
+  "limit": 200,
+  "keep_top": 60
+ },
+ "request_spacing_s": 0.25,
+ "daily_call_cap": 6000,
+ "timeout_s": 20
+}

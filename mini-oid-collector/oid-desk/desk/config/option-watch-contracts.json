@@ -1,0 +1,10 @@
+{
+ "_note": "Standing contracts option_marks always declares to the mini collector (unioned with open seats + live RH positions). Created 2026-10-19 11:21 AM PT after options-subs.json went to 0 when the desk went flat (8:48 AM PT). Expired contracts are dropped automatically. The near-ATM flow set (900 contracts, re-ranked every 15 min) lives in the separate oid-optflow stream on the mini, not here.",
+ "updated_at_pt": "2026-10-19 11:21 AM PT",
+ "contracts": [
+  {
+   "occ": "GOOG261023C00340000",
+   "label": "Hal live GOOG 10/23 340C (8444)"
+  }
+ ]
+}

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0"><dict>
+  <key>Label</key><string>com.oid.desk.news</string>
+  <key>ProgramArguments</key><array><string>/bin/bash</string><string>/Users/jake/oid-desk/news/run.sh</string></array>
+  <key>WorkingDirectory</key><string>/Users/jake/oid-desk/news</string>
+  <key>EnvironmentVariables</key><dict><key>PYTHONUNBUFFERED</key><string>1</string><key>HF_HUB_DISABLE_TELEMETRY</key><string>1</string></dict>
+  <key>RunAtLoad</key><true/>
+  <key>KeepAlive</key><true/>
+  <key>ThrottleInterval</key><integer>15</integer>
+  <key>ProcessType</key><string>Background</string>
+  <key>StandardOutPath</key><string>/Users/jake/oid-desk/logs/news.log</string>
+  <key>StandardErrorPath</key><string>/Users/jake/oid-desk/logs/news.err</string>
+</dict></plist>
