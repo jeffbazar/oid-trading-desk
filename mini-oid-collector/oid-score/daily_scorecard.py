@@ -10,8 +10,9 @@ Writes ~/oid-data/score/scorecard-YYYYMMDD.json and .md.
 
 Per combo: holds, % that went with the score, median/mean gain bp (direction-signed, start->stop), mean peak (MFE)
 and trough (MAE) bp in the score's direction, median hold seconds. Score 0 holds have no direction (gain columns blank).
+Also 'score x held before acting': waits 0/15/30/60/120/300 s, entering at start+W from 5 s bar closes (no lookahead).
 """
-import argparse, json, statistics
+import argparse, bisect, json, statistics
 from datetime import datetime
 from pathlib import Path
 import score_lib as L
@@ -149,6 +150,76 @@ def build(eps):
     return res
 
 
+# ------------------------------------------------------------------ score x held before acting
+HOLD_WAITS = (0, 15, 30, 60, 120, 300)
+SMALL_N = 20
+HOLD_GROUPS = [
+    ("±1", lambda e: abs(e["score"]) == 1),
+    ("±2", lambda e: abs(e["score"]) == 2),
+    ("±3", lambda e: abs(e["score"]) == 3),
+    ("all nonzero", lambda e: e["score"] != 0),
+    ("±2 + surge (rvol_1m >= 3)", lambda e: abs(e["score"]) == 2 and (e.get("agree_start") or {}).get("surge") is True),
+    ("±3 + surge (rvol_1m >= 3)", lambda e: abs(e["score"]) == 3 and (e.get("agree_start") or {}).get("surge") is True),
+    ("±2 + momentum resume/accelerate", lambda e: abs(e["score"]) == 2 and (e.get("agree_start") or {}).get("mom_state") in ("resume", "accelerate")),
+    ("±3 + momentum resume/accelerate", lambda e: abs(e["score"]) == 3 and (e.get("agree_start") or {}).get("mom_state") in ("resume", "accelerate")),
+]
+
+
+def held_entry(e, w, bars, ends):
+    """Pretend entry W s after the score started, only if the score was still unchanged then (duration > W).
+    W=0: the hold's own start price/peak/trough (same numbers as 'Score alone').
+    W>0: entry = close of the last 5 s bar ending at or before start+W (no lookahead); exit = the hold's stop price;
+    peak/trough = 5 s bar highs/lows that start at/after entry and end by the stop, plus entry/exit prices."""
+    d = SC.sgn(e.get("score"))
+    t0, t1 = e.get("start_t"), e.get("stop_t")
+    if not d or t0 is None or t1 is None:
+        return None
+    dur = t1 - t0
+    if w == 0:
+        return {"gain_bp": e.get("gain_bp"), "mfe_bp": e.get("mfe_bp"), "mae_bp": e.get("mae_bp"), "duration_s": e.get("duration_s")}
+    if dur <= w + 0.001:
+        return None
+    bl, en = bars.get(e["sym"]) or [], ends.get(e["sym"]) or []
+    et = t0 + w
+    i = bisect.bisect_right(en, et + 0.001) - 1
+    if i < 0:
+        return None
+    epx, xpx = bl[i][5], e.get("stop_px")
+    if not epx or not xpx:
+        return None
+    j0 = bisect.bisect_left(en, et - 0.001)
+    hi, lo = max(epx, xpx), min(epx, xpx)
+    for b in bl[j0:]:
+        if b[1] > t1 + 0.001:
+            break
+        if b[0] < et - 0.001:
+            continue
+        hi = max(hi, b[3] if b[3] is not None else b[5])
+        lo = min(lo, b[4] if b[4] is not None else b[5])
+    r, pk, tr = SC.bp(xpx, epx), SC.bp(hi, epx), SC.bp(lo, epx)
+    return {"gain_bp": (round(r * d, 2) + 0.0) if r is not None else None,
+            "mfe_bp": (pk if d > 0 else -tr) + 0.0 if None not in (pk, tr) else None,
+            "mae_bp": (tr if d > 0 else -pk) + 0.0 if None not in (pk, tr) else None,
+            "duration_s": round(t1 - et, 1)}
+
+
+def held_before_acting(eps, bars):
+    ends = {s: [b[1] for b in bl] for s, bl in bars.items()}
+    res = {"waits_s": list(HOLD_WAITS), "small_sample_under": SMALL_N, "groups": {}}
+    for name, fn in HOLD_GROUPS:
+        g = [e for e in eps if e["score"] != 0 and fn(e)]
+        base = len(g)
+        res["groups"][name] = {}
+        for w in HOLD_WAITS:
+            rows = [x for x in (held_entry(e, w, bars, ends) for e in g) if x is not None]
+            st = stats(rows)
+            st["median_remaining_hold_s"] = st.pop("median_hold_s")
+            st["pct_of_w0_holds"] = round(100.0 * len(rows) / base, 1) if base else None
+            st["small_sample"] = len(rows) < SMALL_N
+            res["groups"][name][str(w)] = st
+    return res
+
+
 def fmt(v):
     return "–" if v is None else (f"{v:g}" if isinstance(v, (int, float)) else str(v))
 
@@ -188,6 +259,22 @@ def md(date, src, res, n, note):
         out.append(f"Per-change rows: `{fw['file']}`.")
     else:
         out.append("Not available: needs a changes-YYYYMMDD.jsonl file (live/replay change log).")
+    hb = res.get("held_before_acting")
+    out += ["", "## score x held before acting (wait W s, enter only if the score is still unchanged)", "",
+            "Entry = price W s after the score started (close of the last 5 s bar at or before that moment, no lookahead), only for holds that "
+            "lasted longer than W. Gain = entry to the end of the hold, in the score's direction. Peak/trough = best/worst move after entry. "
+            "Remaining hold = seconds from entry to the score's next change. W = 0 is the same as 'Score alone'. "
+            f"Rows under {SMALL_N} holds are marked small sample.", ""]
+    if hb:
+        out += ["| scores | wait s | holds | % of W=0 holds | % with score | median gain bp | mean gain bp | mean peak bp | mean trough bp | median remaining hold s | note |",
+                "|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|"]
+        for gname, byw in hb["groups"].items():
+            for w, st in byw.items():
+                out.append(f"| {gname} | {w} | {st['holds']} | {fmt(st['pct_of_w0_holds'])} | {fmt(st['pct_with'])} | {fmt(st['median_gain_bp'])} | "
+                           f"{fmt(st['mean_gain_bp'])} | {fmt(st['mean_peak_bp'])} | {fmt(st['mean_trough_bp'])} | {fmt(st['median_remaining_hold_s'])} | "
+                           f"{'small sample' if st['small_sample'] else ''} |")
+    else:
+        out.append("Not available (needs 5 s bars for the day).")
     out += ["", "Per-score (±1/±2/±3 separately) breakdowns are in the .json."]
     return "\n".join(out) + "\n"
 
@@ -254,11 +341,17 @@ def main():
     except Exception as ex:  # secondary check must never break the scorecard
         print(f"secondary fwd check failed: {ex}")
         res["secondary_fwd"] = None
+    try:
+        res["held_before_acting"] = held_before_acting(eps, SC.load_5s(a.date))
+    except Exception as ex:  # extra view must never break the scorecard
+        print(f"held-before-acting view failed: {ex}")
+        res["held_before_acting"] = None
     res.update({"date": a.date, "source": src, "n_holds": len(eps), "generated_pt": L.pt_str(datetime.now().timestamp()),
                 "definitions": {"surge": "rvol_1m >= 3 at hold start", "cp_agrees": "aggressor C/P 1m (else 15s, else UW lean) on the score's side; C/P>1.10 call, <0.91 put",
                                 "wall_room": "ATR from price to the call wall (score>0) or put wall (score<0) at hold start",
                                 "stock_tape_agrees": "sign of the stock's own 60 s return (5 s bars) = score sign",
-                                "market_agrees": "sign of mean SPY/QQQ 60 s return = score sign"}})
+                                "market_agrees": "sign of mean SPY/QQQ 60 s return = score sign",
+                                "held_before_acting": "wait W s after the score starts; only holds with duration > W; entry = close of last 5 s bar ending <= start+W; exit = hold stop price; peak/trough from 5 s bars after entry; W=0 = hold start (same as score alone); momentum = agree_start.mom_state resume/accelerate"}})
     base = L.OUT / f"scorecard-{d}{a.tag}"
     Path(str(base) + ".json").write_text(json.dumps(res, indent=1), encoding="utf-8")
     Path(str(base) + ".md").write_text(md(a.date, src, res, len(eps), note), encoding="utf-8")
