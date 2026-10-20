@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<meta http-equiv="refresh" content="600"/>
+<title>OID · Architecture</title>
+<style>
+
+:root{
+  --bg:#070b10; --panel:#0e141c; --panel2:#121a24; --line:#1a2533;
+  --text:#e8eef7; --muted:#7f91a8; --accent:#4da3ff;
+  --good:#3dd68c; --bad:#ff6b7a; --warn:#f0b429;
+  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,system-ui,-apple-system,sans-serif;background:
+  radial-gradient(900px 420px at 8% -8%,#142033 0%,transparent 55%),
+  radial-gradient(700px 380px at 100% 0%,#1a1528 0%,transparent 50%),
+  var(--bg);color:var(--text);min-height:100vh}
+.wrap{max-width:980px;margin:0 auto;padding:14px 16px 48px}
+h1{font-size:1.35rem;margin:0 0 6px}
+h2{font-size:1.08rem;margin:26px 0 10px;padding-top:8px;border-top:1px solid var(--line)}
+h2:first-of-type{border-top:none;padding-top:0}
+h3{font-size:.95rem;margin:18px 0 8px;color:#c5d4e8}
+h4{font-size:.88rem;margin:14px 0 6px;color:var(--muted)}
+.sub{color:var(--muted);font-size:.88rem;margin-bottom:12px}
+.tabs{display:flex;gap:8px;margin:0 0 10px;flex-wrap:wrap}
+.tabs a{display:inline-block;padding:7px 14px;border-radius:999px;border:1px solid var(--line);color:var(--muted);text-decoration:none;font-size:.78rem;font-weight:650;letter-spacing:.04em;text-transform:uppercase}
+.tabs a.active,.tabs a:hover{color:var(--text);border-color:#2a4a70;background:#152030}
+.doc{line-height:1.5;font-size:.9rem}
+.doc p{margin:0 0 12px}
+.doc ul,.doc ol{margin:0 0 14px;padding-left:1.35rem}
+.doc li{margin:4px 0}
+.doc blockquote{margin:12px 0;padding:10px 14px;border-left:3px solid #5a4a1e;background:#1a160c;border-radius:0 10px 10px 0;color:var(--warn);font-size:.88rem}
+.doc a{color:var(--accent)}
+.doc code{font-family:var(--mono);font-size:.8em;background:#0a1018;padding:1px 5px;border-radius:4px}
+.doc pre{background:#0a1018;border:1px solid var(--line);border-radius:10px;padding:12px 14px;overflow:auto;margin:0 0 14px;font-size:.76rem;line-height:1.4}
+.doc pre code{background:none;padding:0;font-size:inherit}
+.md-note{font-size:.72rem;color:var(--muted);margin:0 0 6px}
+.table-wrap{border:1px solid var(--line);border-radius:12px;overflow:auto;background:var(--panel);margin:0 0 16px}
+table{width:100%;border-collapse:collapse;min-width:640px}
+th,td{padding:8px 10px;text-align:left;font-size:.8rem;border-bottom:1px solid var(--line);vertical-align:top}
+th{color:var(--muted);font-weight:600;font-size:.66rem;text-transform:uppercase;background:#0a1018;position:sticky;top:0}
+.toc{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 18px}
+.toc a{font-size:.75rem;padding:5px 10px;border-radius:999px;border:1px solid var(--line);color:var(--muted);text-decoration:none;background:#0a1018}
+.toc a:hover{color:var(--text);border-color:#2a4a70}
+.section-card{margin:18px 0 8px;padding:8px 0}
+.src-chip{display:inline-block;font-size:.68rem;color:var(--muted);margin-bottom:6px}
+.src-chip code{font-size:.72rem}
+footer{margin-top:28px;color:var(--muted);font-size:.8rem;line-height:1.45}
+hr{border:none;border-top:1px solid var(--line);margin:22px 0}
+
+</style>
+</head><body><div class="wrap">
+<div class="tabs"><a href="index.html">Blotter</a><a href="data-sources.html">Data sources</a><a class="active" href="architecture.html">Architecture</a><a href="setup.html">Setup</a><a href="trader-intel.html">Trader intel</a><a href="catalysts.html">Events</a><a href="soft-grader.html">Soft Grader</a><a href="news-archive.html">News Archive</a><a href="map.html">Map</a><a href="chart.html">Chart</a></div>
+<h1>Architecture</h1>
+<div class="sub">One-call / many-readers policy · RH quote ownership · cutover snapshot · Built 2026-10-16 2:12 PM PT</div>
+<div class="toc"><a href="#query-architecture-one-call-many-readers">Query architecture</a><a href="#query-ownership-notes">Ownership notes</a><a href="#cutover-status-2026-10-05-pt">Cutover status</a><a href="setup.html">Setup page →</a><a href="data-sources.html">Data sources →</a></div>
+<div class="doc">
+<div class="section-card"><div class="src-chip">Source · <code>docs/QUERY-ARCHITECTURE.md</code></div><p>_Missing source: <code>docs/QUERY-ARCHITECTURE.md</code>._</p></div><hr/><div class="section-card"><div class="src-chip">Source · <code>market-data/QUERY-DEDUP.md · hal/DUPLICATE-RH-QUOTES.md</code></div><h1 id="query-ownership-notes">Query ownership notes</h1>
+<p>Short ownership excerpts from <code>market-data/QUERY-DEDUP.md</code> and <code>hal/DUPLICATE-RH-QUOTES.md</code>. Full query architecture is above.</p>
+<h2 id="rh-quotes-ownership-resolved-2026-10-05">RH quotes ownership (resolved 2026-10-05)</h2>
+<p>Jeffrey confirmed <strong>Rose</strong> owns shared <code>market-data/latest/rh-quotes.json</code> (sole writer; TTL 120s; path via <code>dashboard/refresh_marks.py</code> / live refresh). <strong>Hal</strong> reads + Soft A annotate at <code>:05/:35</code> ET. Elevate / invalidate still re-pulls <strong>live RH ≤120s</strong>. Do not change Hal automation schedules as part of this ownership note.</p>
+<h3 id="duplicates-2-support-map-market-tape-piggyback-closed-2026-10-05">Duplicates #2 — support-map / market-tape piggyback (closed 2026-10-05)</h3>
+<p><code>dashboard/refresh_support_map.py</code> and <code>dashboard/refresh_market_tape.py</code> <strong>must</strong> call <code>cache_io.piggyback_rh_quotes(symbols)</code> (or <code>read_fresh("rh-quotes")</code> + payload extract) before any Robinhood <code>get_equity_quotes</code> for overlapping names.</p>
+<div class="table-wrap"><table><thead><tr><th>Builder</th><th>Behavior</th></tr></thead><tbody><tr><td><code>refresh_market_tape.py</code></td><td>Default: reuse fresh cache for SPY·QQQ·DIA·RSP·VTV·VUG; <code>--equity-quotes-file</code> only for misses; <code>--check-piggyback</code> smoke. <strong>Never writes</strong> <code>rh-quotes</code>.</td></tr><tr><td><code>refresh_support_map.py</code></td><td>Default: reuse fresh cache for primary+extended support book; file fills misses; <code>--dry-run</code> / <code>--check-piggyback</code>. <strong>Never writes</strong> <code>rh-quotes</code>.</td></tr><tr><td>Rose on miss</td><td><code>get_equity_quotes</code> for <strong>missing only</strong> → <code>refresh_marks.py --equity-quotes-file …</code> (sole writer) → re-run builder.</td></tr><tr><td>Hal</td><td>Reader only — no <code>rh-quotes</code> write.</td></tr></tbody></table></div>
+<p>---</p>
+<p>_Missing source: <code>DUPLICATE-RH-QUOTES.md</code>._</p></div><hr/><div class="section-card"><div class="src-chip">Source · <code>CUTOVER-20261005.md (brief)</code></div><h1 id="cutover-status-2026-10-05-pt">Cutover status — 2026-10-05 (PT)</h1>
+<p>Research/paper only. Live blotter: https://swift-dune-cs3e.here.now/ (#desk)</p>
+<p>Full cutover notes on desk: <code>CUTOVER-SWIFT-DUNE-20261005.md</code> (publish SPA) / <code>CUTOVER-20261005.md</code> (tree fold). Publish slug <strong>swift-dune-cs3e</strong> (redesign SPA). bold-tulip-nejq is <strong>frozen</strong> (no further publishes). See <code>CUTOVER-SWIFT-DUNE-20261005.md</code>.</p></div>
+</div>
+<footer>
+Research / paper only · Zero RH execution · Alert-only close language.
+Sources stay in the desk tree; this page is a readable static mirror (classic evidence). Production desk is the swift-dune SPA.
+Built 2026-10-16 2:12 PM PT.
+</footer>
+</div></body></html>

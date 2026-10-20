@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>EnvironmentVariables</key>
+	<dict>
+		<key>HERENOW_PUBLISH_SCRIPT</key>
+		<string>/Users/jake/oid-desk/app/vendor/herenow-publish.sh</string>
+		<key>OID_DESK_DIR</key>
+		<string>/Users/jake/oid-desk/desk</string>
+		<key>OID_DESK_ROOT</key>
+		<string>/Users/jake/oid-desk</string>
+		<key>OID_MINI_PROXY</key>
+		<string></string>
+		<key>OID_MINI_URL</key>
+		<string>http://127.0.0.1:8787</string>
+		<key>OID_QUOTE_TOKEN_FILE</key>
+		<string>/Users/jake/oid-quote/secrets/OID_QUOTE_TOKEN</string>
+		<key>OID_SECRETS_DIR</key>
+		<string>/Users/jake/oid-quote/secrets</string>
+		<key>PATH</key>
+		<string>/Users/jake/oid-desk/venv/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+		<key>PYTHONPATH</key>
+		<string>/Users/jake/oid-desk/app</string>
+		<key>PYTHONUNBUFFERED</key>
+		<string>1</string>
+	</dict>
+	<key>KeepAlive</key>
+	<dict>
+		<key>SuccessfulExit</key>
+		<false/>
+	</dict>
+	<key>Label</key>
+	<string>com.oid.desk.data-api</string>
+	<key>LowPriorityIO</key>
+	<true/>
+	<key>Nice</key>
+	<integer>5</integer>
+	<key>ProcessType</key>
+	<string>Background</string>
+	<key>ProgramArguments</key>
+	<array>
+		<string>/Users/jake/oid-desk/bin/run-job.sh</string>
+		<string>data-api</string>
+		<string>/Users/jake/oid-desk/venv/bin/python</string>
+		<string>-m</string>
+		<string>oid_desk.api</string>
+	</array>
+	<key>RunAtLoad</key>
+	<true/>
+	<key>StandardErrorPath</key>
+	<string>/Users/jake/oid-desk/logs/data-api.err.log</string>
+	<key>StandardOutPath</key>
+	<string>/Users/jake/oid-desk/logs/data-api.out.log</string>
+	<key>ThrottleInterval</key>
+	<integer>15</integer>
+	<key>WorkingDirectory</key>
+	<string>/Users/jake/oid-desk/app</string>
+</dict>
+</plist>

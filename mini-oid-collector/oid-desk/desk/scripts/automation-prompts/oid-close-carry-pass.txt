@@ -1,0 +1,29 @@
+OID close carry pass — see automation.json for full prompt.
+
+CLOSE TRIGGERS V1 (soft alerts only — ZERO execution):
+- Spec: /workspace/options-intelligence-desk/CLOSE-TRIGGERS-V1.md · helper: python3 /workspace/options-intelligence-desk/paper-trades/close_triggers.py
+- After RH marks update (live_refresh or apply_mark_update path), always run close_triggers.py (also auto-hooked inside dashboard/live_refresh.py).
+- Reads open seats; sets closeTriggerArmed / closeTriggerFlags / closeTriggerNote; writes tmp/close-triggers-last.json.
+- Rules: arm at mfePct≥+50%; giveback soft → CLOSE_TRIGGER_REVIEW; DTE≤1 / 0DTE morning → FORCE_REVIEW; thesis fail → INVALIDATE alert family.
+- Do NOT auto-close tickets. Do NOT place/preview/cancel/exercise Robinhood orders. Chat approval ≠ ticket.
+- If any seat has alert CLOSE_TRIGGER_REVIEW, FORCE_REVIEW, or INVALIDATE, or book has BOOK_CLOSE_REVIEW / BOOK_GIVEBACK: WakeParent with a brief list (id/symbol/alert/flags/note). Soft/hard alerts for Rose review only — still stay quiet otherwise for Q5 unless other notify rules fire.
+BOOK AGGREGATE (soft — ZERO execution):
+- Spec: CLOSE-TRIGGERS-V1.md section Book aggregate · scored inside close_triggers.py via book_triggers.py
+- Primary book = Rose/OID open paper seats only (exclude Leopold watches; exclude Hal/OT2 from Rose book metrics). Optional shared-book line = Rose+Hal.
+- BOOK_TP → BOOK_CLOSE_REVIEW when sum(open unrealized pnlUsd) ≥ +$1,000 OR book unrealized % of open-book premium ≥ +30%.
+- BOOK_GIVEBACK when tracked bookPeakPnlUsd > 0 and current ≤ peak × 0.5 (≥50% giveback). Peak persisted in trades.json meta + paper-trades/book-state.json; ratchet up on each mark refresh.
+- Soft only — NEVER auto-close seats; NEVER place RH orders.
+- If BOOK_CLOSE_REVIEW or BOOK_GIVEBACK: WakeParent soft notify (brief: book $, %, peak, giveback %, flags). Still stay quiet for Q5 unless other notify rules fire.
+
+TRADER-INTEL FEEDBACK LOOP (ALWAYS ON — see trader-intel/FEEDBACK-LOOP.md):
+- On every paper ticket close / invalidate / expire this run: append or update a lesson (and resolve linked claim if any) under /workspace/options-intelligence-desk/trader-intel/.
+- Required fields: ticket id, symbol, contract, pnlPct, mfePct, maePct, invalidate/close reason, rule update (1 line). Outcome grade: useful | noise | never_again | thesis_fail | pending.
+- Handle: X @handle if soft catalyst cited one; else OID-desk or scorecard.
+- Prefer helper: `python3 /workspace/options-intelligence-desk/trader-intel/append_outcome.py --ticket <ID>` (or bare append_outcome.py after ledger update). Then refresh index.json (helper does this).
+- Soft catalyst cites X handle / ZH Leopold watch: on elevate, create/link claims/ file (Action=paper, Ticket id, Outcome=pending); on close, resolve Outcome + lesson.
+- QUIET if this run has no terminal outcome and no X-linked elevate — do not notify solely about trader-intel.
+- Never invent UW/FA. Soft/paper only; zero RH execution.
+
+
+WEEKLY TRADER-INTEL (Mondays only): If today is Monday (America/Los_Angeles), remind in the close-carry report to run or schedule the weekly 2-win/2-loss review (lessons/YYYYMMDD-weekly-review.md). Draft automation (enabled=false): /workspace/options-intelligence-desk/automations/oid-trader-intel-weekly/. Do not create/enable a live Grok routine from this pass.
+

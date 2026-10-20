@@ -1,0 +1,40 @@
+{
+ "_doc": "mover_alert config (read every loop tick). See mover_alert.py docstring. live=false keeps the launchd job dry even with OID_MOVER_MODE=live.",
+ "enabled": true,
+ "live": true,
+ "interval_s": 15,
+ "rth_pt": [
+  "06:30",
+  "13:00"
+ ],
+ "window_min": 30,
+ "move_pct": 3.0,
+ "per_symbol_move_pct": {
+  "TQQQ": 6.0
+ },
+ "debounce_min": 30,
+ "max_per_day": 80,
+ "exclude": [
+  "WDC",
+  "STX",
+  "SNDK",
+  "VIX",
+  "WTI",
+  "BRENT"
+ ],
+ "wall_cross": true,
+ "news_lookback_min": 60,
+ "wall_cross_own_debounce": false,
+ "_doc_wall_cross_own_debounce": "false = spec (one alert per ticker per direction per 30 min, A and B share). true = a wall cross gets its own 30-min key so it can fire right after a 3% move alert.",
+ "walls_max_age_min": 120,
+ "_doc_walls": "Trigger B only uses walls younger than walls_max_age_min. 10/20: the mini FA caches were fresh only for NVDA (others 10/09-10/19), so B was effectively NVDA-only until the box focus-refresh writes fresh levels for all names.",
+ "_doc_live": "live=false: job runs and logs to ~/oid-desk/state/mover-alert/alerts.jsonl but does not POST. Flip to true once the event-wake routine forwards mover_alert (read every tick, no restart).",
+ "_doc_volume": "10/20 replay: 45 alerts across 23 names by 7:55 AM PT at 3%/30m (cap raised 40->80). Raise move_pct or per_symbol_move_pct if too chatty.",
+ "wall_buffer_pct": 0.1,
+ "wall_cooldown_min": 20,
+ "wall_recross_suppress_min": 60,
+ "wall_min_move_pct": 0.5,
+ "wall_min_rvol": 1.5,
+ "_doc_wall_debounce": "2026-10-20 (Jeffrey, after QQQ 719 put-wall ping-pong 11:25/11:28): a wall cross alerts only on a confirmed side change = 2 consecutive 1-min closes >= wall_buffer_pct beyond the wall, or a 5-min close beyond it; 20-min cooldown per ticker per wall; re-cross back the other way within 60 min suppressed; (wall3, 12:10 PM PT) fires only if move off the 30-min high/low >= 0.5% AND (1-min rvol >= 1.5x OR 5-min rvol >= 1.2x), else suppressed. Suppressed crosses -> state/mover-alert/wall-suppressed.jsonl. 3% move alerts unchanged.",
+ "wall_min_rvol5": 1.2
+}

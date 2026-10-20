@@ -1,0 +1,92 @@
+{
+ "config_version": "v1b-renorm-demo",
+ "note": "DEMO alternate config: renormalize over available inputs (missing inputs do not shrink the score), gain 1.0. Not live.",
+ "scale": {
+  "gain": 1.0,
+  "max_abs": 3,
+  "missing": "renormalize"
+ },
+ "components": {
+  "flip": {
+   "enabled": true,
+   "weight": 1.0,
+   "scale_atr": 0.3,
+   "q_low_conf_flip": 0.5
+  },
+  "walls": {
+   "enabled": true,
+   "weight": 0.75,
+   "beyond_wall": 0.3
+  },
+  "volume": {
+   "enabled": true,
+   "weight": 0.75,
+   "window_min": 15,
+   "rvol_lo": 0.8,
+   "rvol_span": 1.2
+  },
+  "flow": {
+   "enabled": true,
+   "weight": 0.5,
+   "cp_log_base": 3.0,
+   "uw_lean_value": 0.5,
+   "q_uw": 0.5
+  },
+  "trend": {
+   "enabled": true,
+   "weight": 1.0,
+   "vwap_scale_atr": 0.15,
+   "ret_window_min": 15,
+   "ret_scale_atr": 0.1
+  },
+  "market": {
+   "enabled": true,
+   "weight": 0.75,
+   "vix_scale_pct": 5.0,
+   "tide_scale_usd": 50000000,
+   "tide_window_min": 30
+  }
+ },
+ "staleness": {
+  "walls_stale_s": 1200,
+  "q_stale_walls": 0.5,
+  "flow_stale_s": 60,
+  "bars_stale_s": 180,
+  "vix_stale_s": 900,
+  "tide_stale_s": 1200,
+  "q_stale_other": 0.5
+ },
+ "cadence_pt": {
+  "anchors": [
+   "06:35",
+   "06:45",
+   "07:00",
+   "07:30",
+   "08:30",
+   "10:00",
+   "11:30",
+   "12:30"
+  ],
+  "grid_every_min": 15,
+  "grid_start": "06:45",
+  "grid_end": "12:45",
+  "vol_surge": true,
+  "badge_refresh_s": 60
+ },
+ "horizons_min": [
+  5,
+  15,
+  30,
+  60,
+  120
+ ],
+ "extra_horizons": [
+  "close",
+  "next_open"
+ ],
+ "exclude": [
+  "VIX",
+  "WTI",
+  "BRENT"
+ ]
+}

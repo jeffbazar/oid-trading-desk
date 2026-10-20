@@ -1,0 +1,180 @@
+{
+ "_doc": "x_on_surge budget + fetch config (X Summarizer v0.4, 2026-10-18). Phase 3 = on-surge X recent search only (no filtered stream). Caps per Jeffrey: $5/day, $100/month, automatic stop. Runs on the mini with Jeffrey's existing X key. Schemas: SCHEMAS.md s9 v1.1 (file of 2026-10-18 18:08 PT). Reference logic: budget_guard.py, prefilter.py (xf-v1.1).",
+ "fetch_enabled": true,
+ "fetch_enabled_note": "ON 2026-10-19 ~8:40 AM PT per Jeffrey go. Caps $5/day $100/month auto-stop. Phase 3 on-surge recent search only (no filtered stream). Kill: ~/oid-data/state/x/STOP",
+ "credentials": {
+  "x_bearer_token_path": "~/oid-data/secrets/X_BEARER_TOKEN",
+  "note": "Path reference only, on the mini. The x_on_surge process reads it at startup; design code never reads, prints or logs it."
+ },
+ "phase": {
+  "phase3_mode": "on_surge_recent_search_only",
+  "filtered_stream": "later phase; see stream-rules-draft.json (separate app or mini, tag-scoped deletes only). The box x_realtime.py and its rules are out of scope and untouched."
+ },
+ "seal": {
+  "rule": "Config hash sealed after 2 trading days of Rose's live news_surge shakedown. Only surges whose surge fire time is after the seal count for evaluation; earlier rows are archived with proxy/pre-seal status and excluded.",
+  "sealed_at": null
+ },
+ "lead_rule": {
+  "leading_if": "lead_s >= 60, lead_s = surge fire_ts - post created_at (s)",
+  "post_query_hits": "lead_s, leading (null without a surge)",
+  "gold_labels": "lead_ref fire_ts|bar_start; lead_status leading|lagging|unknown; proxy rows inside [bar_start-60s, bar_start+5min) = unknown (relevance/direction only, no timing metrics)"
+ },
+ "x_fetch_status_enum": [
+  "pending",
+  "ok",
+  "skipped:cap",
+  "skipped:budget",
+  "skipped:no_token",
+  "skipped:recent",
+  "disabled",
+  "error"
+ ],
+ "x_fetch_status_use": {
+  "skipped:cap": "40 surge fetches or 120 requests per day reached",
+  "skipped:budget": "dollar caps or kill file",
+  "skipped:no_token": "token file missing on the mini",
+  "skipped:recent": "same symbol fetched within dedupe.reuse_if_last_fetch_within_s; post_query_hits rows attached with reused=true",
+  "error": "HTTP/parse error after retry",
+  "disabled": "fetch_enabled=false (X fetching off by config)",
+  "select:*": "not a candidate or paced out by the selection block (no request made)"
+ },
+ "pricing_assumption": {
+  "post_read_usd": 0.005,
+  "user_read_usd": 0.01,
+  "source": "docs.x.com pricing (Research Bot, 2026-10-18)",
+  "billing_dedupe": "X bills a post once per 24h UTC day (soft guarantee); budget_guard does NOT count on it (worst case)."
+ },
+ "caps": {
+  "x_daily_usd_cap": 5.0,
+  "x_monthly_usd_cap": 100.0,
+  "daily_cap_resets": "00:00 America/Los_Angeles (trading-day accounting)",
+  "monthly_cap_resets": "X billing-cycle start (OPEN: anchor date; default = 1st of calendar month 00:00 UTC until Jeffrey confirms)",
+  "pacing": "today_allowance = min(5.00, (100.00 - month_spent) / trading_days_left_in_cycle_incl_today). ~22 trading days -> $4.55 at cycle start; underspend rolls forward up to the $5.00 day cap.",
+  "safety_margin": 0.95,
+  "surge_fetches_per_day": 40,
+  "requests_per_day": 120,
+  "sweep_budget_share": 0.2,
+  "big_move_reserve_usd": 0.75,
+  "big_move_bps": 50,
+  "reserve_release_pt": "12:30",
+  "kill_file": "~/oid-data/state/x/STOP"
+ },
+ "stages_by_share_of_today_allowance": [
+  {
+   "until": 0.6,
+   "serve": "all eligible single-name surges",
+   "crowd_max_results": 50
+  },
+  {
+   "until": 0.85,
+   "serve": "big moves (|move_60s| >= 50 bps) + thin/mid names",
+   "crowd_max_results": 25
+  },
+  {
+   "until": 1.0,
+   "serve": "big moves only (uses the $0.75 reserve)",
+   "crowd_max_results": 25
+  },
+  {
+   "at_cap": "skip: surges row x_fetch_status=skipped:budget; sweeps stop too; resume next PT day (daily) or next cycle (monthly)"
+  }
+ ],
+ "crowd_query": {
+  "max_results": 50,
+  "lookback_min": 15,
+  "end_offset_s": 10,
+  "sort_order": "recency",
+  "pages": 1,
+  "exclude_replies": true,
+  "expansions": null,
+  "user_lookup": "two-stage: GET /2/users?ids= only for stage-1 survivors not in the 7-day user cache (<=100 ids, one request)",
+  "tweet.fields": "created_at,author_id,lang,entities,public_metrics,conversation_id,referenced_tweets,note_tweet",
+  "user.fields": "created_at,public_metrics,verified_type,username"
+ },
+ "sweeps": {
+  "W1_wires": {
+   "max_results": 100,
+   "incremental": "since_id",
+   "min_interval_s": 20
+  },
+  "W2_officials": {
+   "max_results": 100,
+   "incremental": "since_id",
+   "min_interval_s": 60
+  }
+ },
+ "dedupe": {
+  "same_symbol_rearm_min": 10,
+  "reuse_if_last_fetch_within_s": 180,
+  "basket_min_names": 3,
+  "basket_window_s": 60,
+  "user_cache_days": 7
+ },
+ "thin_mid_names": [
+  "AAOI",
+  "ALAB",
+  "BE",
+  "CBRS",
+  "COHR",
+  "CRDO",
+  "CRWV",
+  "GLW",
+  "IREN",
+  "KEYS",
+  "LITE",
+  "MH",
+  "NBIS",
+  "ON",
+  "SKHY",
+  "SPCX",
+  "WULF",
+  "SMCI",
+  "VRT"
+ ],
+ "etfs_sweeps_only": [
+  "SPY",
+  "QQQ",
+  "DIA",
+  "RSP",
+  "VTV",
+  "VUG",
+  "TQQQ",
+  "SMH",
+  "SOXX",
+  "EWY",
+  "DRAM"
+ ],
+ "schema_tables_written": [
+  "surges.x_fetch_status",
+  "fetch_log",
+  "posts_raw (PK post_id; query_id/surge_id nullable first-sighting)",
+  "post_query_hits (PK post_id+fetch_id; source of truth; rank 1-based)",
+  "item_filter (xf-v1.1)"
+ ],
+ "prefilter": {
+  "filter_version": "xf-v1.1",
+  "follow_farm": "author_following >= 1000 AND author_following >= 5 x author_followers",
+  "low_activity": "author_tweet_count < 20",
+  "ring_window_s": 600,
+  "etf_ticker_check": "query_map.json ETF_TOPICS"
+ },
+ "enabled_at_pt": "2026-10-19 08:40 AM PT",
+ "enabled_by": "Jeffrey go (Rose deploy)",
+ "selection": {
+  "enabled": true,
+  "gates": [
+   "A",
+   "AB"
+  ],
+  "mover_alerts": true,
+  "followed_only": true,
+  "per_ticker_gap_min": 20,
+  "session_pt": [
+   "06:30",
+   "13:00"
+  ],
+  "burst": 4,
+  "spend_floor_share": 0.15
+ },
+ "_doc_selection": "2026-10-20 (Jeffrey: make the allowance last all session; caps unchanged). Candidates = gate-A surges (gate A/AB) or mover alerts, followed names only; one fetch per ticker per 20 min; pace: surge fetches <= burst + 40 x session fraction, spend <= allow x (0.15 + 0.85 x fraction). Volsurge gate-B/level 'news' dry triggers no longer fetch. Skips show in status.json select_skips."
+}

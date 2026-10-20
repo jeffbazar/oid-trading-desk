@@ -1,0 +1,13 @@
+{
+  "name": "OID Dashboard Live Refresh",
+  "prompt": "You are Rose's OID automation. Research / paper only. NEVER place, modify, or cancel Robinhood orders. Quotes only.\n\n1. Read `/workspace/options-intelligence-desk/paper-trades/trades.json`. If open seats = 0, exit quietly (no notify unless useful).\n2. `python3 /workspace/options-intelligence-desk/dashboard/refresh_marks.py --list-ids`\n3. MCP `user-robinhood-trading` `get_option_quotes` with `instrument_ids` array from step 2.\n4. Save raw JSON under `/workspace/options-intelligence-desk/tmp/oid-live-quotes.json`.\n5. Optional: `get_equity_quotes` for open symbols \u2192 patch `lastUnderlying`.\n6. `python3 /workspace/options-intelligence-desk/dashboard/live_refresh.py --quotes-file /workspace/options-intelligence-desk/tmp/oid-live-quotes.json --publish`\n7. Notify briefly only if book P&L moved meaningfully or seats changed; always include link https://bold-tulip-nejq.here.now/ and open seats n/8 + book $ P&L.\n\nCost basis = entryAsk. Multiplier \u00d7100. Label quote age / delayed.",
+  "schedule": "0,5,10,15,20,25,30,35,40,45,50,55 6-16 * * 1-5",
+  "triggerPresentation": "OID live ticker marks refresh (draft/disabled)",
+  "enabled": false,
+  "provenance": {
+    "note": "Draft 2026-09-18. Prefer piggyback Q5 + walls pulse. Do not update_state until routine API stable. | AH window added 2026-09-22 (hours 6-16 PT).",
+    "docs": "/workspace/options-intelligence-desk/dashboard/LIVE-TICKER.md",
+    "ahExtension": "2026-09-22: extended PT hours 13-16 so AH 16:00\u201319:55 ET covered every 5m (still draft/disabled; piggyback remains primary)"
+  },
+  "createdAt": "2026-09-18T17:01:02.459805Z"
+}
