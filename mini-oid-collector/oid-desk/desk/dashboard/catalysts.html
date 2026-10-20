@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<meta http-equiv="refresh" content="300"/>
+<title>OID · Events</title>
+<style>
+:root{
+  --bg:#070b10; --panel:#0e141c; --line:#1a2533;
+  --text:#e8eef7; --muted:#7f91a8; --accent:#4da3ff;
+  --good:#3dd68c; --bad:#ff6b7a; --warn:#f0b429; --flat:#9aa8b8;
+  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,system-ui,-apple-system,sans-serif;background:
+  radial-gradient(900px 420px at 8% -8%,#142033 0%,transparent 55%),
+  radial-gradient(700px 380px at 100% 0%,#1a1528 0%,transparent 50%),
+  var(--bg);color:var(--text);min-height:100vh}
+.wrap{max-width:1340px;margin:0 auto;padding:22px 18px 56px}
+h1{font-size:1.35rem;margin:0 0 6px}
+h2{font-size:1.05rem;margin:22px 0 10px}
+.sub{color:var(--muted);font-size:.88rem}
+.tabs{display:flex;gap:8px;margin:0 0 16px;flex-wrap:wrap}
+.tabs a{display:inline-block;padding:7px 14px;border-radius:999px;border:1px solid var(--line);color:var(--muted);text-decoration:none;font-size:.78rem;font-weight:650;letter-spacing:.04em;text-transform:uppercase}
+.tabs a.active,.tabs a:hover{color:var(--text);border-color:#2a4a70;background:#152030}
+.table-wrap{border:1px solid var(--line);border-radius:12px;overflow:auto;background:var(--panel)}
+table{width:100%;border-collapse:collapse;min-width:720px}
+th,td{padding:9px 11px;text-align:left;font-size:.84rem;border-bottom:1px solid var(--line);vertical-align:top}
+th{color:var(--muted);font-weight:600;font-size:.68rem;text-transform:uppercase;background:#0a1018;position:sticky;top:0}
+td.num,.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+td.notes{font-size:.78rem;color:var(--muted);max-width:420px;line-height:1.35}
+tr.urgent{background:rgba(240,180,41,.08)}
+.tchip{display:inline-block;font-size:.62rem;padding:2px 6px;border-radius:999px;border:1px solid var(--line);color:var(--muted);background:#0a1018;text-transform:uppercase}
+.tchip.flat{color:var(--muted)}
+.empty{color:var(--muted);padding:16px;text-align:center}
+.note{font-size:.82rem;color:var(--muted);margin:8px 0 16px;line-height:1.4}
+.note ul{margin:6px 0 0;padding-left:18px}
+.callout{border:1px solid #6a4e18;background:#2a1f0a;border-radius:10px;padding:10px 14px;margin:12px 0;color:var(--warn);font-size:.88rem}
+footer{margin-top:24px;color:var(--muted);font-size:.8rem;line-height:1.45}
+</style>
+</head><body><div class="wrap">
+<div class="tabs"><a href="index.html">Blotter</a><a href="data-sources.html">Data sources</a><a href="architecture.html">Architecture</a><a href="setup.html">Setup</a><a href="trader-intel.html">Trader intel</a><a class="active" href="catalysts.html">Events</a><a href="soft-grader.html">Soft Grader</a><a href="news-archive.html">News Archive</a><a href="map.html">Map</a><a href="chart.html">Chart</a></div>
+<h1>Events · earnings &amp; catalysts</h1>
+<div class="sub">Desk watchlist · FlashAlpha primary · Built 2026-10-16 2:12 PM PT · as of 2026-10-09 11:40 AM PT</div>
+<div class="callout"><strong>Nearest:</strong> Monthly Options Expiration (OPEX) <strong>Fri Oct 16</strong> market close. Soft research only — does not elevate gates.</div>
+<div class="note"><ul><li>Fri 2026-10-09 refresh (~2026-10-09 11:40 AM PT) — writer hal-catalysts-refresh-20261009. Re-verified earnings via Robinhood get_earnings_calendar (read-only; windows 10/09–11/08 and 11/09–11/20, high_market_cap). Research only; no orders.</li><li>Earnings: no date/timing changes for any desk name. EPS est nudges: ASML 12.54→12.47, TSLA 0.40→0.41, META 6.35→6.28, AMZN 1.96→1.97, NBIS -1.22→-1.23. Added GOOG row (same 10/28 AMC report as GOOGL). Next ~3 wks: ASML 10/14 BMO, TSM 10/15 BMO, NFLX 10/20 AMC, LRCX+TSLA 10/21 AMC, BE 10/27 AMC (unverified), GOOGL/GOOG 10/28 AMC, META 10/28 AMC (unverified), AMZN 10/29 AMC (unverified). NFLX 10/20 AMC is after Hal's Oct 16 NFLX spread expiry.</li><li>Macro: added Columbus Day 10/12 (bond mkt closed, stocks open, no major US data), Retail Sales 10/15 8:30 ET (Census), Import Prices 10/16 (BLS). CPI 10/14 and PPI 10/15 re-verified vs BLS (8:30 AM ET = 5:30 AM PT). UMich prelim 10/09 marked done. Dropped Oct 8 rows (30Y auction, claims, unconfirmed Abqaiq fire reports). Not added (unverified this pass): weekly jobless claims 10/15.</li><li>Desk plan: Oct 16 short-premium seats (Hal NFLX 70/68, Rose AMZN 255/250 idea) to be closed by Tue 10/13 close ahead of CPI.</li><li>MU: RH still shows no earnings in window; next RH stamp 2026-12-16 AMC (verified=false) — omitted.</li><li>Omitted outer (not re-checked this pass, beyond 11/20): CRDO RH unverified 2026-11-30 AMC; MRVL RH unverified 2026-12-01 AMC; AVGO RH verified 2026-12-09 AMC; MU 2026-12-16 AMC.</li><li>SPY/QQQ have no corporate earnings; macro prints live under macro_events.</li></ul></div>
+
+<h2>Market movers (macro / econ)</h2>
+<p class="note" style="margin-top:0">Soft research only — PCE, jobs, inflation, FOMC, ISM. Does not elevate gates. Oil/rates stay on blotter strip.</p>
+<div class="table-wrap"><table>
+<thead><tr>
+  <th>Date</th><th>Event</th><th>Time ET</th><th>Importance</th><th>Note</th>
+</tr></thead>
+<tbody>
+<tr><td class='num'>2026-10-09</td><td><strong>UMich Consumer Sentiment (Prelim)</strong></td><td class='num'>10:00 AM ET</td><td>★★★</td><td class='notes'>Named in Macro Bot macro-econ-calendar.json week_ahead (UMich Prelim). Soft sentiment color.</td></tr>
+<tr><td class='num'>2026-10-12</td><td><strong>Columbus Day — US bond market closed (SIFMA); NYSE/Nasdaq open</strong></td><td class='num'>all day</td><td>★★</td><td class='notes'>No major US data releases (per Macro Bot; BLS Oct schedule lists none). Thin rates liquidity; stocks/options trade normally.</td></tr>
+<tr><td class='num'>2026-10-14</td><td><strong>CPI (Consumer Price Index)</strong></td><td class='num'>8:30 AM ET</td><td>★★★★★</td><td class='notes'>8:30 AM ET = 5:30 AM PT. Verified vs BLS Oct 2026 schedule 20261009. Key pre-FOMC inflation; Macro Bot flags hot CPI w/ 10Y ~5.2% as main risk to Oct 16 short-premium seats (desk plan: close by Tue 10/13 close).</td></tr>
+<tr><td class='num'>2026-10-15</td><td><strong>EIA Weekly Petroleum Status Report</strong></td><td class='num'>12:00 PM ET</td><td>★★★</td><td class='notes'>Columbus Day week exception — Thursday 12:00 PM ET per EIA holiday schedule.</td></tr>
+<tr><td class='num'>2026-10-15</td><td><strong>PPI (Producer Price Index)</strong></td><td class='num'>8:30 AM ET</td><td>★★★★</td><td class='notes'>8:30 AM ET = 5:30 AM PT. Verified vs BLS Oct 2026 schedule 20261009. Same stamp as retail sales.</td></tr>
+<tr><td class='num'>2026-10-15</td><td><strong>Retail Sales (Advance)</strong></td><td class='num'>8:30 AM ET</td><td>★★★★</td><td class='notes'>8:30 AM ET = 5:30 AM PT, same stamp as PPI. Verified vs Census release schedule 20261009.</td></tr>
+<tr class='urgent'><td class='num'>2026-10-16</td><td><strong>Import/Export Price Indexes</strong></td><td class='num'>8:30 AM ET</td><td>★★</td><td class='notes'>BLS Oct 2026 schedule. Soft inflation color, OPEX day.</td></tr>
+<tr class='urgent'><td class='num'>2026-10-16</td><td><strong>Monthly Options Expiration (OPEX)</strong></td><td class='num'>market close</td><td>★★★★</td><td class='notes'>OCC / Cboe 2026 schedule — Friday Oct 16 monthly equity/index expiration (third Friday). Force-review window for 0DTE/short-dated gamma into OPEX week.</td></tr>
+<tr class='urgent'><td class='num'>2026-10-21</td><td><strong>EIA Weekly Petroleum Status Report</strong></td><td class='num'>10:30 AM ET</td><td>★★★</td><td class='notes'>Standard Wednesday 10:30 AM ET (EIA schedule).</td></tr>
+<tr><td class='num'>2026-10-28</td><td><strong>EIA Weekly Petroleum Status Report</strong></td><td class='num'>10:30 AM ET</td><td>★★★</td><td class='notes'>Standard Wednesday 10:30 AM ET — same day as FOMC decision; soft oil color only.</td></tr>
+<tr><td class='num'>2026-10-28</td><td><strong>FOMC Rate Decision</strong></td><td class='num'>2:00 PM ET</td><td>★★★★★</td><td class='notes'>Statement-only (no SEP*). Official Fed calendar. Statement ~2pm ET; press conference usual ~2:30pm ET.</td></tr>
+<tr><td class='num'>2026-10-29</td><td><strong>GDP (Advance) Q3 + PCE (Sep)</strong></td><td class='num'>8:30 AM ET</td><td>★★★★★</td><td class='notes'>Official BEA schedule — advance GDP + Personal Income and Outlays (PCE) same stamp, day after FOMC.</td></tr>
+<tr><td class='num'>2026-10-30</td><td><strong>Employment Cost Index (ECI)</strong></td><td class='num'>8:30 AM ET</td><td>★★★★</td><td class='notes'>Official BLS Oct schedule. Soft wages/inflation color.</td></tr>
+<tr><td class='num'>2026-11-06</td><td><strong>Employment Situation (NFP)</strong></td><td class='num'>8:30 AM ET</td><td>★★★★★</td><td class='notes'>Official BLS schedule (desk bls-release-calendar.json). Next jobs print after Oct 2 NFP.</td></tr>
+</tbody></table></div>
+
+<h2>Earnings (next ~90d)</h2>
+<div class="table-wrap"><table>
+<thead><tr>
+  <th>Date</th><th>Ticker</th><th>Session</th><th>Period</th><th class="num">EPS est</th><th class="num">Impl move</th><th>Conf</th><th>Source</th>
+</tr></thead>
+<tbody>
+<tr><td class='num'>2026-10-14</td><td><strong>ASML</strong></td><td>BMO</td><td>Q3 FY2026</td><td class='num'>12.47</td><td class='num'>—</td><td>✓</td><td class='notes'>Robinhood get_earnings_calendar 20261009 (verified=true)</td></tr>
+<tr><td class='num'>2026-10-15</td><td><strong>TSM</strong></td><td>BMO</td><td>Q3 FY2026</td><td class='num'>4.45</td><td class='num'>—</td><td>✓</td><td class='notes'>Robinhood get_earnings_calendar 20261009 (verified=true)</td></tr>
+<tr class='urgent'><td class='num'>2026-10-20</td><td><strong>NFLX</strong></td><td>AMC</td><td>Q3 FY2026</td><td class='num'>0.82</td><td class='num'>—</td><td>✓</td><td class='notes'>Robinhood get_earnings_calendar 20261009 (verified=true)</td></tr>
+<tr class='urgent'><td class='num'>2026-10-21</td><td><strong>LRCX</strong></td><td>AMC</td><td>Q1 FY2027</td><td class='num'>2.18</td><td class='num'>—</td><td>✓</td><td class='notes'>Robinhood get_earnings_calendar 20261009 (verified=true)</td></tr>
+<tr class='urgent'><td class='num'>2026-10-21</td><td><strong>TSLA</strong></td><td>AMC</td><td>Q3 FY2026</td><td class='num'>0.41</td><td class='num'>—</td><td>✓</td><td class='notes'>Robinhood get_earnings_calendar 20261009 (verified=true)</td></tr>
+<tr><td class='num'>2026-10-27</td><td><strong>BE</strong></td><td>AMC</td><td>Q3 FY2026</td><td class='num'>0.65</td><td class='num'>—</td><td>?</td><td class='notes'>Robinhood get_earnings_calendar 20261009 (verified=false) — marked estimated</td></tr>
+<tr><td class='num'>2026-10-28</td><td><strong>GOOG</strong></td><td>AMC</td><td>Q3 FY2026</td><td class='num'>3.01</td><td class='num'>—</td><td>✓</td><td class='notes'>Robinhood get_earnings_calendar 20261009 (verified=true)</td></tr>
+<tr><td class='num'>2026-10-28</td><td><strong>GOOGL</strong></td><td>AMC</td><td>Q3 FY2026</td><td class='num'>3.01</td><td class='num'>—</td><td>✓</td><td class='notes'>Robinhood get_earnings_calendar 20261009 (verified=true)</td></tr>
+<tr><td class='num'>2026-10-28</td><td><strong>META</strong></td><td>AMC</td><td>Q3 FY2026</td><td class='num'>6.28</td><td class='num'>—</td><td>?</td><td class='notes'>Robinhood get_earnings_calendar 20261009 (verified=false) — marked estimated</td></tr>
+<tr><td class='num'>2026-10-29</td><td><strong>AMZN</strong></td><td>AMC</td><td>Q3 FY2026</td><td class='num'>1.97</td><td class='num'>—</td><td>?</td><td class='notes'>Robinhood get_earnings_calendar 20261009 (verified=false) — marked estimated</td></tr>
+<tr><td class='num'>2026-11-02</td><td><strong>PLTR</strong></td><td>AMC</td><td>Q3 FY2026</td><td class='num'>0.4</td><td class='num'>—</td><td>?</td><td class='notes'>Robinhood get_earnings_calendar 20261009 (verified=false) — marked estimated</td></tr>
+<tr><td class='num'>2026-11-03</td><td><strong>AMD</strong></td><td>AMC</td><td>Q3 FY2026</td><td class='num'>1.87</td><td class='num'>—</td><td>✓</td><td class='notes'>Robinhood get_earnings_calendar 20261009 (verified=true)</td></tr>
+<tr><td class='num'>2026-11-05</td><td><strong>IREN</strong></td><td>AMC</td><td>Q1 FY2027</td><td class='num'>-0.62</td><td class='num'>—</td><td>?</td><td class='notes'>Robinhood get_earnings_calendar 20261009 (verified=false) — marked estimated</td></tr>
+<tr><td class='num'>2026-11-10</td><td><strong>NBIS</strong></td><td>BMO</td><td>Q3 FY2026</td><td class='num'>-1.23</td><td class='num'>—</td><td>?</td><td class='notes'>Robinhood get_earnings_calendar 20261009 (verified=false) — marked estimated</td></tr>
+<tr><td class='num'>2026-11-17</td><td><strong>NVDA</strong></td><td>AMC</td><td>Q3 FY2027</td><td class='num'>2.34</td><td class='num'>—</td><td>✓</td><td class='notes'>Robinhood get_earnings_calendar 20261009 (verified=true)</td></tr>
+</tbody></table></div>
+
+<h2>Other catalysts (product / conference / interview)</h2>
+<div class="table-wrap"><table>
+<thead><tr>
+  <th>Date</th><th>Ticker</th><th>Type</th><th>Title</th><th>Note</th>
+</tr></thead>
+<tbody>
+<tr><td class='num'>2026-10-21</td><td><strong>NVDA</strong></td><td><span class='tchip flat'>conference/keynote</span></td><td>GTC Berlin — Jensen Huang keynote</td><td class='notes'>Prior desk soft pin — Tempodrom keynote; AI infra / robotics / product risk. Soft only.</td></tr>
+<tr><td class='num'>2026-11-16</td><td><strong>AMD</strong></td><td><span class='tchip flat'>conference/exhibition</span></td><td>SC26 Supercomputing (Nov 16–19)</td><td class='notes'>Prior desk soft pin — AMD booth listed; HPC/AI demand color, no launch confirmed.</td></tr>
+<tr><td class='num'>2026-11-30</td><td><strong>AMZN</strong></td><td><span class='tchip flat'>conference/product event</span></td><td>AWS re:Invent 2026 (Nov 30–Dec 4)</td><td class='notes'>Prior desk soft pin — new service launches / AI-cloud capex catalyst.</td></tr>
+<tr><td class='num'>2026-12-01</td><td><strong>NVDA</strong></td><td><span class='tchip flat'>conference/keynote</span></td><td>GTC Washington, D.C. — Jensen Huang keynote</td><td class='notes'>Prior desk soft pin — AI factories, physical AI, US scientific infra.</td></tr>
+</tbody></table></div>
+
+<footer>
+Research / paper only. Earnings from desk pin + FlashAlpha <code>get_earnings_calendar</code>. Macro from BEA/BLS/Fed (+ ISM convention). Other events soft/web — confirm on company IR before sizing. Path: <code>market-data/latest/desk-catalysts.json</code>.
+</footer>
+</div></body></html>
