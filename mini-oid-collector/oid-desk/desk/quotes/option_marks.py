@@ -48,6 +48,7 @@ TRADES_PATH = OID / "paper-trades" / "trades.json"
 PAPER_OPEN_PATH = OID / "paper-trades" / "paper-open.json"
 LIVE_POS_PATH = Path(os.environ.get("OID_RH_LIVE_OPTIONS", str(OID / "cache" / "rh-live-option-positions.json")))
 WATCH_PATH = OID / "config" / "option-watch-contracts.json"
+HAL_EXIT_RULES_PATH = OID / "paper-trades" / "hal-live" / "active-exit-rules.json"  # 2026-10-20 hal-exit-watch
 OPT_CACHE_PATH = Path(os.environ.get("OID_MINI_OPT_CACHE", str(OID / "cache" / "mini-option-quotes.json")))
 SUBS_STATE_PATH = OID / "cache" / "mini-option-subs-state.json"
 
@@ -146,7 +147,7 @@ def _ledger_rows(ledger: dict) -> list[dict]:
 
 def desired_contracts(*, today: Optional[date] = None, ledger: Optional[dict] = None,
                       paper_open: Optional[dict] = None, live: Optional[Any] = None,
-                      watch: Optional[Any] = None) -> dict[str, Any]:
+                      watch: Optional[Any] = None, exit_rules: Optional[Any] = None) -> dict[str, Any]:
     """Every option contract the desk marks. Returns {contracts:[occ], refs:{occ:[ref..]}, expired:{occ:[ref]}, unparsed:[ref]}."""
     today = today or _today_et()
     ledger = ledger if ledger is not None else (_read_json(TRADES_PATH) or {})
@@ -213,6 +214,15 @@ def desired_contracts(*, today: Optional[date] = None, ledger: Optional[dict] = 
             add(w.strip().upper() if OCC_RE.match(w.strip().upper()) else None, f"watchlist:{w}")
         elif isinstance(w, dict):
             add(row_occ(w), f"watchlist:{w.get('label') or w.get('occ') or '?'}")
+    # 2026-10-20: Hal's exit-rules seats (hal-exit-watch on the mini needs live OPRA marks for every seat)
+    hx = _read_json(HAL_EXIT_RULES_PATH) if exit_rules is None else exit_rules
+    for s in (hx or {}).get("seats") or [] if isinstance(hx, dict) else []:
+        if not isinstance(s, dict) or str(s.get("status", "open")).lower() not in ("open", "active"):
+            continue
+        legs = s.get("legs") if isinstance(s.get("legs"), list) else [s]
+        for lg in legs:
+            o = str((lg or {}).get("occ_symbol") or "").strip().upper()
+            add(o if OCC_RE.match(o) else None, f"hal-exit:{s.get('seat_id') or '?'}")
     return {"contracts": sorted(refs), "refs": refs, "expired": expired, "unparsed": unparsed,
             "today_et": today.isoformat()}
 

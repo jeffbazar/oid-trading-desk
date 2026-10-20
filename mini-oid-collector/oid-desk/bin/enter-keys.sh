@@ -7,6 +7,8 @@
 #        GRADER_API_KEY, OID_ARCHIVE_READ_TOKEN, X_BEARER_TOKEN
 #   ~/oid-desk/bin/enter-keys.sh --archive --generate-read-token
 #        creates a random OID_ARCHIVE_READ_TOKEN on the mini (never printed; replaces an existing one only if you confirm)
+#   ~/oid-desk/bin/enter-keys.sh HAL_EXIT_WEBHOOK_URL HAL_EXIT_WEBHOOK_KEY
+#        2026-10-20: Hal exit-watch webhook (hal-exit-watch picks them up within 3 s, no restart)
 # Input is hidden (read -s), not in shell history, written 600. Prints only present/missing. No key value ever leaves
 # the mini through this script, and agents never type or copy key values.
 set -u
@@ -32,7 +34,7 @@ if [ "$ARCHIVE" = 1 ]; then
 else
   SECRETS="${OID_SECRETS_DIR:-$HOME/oid-quote/secrets}"
   ALL="FLASHALPHA_API_KEY UW_API_KEY HERENOW_API_KEY EIA_API_KEY"
-  KNOWN=" FLASHALPHA_API_KEY UW_API_KEY HERENOW_API_KEY EIA_API_KEY BENZINGA_API_TOKEN APCA_API_KEY_ID APCA_API_SECRET_KEY "
+  KNOWN=" FLASHALPHA_API_KEY UW_API_KEY HERENOW_API_KEY EIA_API_KEY BENZINGA_API_TOKEN APCA_API_KEY_ID APCA_API_SECRET_KEY HAL_EXIT_WEBHOOK_URL HAL_EXIT_WEBHOOK_KEY "
   NAMES="${ARGS:-$ALL}"
   mkdir -p "$SECRETS"; chmod 700 "$SECRETS"
 fi

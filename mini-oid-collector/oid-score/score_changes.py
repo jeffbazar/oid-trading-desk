@@ -75,18 +75,19 @@ def parse_5s(ln):
                          d["close"], d.get("volume") or 0, d.get("rvol_1m_at_end")]
 
 
-def v5_files(date):
-    return sorted(glob.glob(str(V5_DIR / f"date={date}" / "part-*.jsonl")))
+def v5_files(date, root=None):
+    return sorted(glob.glob(str(Path(root or V5_DIR) / f"date={date}" / "part-*.jsonl")))
 
 
-def load_5s(date):
-    """Whole session of RTH 5 s bars -> {sym: [bar...]} sorted, last write wins per bucket."""
+def load_5s(date, root=None, only=None):
+    """Whole session of RTH 5 s bars -> {sym: [bar...]} sorted, last write wins per bucket.
+    root: volume_5s archive dir (default core V5_DIR; light/wide profile passes archive-wide/volume_5s). only: symbol filter."""
     by = {}
-    for p in v5_files(date):
+    for p in v5_files(date, root):
         with open(p, "r", errors="replace") as f:
             for ln in f:
                 x = parse_5s(ln)
-                if x:
+                if x and (only is None or x[0] in only):
                     by.setdefault(x[0], {})[x[1][0]] = x[1]
     return {s: [d[k] for k in sorted(d)] for s, d in by.items()}
 
@@ -158,14 +159,15 @@ class Ring:
 class Tail5s:
     """Incrementally tails today's volume_5s jsonl (oid-quote writer, read-only) into a Ring."""
 
-    def __init__(self, ring, backfill_bytes=4_000_000):
+    def __init__(self, ring, backfill_bytes=4_000_000, root=None, only=None):
         self.ring, self.pos, self.date, self.back = ring, {}, None, backfill_bytes
+        self.root, self.only = root, (set(only) if only else None)   # light/wide: own archive dir; SPY/QQQ-only tail of core
 
     def poll(self, date):
         if date != self.date:
             self.date, self.pos = date, {}
         new = []
-        for p in v5_files(date):
+        for p in v5_files(date, self.root):
             try:
                 size = os.path.getsize(p)
             except OSError:
@@ -192,7 +194,7 @@ class Tail5s:
                 lines = lines[1:]
             for ln in lines:
                 x = parse_5s(ln)
-                if x:
+                if x and (self.only is None or x[0] in self.only):
                     self.ring.add(*x)
                     new.append(x)
         return new
@@ -408,14 +410,17 @@ class Tracker:
     """Raw score = PRIMARY (changes-*.jsonl, episodes-*.jsonl). If shadow=True a second, comparison-only tracker follows
     the buffered score and writes only episodes-buffered-*.jsonl (raw change rows carry buffered_score as a field)."""
 
-    def __init__(self, out, mode="live", persist=True, shadow=True, prefix="", band=BUFFER_BAND):
+    def __init__(self, out, mode="live", persist=True, shadow=True, prefix="", band=BUFFER_BAND, tag="", tag_fn=None):
+        """tag: file-name tag for a separate score profile ("wide" -> changes-wide-*, episodes-wide-*, episodes-wide-buffered-*,
+        changes-wide-state.json). tag_fn(sym) -> dict merged into every change/episode row (score_profile, sector...)."""
         self.out, self.mode, self.persist, self.prefix, self.band = Path(out), mode, persist, prefix, band
+        self.tag, self.tag_fn = tag, tag_fn
         self.ep, self.date, self.seen, self.buf = {}, None, set(), {}
         self.n_changes, self.n_eps, self.last_save = 0, 0, 0
-        self.shadow = Tracker(out, mode, persist=False, shadow=False, prefix="buffered", band=band) if shadow else None
+        self.shadow = Tracker(out, mode, persist=False, shadow=False, prefix="buffered", band=band, tag=tag, tag_fn=tag_fn) if shadow else None
 
     def _f(self, kind, date):
-        return self.out / f"{kind}{'-' + self.prefix if self.prefix else ''}-{date.replace('-', '')}.jsonl"
+        return self.out / f"{kind}{'-' + self.tag if self.tag else ''}{'-' + self.prefix if self.prefix else ''}-{date.replace('-', '')}.jsonl"
 
     def _w(self, kind, date, rows):
         if not rows or (self.prefix and kind == "changes"):   # shadow tracker writes episodes only
@@ -426,7 +431,7 @@ class Tracker:
 
     # -- persistence (live only)
     def state_path(self):
-        return self.out / "changes-state.json"
+        return self.out / f"changes{'-' + self.tag if self.tag else ''}-state.json"
 
     def resume(self, date, now):
         if not self.persist:
@@ -519,6 +524,8 @@ class Tracker:
         if self.shadow is not None:
             ch["buffered_score"] = bsc
             ch["buffered_band"] = self.band
+        if self.tag_fn is not None:
+            ch.update(self.tag_fn(sym) or {})
         self._w("changes", date, [ch])
         self.n_changes += 1
         self.ep[sym] = {"sym": sym, "date": date, "score": score, "raw": row.get("raw"), "t0": t, "px0": r4(px), "hi": px, "hi_t": t,
@@ -545,6 +552,8 @@ class Tracker:
         if self.prefix:
             row.update({"kind": "score_episode_buffered_shadow", "shadow": True, "buffered_band": self.band,
                         "note": "comparison-only shadow; the raw score is primary"})
+        if self.tag_fn is not None:
+            row.update(self.tag_fn(e["sym"]) or {})
         self._w("episodes", e["date"], [row])
         self.n_eps += 1
         return row

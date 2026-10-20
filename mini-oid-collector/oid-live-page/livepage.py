@@ -18,6 +18,8 @@ wide-sectors.json. Data = collector /v1/live-volume?tier=wide (SIP trades + 1-mi
 when data/fa-walls-wide.json has them (fetched by com.oid.desk.fa-walls for surging wide names, capped). Wide names
 are never added to `rows`, so fa-walls rotation, mover-alert and every other core consumer stay core-only; wide
 alerts are page-only and batched per sector (no chat alerts).
+LIGHT score (2026-10-20): each wide row also carries "ls" = the light direction score from ~/oid-data/score/latest-wide.json
+(com.oid.desk.score-wide; trend+volume+market only, raw, unsmoothed, 5 s). Display only.
 """
 import hmac
 import json
@@ -68,6 +70,9 @@ WIDE_SURGE_RVOL = 3.0     # 1-min rvol >= this -> surge flag
 WIDE_MOVE_PCT = 3.0       # |% change vs prior close| >= this -> mover flag
 WIDE_BATCH_S = 15 * 60    # sector alert batch window
 WIDE_WALLS_MAX_AGE_S = 8 * 3600
+WIDE_LIGHT_FILE = Path(os.environ.get("OID_LIVEPAGE_WIDE_SCORE", str(HOME / "oid-data/score/latest-wide.json")))  # LIGHT score (com.oid.desk.score-wide)
+WIDE_LIGHT_STALE_S = 30      # light feed older than this -> chip greyed
+WIDE_LIGHT_MAX_AGE_S = 900   # older than this -> chip hidden
 
 # ---- DIRECTION (2026-10-20): real-time volume + C/P direction on every core row. Additive only: no existing number
 # is hidden, replaced or smoothed. Computed every 1 s server-side (the page redraws every <=5 s).
@@ -1119,6 +1124,7 @@ class WideWatch:
         self.sec_m, self.groups, self.info = None, [], {}
         self.prev_m, self.prev = {}, {}     # sym -> store mtime, {date: last close}
         self.walls_m, self.walls = None, {}
+        self.light_m, self.light = None, {}  # LIGHT: latest-wide.json (raw, unsmoothed light direction score, 5 s)
         self.flags = {}                     # sym -> (surge, mover) last tick (RTH crossings -> events)
         self.events = []                    # [{sym, sector, kind, t, time_pt, rvol, chg}]
         self.err = None
@@ -1174,6 +1180,29 @@ class WideWatch:
                 pass
             self.walls_m = m
 
+    def _light(self):
+        try:
+            m = WIDE_LIGHT_FILE.stat().st_mtime
+        except OSError:
+            self.light = {}
+            return
+        if m != self.light_m:
+            try:
+                self.light = json.loads(WIDE_LIGHT_FILE.read_text())
+            except Exception:
+                pass
+            self.light_m = m
+
+    def _light_row(self, sym, now):
+        """LIGHT: {s: score -3..+3, raw, h: seconds the score has held, st: feed stale} or None. Research only."""
+        L = self.light or {}
+        x = (L.get("by_sym") or {}).get(sym)
+        age = now - (L.get("as_of") or 0)
+        if not x or age > WIDE_LIGHT_MAX_AGE_S:
+            return None
+        return {"s": x.get("s"), "raw": x.get("raw"), "h": round(now - x["since_t"]) if x.get("since_t") else None,
+                "st": age > WIDE_LIGHT_STALE_S}
+
     def _wall_row(self, sym, last, now, et_date):
         r = _wall_rec("fa-walls-wide", sym, self.walls.get(sym))
         if not r or now - r["t"] > WIDE_WALLS_MAX_AGE_S:
@@ -1202,6 +1231,10 @@ class WideWatch:
             self.err = f"collector read failed ({type(e).__name__})"
             raw = {}
         self._walls(now)
+        try:
+            self._light()
+        except Exception:
+            self.light = {}
         live, last_s = raw.get("symbols") or {}, raw.get("last_session") or {}
         rth = raw.get("session") == "RTH"
         et_date = raw.get("et_date")
@@ -1227,7 +1260,7 @@ class WideWatch:
                 mv = bool(chg is not None and abs(chg) >= WIDE_MOVE_PCT)
                 i = self.info.get(sym) or {}
                 row = {"s": sym, "p": rnd(last, 4), "c": chg, "r": rv, "dr": drv, "sg": sg, "mv": mv, "m": mode, "d": d,
-                       "i": i.get("industry"), "w": self._wall_row(sym, last, now, et_date)}
+                       "i": i.get("industry"), "w": self._wall_row(sym, last, now, et_date), "ls": self._light_row(sym, now)}
                 rows.append(row)
                 p_sg, p_mv = self.flags.get(sym, (False, False))
                 if rth and ((sg and not p_sg) or (mv and not p_mv)):
@@ -1255,6 +1288,8 @@ class WideWatch:
                         "norms": {k: (raw.get("norms") or {}).get(k) for k in ("for_date", "symbols", "current")},
                         "surge_rvol": WIDE_SURGE_RVOL, "move_pct": WIDE_MOVE_PCT, "batch_min": WIDE_BATCH_S // 60,
                         "walls_n": sum(1 for g in groups for r in g["rows"] if r["w"]),
+                        "light": {"cfg": (self.light or {}).get("config_version"), "as_of_pt": (self.light or {}).get("as_of_pt"),
+                                  "n": sum(1 for g in groups for r in g["rows"] if r.get("ls"))},
                         "groups": groups, "alerts": alerts,
                         "surging": [r["s"] for g in groups for r in g["rows"] if r["sg"] or (rth and r["mv"])]}
         return True

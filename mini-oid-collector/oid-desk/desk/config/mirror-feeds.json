@@ -49,7 +49,8 @@
     "paper-trades/trades.json", "paper-trades/paper-open.json", "cache/rh-live-option-positions.json",
     "config/focus-watch.json", "config/option-watch-contracts.json", "config/stream-quote-allowlist.json",
     "config/uw-refresh.json", "config/live-gate.json", "config/mini-desk.json",
-    "market-data/latest/vix-agent.json", "market-data/latest/macro-morning.json"
+    "market-data/latest/vix-agent.json", "market-data/latest/macro-morning.json",
+    "paper-trades/hal-live/active-exit-rules.json"
   ],
   "desk_state_max_bytes": 4000000
 }

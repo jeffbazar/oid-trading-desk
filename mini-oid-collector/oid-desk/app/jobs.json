@@ -375,6 +375,26 @@
     "closed": null
    },
    "desc": "live FlashAlpha walls (/v1/flow/levels) for the private live page, 10 min core + 40 min rotation, 6:30 AM-1 PM PT weekdays, quota guard -> ~/oid-live-page/data/fa-walls-pulse.json"
+  },
+  "hal-exit-watch": {
+   "group": "status",
+   "kind": "daemon",
+   "cwd": "app",
+   "cmd": [
+    "{py}",
+    "-m",
+    "oid_desk.hal_exit_watch",
+    "loop"
+   ],
+   "secrets": [],
+   "nice": 10,
+   "heartbeat": "cache/hal-exit-watch.json",
+   "ttl": {
+    "rth": 30,
+    "ext": 120,
+    "closed": null
+   },
+   "desc": "Hal fast exit watcher: every 3 s in RTH (+15 min) checks paper-trades/hal-live/active-exit-rules.json seats (option stop/target/+20% half, stock stop/target, 5m structure, time stop, 12:40 PT DTE<=8 warning) -> Hal webhook (HAL_EXIT_WEBHOOK_URL/KEY files, hot-loaded; dry-run until present). NEVER TRADES"
   }
  }
 }

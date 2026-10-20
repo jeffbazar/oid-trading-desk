@@ -104,5 +104,31 @@
     "note": "v1.1-20261020 (Jeffrey OK 2026-10-20): LOGGING ONLY, score math unchanged. Fast pass re-scores every cadence_pt.change_refresh_s on live price/1m bars/flow; writes ~/oid-data/score/changes-YYYYMMDD.jsonl on every score change and episodes-YYYYMMDD.jsonl when a score ends (score_changes.py). scores-*.jsonl slots, latest.json badge and outcomes grading unchanged.",
     "buffer_band": 0.15,
     "buffer_note": "COMPARISON-ONLY shadow: buffered_score moves only when raw clears the .5 cutoff by buffer_band; logged on change rows + episodes-buffered-*.jsonl. Raw score stays primary everywhere."
+  },
+  "profiles": {
+    "light": {
+      "config_version": "light-v1.0-20261021",
+      "enabled": true,
+      "note": "LIGHT direction score for the Sector watch names (score_wide.py, launchd com.oid.desk.score-wide). Research/log only. Copies this config and keeps only components_enabled on (same calculations, scales and weights as the core); combine() divides by the enabled weights only (1.00+0.75+0.75=2.50) so the score keeps the -3..+3 range. Add/drop inputs by editing components_enabled (optional per-input 'weights' / 'components' overrides), then bump config_version. Core settings and core files are never touched.",
+      "components_enabled": [
+        "trend",
+        "volume",
+        "market"
+      ],
+      "weights": {},
+      "components": {},
+      "change_refresh_s": 5,
+      "file_tag": "wide",
+      "exclude": [
+        "WDC",
+        "STX",
+        "SNDK"
+      ],
+      "universe": "~/oid-quote/wide-allowlist.json",
+      "sectors": "~/oid-live-page/wide-sectors.json",
+      "store": "~/oid-quote/cache/bars-wide/store",
+      "norms": "~/oid-quote/cache/bars-wide/live-norms-1m.json",
+      "v5_dir": "~/oid-data/archive-wide/volume_5s"
+    }
   }
 }

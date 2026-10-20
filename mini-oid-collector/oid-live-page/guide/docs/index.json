@@ -5,111 +5,115 @@
  },
  {
   "file": "01-header.md",
-  "title": "1 · Header and status pills"
+  "title": "1 \u00b7 Header and status pills"
  },
  {
   "file": "02-surge-strip.md",
-  "title": "2 · Surge strip"
+  "title": "2 \u00b7 Surge strip"
  },
  {
   "file": "03-flow-lean-strip.md",
-  "title": "3 · Flow lean strip"
+  "title": "3 \u00b7 Flow lean strip"
  },
  {
   "file": "04-tile-anatomy.md",
-  "title": "4 · Heatmap tile anatomy"
+  "title": "4 \u00b7 Heatmap tile anatomy"
  },
  {
   "file": "05-price-change.md",
-  "title": "5 · Price and % change"
+  "title": "5 \u00b7 Price and % change"
  },
  {
   "file": "06-rvol-heat.md",
-  "title": "6 · rvol and heat color"
+  "title": "6 \u00b7 rvol and heat color"
  },
  {
   "file": "07-volume-bars.md",
-  "title": "7 · Volume bars (sparkline)"
+  "title": "7 \u00b7 Volume bars (sparkline)"
  },
  {
   "file": "08-cp-chip.md",
-  "title": "8 · C/P chip (call/put volume ratio)"
+  "title": "8 \u00b7 C/P chip (call/put volume ratio)"
  },
  {
   "file": "09-lean-chip.md",
-  "title": "9 · 15m lean chip (net premium)"
+  "title": "9 \u00b7 15m lean chip (net premium)"
  },
  {
   "file": "10-volume-pace.md",
-  "title": "10 · 1-min volume and 10s pace"
+  "title": "10 \u00b7 1-min volume and 10s pace"
  },
  {
   "file": "11-hot-vs.md",
-  "title": "11 · Pulsing border and VS tag"
+  "title": "11 \u00b7 Pulsing border and VS tag"
  },
  {
   "file": "12-sort.md",
-  "title": "12 · Sort dropdown (heatmap)"
+  "title": "12 \u00b7 Sort dropdown (heatmap)"
  },
  {
   "file": "13-table.md",
-  "title": "13 · Table view"
+  "title": "13 \u00b7 Table view"
  },
  {
   "file": "14-ladder.md",
-  "title": "14 · Last ladder panel"
+  "title": "14 \u00b7 Last ladder panel"
  },
  {
   "file": "15-live-trades.md",
-  "title": "15 · Live trades"
+  "title": "15 \u00b7 Live trades"
  },
  {
   "file": "16-held-options.md",
-  "title": "16 · Held option contracts: traded volume"
+  "title": "16 \u00b7 Held option contracts: traded volume"
  },
  {
   "file": "17-vol-surge-events.md",
-  "title": "17 · vol_surge events log"
+  "title": "17 \u00b7 vol_surge events log"
  },
  {
   "file": "18-walkthroughs.md",
-  "title": "★ Signal walkthroughs"
+  "title": "\u2605 Signal walkthroughs"
  },
  {
   "file": "19-sectors.md",
-  "title": "19 · Sector groups and source tiles (heatmap, table, sector strip, VIX / IWM / WTI / Brent)"
+  "title": "19 \u00b7 Sector groups and source tiles (heatmap, table, sector strip, VIX / IWM / WTI / Brent)"
  },
  {
   "file": "20-lean5-chip.md",
-  "title": "20 · 5m lean chip (net premium, last ~5 min)"
+  "title": "20 \u00b7 5m lean chip (net premium, last ~5 min)"
  },
  {
   "file": "21-live-aggressor-chips.md",
-  "title": "21 · 15s C/P and 1m C/P chips (live aggressor flow)"
+  "title": "21 \u00b7 15s C/P and 1m C/P chips (live aggressor flow)"
  },
  {
   "file": "22-cp-momentum-spec.md",
-  "title": "22 · C/P momentum on the 15s / 1m chips (built 10/19 11:42 AM PT)"
+  "title": "22 \u00b7 C/P momentum on the 15s / 1m chips (built 10/19 11:42 AM PT)"
  },
  {
   "file": "23-wall-marks.md",
-  "title": "23 · Wall and flip marks (right edge of each tile)"
+  "title": "23 \u00b7 Wall and flip marks (right edge of each tile)"
  },
  {
   "file": "24-direction-score.md",
-  "title": "24 · Direction score (−3…+3): inputs, timers and grading"
+  "title": "24 \u00b7 Direction score (\u22123\u2026+3): inputs, timers and grading"
  },
  {
   "file": "25-momentum.md",
-  "title": "25 · Momentum chip, market gauge and recent flags"
+  "title": "25 \u00b7 Momentum chip, market gauge and recent flags"
  },
  {
   "file": "26-news.md",
-  "title": "26 · News panel, sentiment chips and tile news badge"
+  "title": "26 \u00b7 News panel, sentiment chips and tile news badge"
  },
  {
   "file": "27-timers.md",
-  "title": "27 · Timers: how often every live-page metric updates"
+  "title": "27 \u00b7 Timers: how often every live-page metric updates"
+ },
+ {
+  "file": "28-hal-exit-watch.md",
+  "title": "28 \u00b7 Hal exit watcher (fast stop and target alerts)"
  },
  {
   "file": "glossary.md",

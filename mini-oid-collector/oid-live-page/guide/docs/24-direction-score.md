@@ -1,6 +1,6 @@
 # 24 · Direction score (−3…+3): inputs, timers and grading
 
-> **Research and logging only.** The score never places or suggests orders. It is a timestamped guess at which way a stock has the least resistance *right now*, and we grade it afterwards. Built 10/19/2026, config `v1-20261019`. **Page updated Tue 10/20/2026, 3:00 PM PT.** Items marked **live from 10/21** are being built on 10/20 for the Wednesday 10/21 open.
+> **Research and logging only.** The score never places or suggests orders. It is a timestamped guess at which way a stock has the least resistance *right now*, and we grade it afterwards. Built 10/19/2026, config `v1-20261019`. **Page updated Tue 10/20/2026, 4:15 PM PT** (section 9, light score for the Sector watch, added). Items marked **live from 10/21** are being built on 10/20 for the Wednesday 10/21 open.
 
 ## 1. What the badge means
 
@@ -136,6 +136,7 @@ All weights, scales and staleness limits live in `~/oid-data/config/score-config
 | Scorecard | `~/oid-data/score/scorecard-YYYYMMDD.json` / `.md` (`daily_scorecard.py`) |
 | Replay | `score_replay_changes.py <date>` → `~/oid-data/score/replay-YYYYMMDD/` |
 | Jobs | `com.oid.desk.score` (always on, idle outside market hours), `com.oid.desk.score-grade` (every 15 min) and `com.oid.desk.score-scorecard` (weekdays 1:10 PM PT) |
+| Light score (Sector watch, section 9) | `score_wide.py` (job `com.oid.desk.score-wide`, always on); `changes-wide-*`, `episodes-wide-*`, `episodes-wide-buffered-*`, `changes-wide-fwd-*`, `latest-wide.json`, `scorecard-wide-YYYYMMDD.json/.md`; replay `score_replay_wide.py <date>` → `replay-YYYYMMDD-wide/` |
 
 The score makes **no** paid data calls of its own. It only reads files that other mini jobs already write. Every timer is listed on page 27, Timers.
 
@@ -156,3 +157,40 @@ Two small arrows sit next to numbers that are already on every core tile. They n
 - Hover or tap the arrow for from → to, the change, and the prints and premium behind it.
 
 Both are research only. They run in market hours only, are computed every **1 s** on the mini, and the page redraws them at least every **5 s**. The thresholds sit in one config block (`DIR_CFG` in `livepage.py`) and are also sent to the page as `dir_cfg`.
+
+## 9. Light score for the Sector watch names (added 10/20, live from 10/21)
+
+A second, separate direction score for the **144 Sector watch names** (healthcare, crypto, energy, airlines and the rest), so we can see whether non-tech names give more ±2/±3 setups. It is called the **light score** (profile `light`, settings `light-v1.0-20261021`) because it uses only the inputs those names actually have. It never mixes with the core score: own job, own files, own scorecard.
+
+**Inputs (same calculations and weights as the core, section 2):**
+
+| Input | Weight | Data for the wide names |
+|---|---|---|
+| **Trend** (price vs VWAP + 15-min change, in ATR) | **1.00** | 1-minute SIP bars from the wide collector tier (`~/oid-quote/cache/bars-wide/store/live/`), ATR(14) from the wide 1-minute history |
+| **Volume** (up vs down volume over 15 bars, boosted by 15-min rvol) | **0.75** | Same bars + the wide same-minute norms (`~/oid-quote/cache/bars-wide/live-norms-1m.json`) |
+| **Market** (SPY/QQQ tape, VIX, UW market tide) | **0.75** | Exactly the core's market input (same SPY/QQQ bars, VIX and tide files) |
+| Gamma flip, wall room, options flow, news | off | The wide names have no live walls or options flow, so these are switched off, not set to zero |
+
+**From inputs to −3…+3:** the same three steps as section 3, but the total weight is the three inputs that are on, **2.50** instead of 4.75. That is what keeps the range at −3…+3 (it is renormalized, not squeezed):
+- light value = (1.00 × trend + 0.75 × volume + 0.75 × market, each × its quality) ÷ 2.50
+- raw = light value × 3 × 1.5, capped at ±3; score = raw rounded (halves away from 0)
+- So ±2 needs the weighted inputs to average at least 0.33 in one direction, and ±3 at least 0.56. With fewer inputs each one counts for more (trend 40%, volume 30%, market 30%), so the light score reaches ±2/±3 more easily than the core. **Light and core numbers are not directly comparable.**
+
+**Timer:** re-scored every **5 s** in market hours (Nice 10), on the collector's live last price (or the last 5-second bar close), closed 1-minute bars (re-read every 20 s) and the market input. Raw and unsmoothed. Holds still open at 1:00 PM PT close then.
+
+**What is saved (separate files, `~/oid-data/score/`):**
+- `changes-wide-YYYYMMDD.jsonl`: one row per light-score change (same fields as the core change log).
+- `episodes-wide-YYYYMMDD.jsonl`: one row per ended hold: start/stop time and price, peak and trough from the wide 5-second bars, context at start and stop.
+- `episodes-wide-buffered-YYYYMMDD.jsonl`: the comparison-only buffered shadow (band 0.15), same rule as the core.
+- `changes-wide-fwd-YYYYMMDD.jsonl`: the +5/15/30/60 s check, written after the session by the scorecard.
+- `latest-wide.json`: the live page feed, rewritten every pass. `changes-wide-state.json` lets a restart resume open holds.
+- Every row is tagged `score_profile: "light"`, `profile_version`, `sector_id` and `sector`.
+- Context per change: rvol_1m and surge (3× or more), the stock's 60/120 s tape, SPY/QQQ 60/120 s tape and agree flags. C/P, wall room and momentum are logged as missing, because the wide names have none.
+
+**Daily scorecard:** the same weekday **1:10 PM PT** job writes a separate `scorecard-wide-YYYYMMDD.json/.md` with every core section (score alone, × surge, × C/P, × wall room, × momentum, × stock tape, × market, surge + C/P + room, buffered vs raw, the 5/15/30/60 s check, held before acting) plus **score × sector** and a **±2/±3 count by sector** table. The C/P, wall-room and momentum sections read "missing" by design; they are kept so the two cards line up. Prices for grading come from the wide 5-second bars, or the 1-minute bars where 5-second bars are missing (coarser).
+
+**On the live page:** each Sector watch row has a small dashed **L±n** chip in the "Light" column (green up, red down, grey 0, faded if the feed is over 30 s old, hidden after 15 min). Hover shows the raw value and how long the score has held. The Sector watch sort menu has "Light score (strongest first)". Nothing existing was removed.
+
+**First replay, 10/20 (1-minute resolution only, because the wide 5-second stream started after the close, at 3:08 PM PT):** 144 names, about 16 changes per name per hour, median hold 120 s. ±2 showed up in 3,028 holds and went the score's way 38.7% of the time; ±3 in 683 holds, 43.0%. Healthcare had the most ±2/±3 (261 and 66). ±3 holds that lasted 5 minutes before acting went the right way 54% of the time (219 holds). One day at coarse resolution: a lead, not evidence. Tomorrow's live log is the first real seconds-level test.
+
+**Changing it:** `~/oid-data/config/score-config.json` → `profiles.light`. Add or drop inputs in `components_enabled` (optional per-input `weights`), bump `config_version`; the job reloads it automatically. WDC, STX and SNDK are excluded. Code: `score_wide.py` (live), `score_replay_wide.py <date>` (replay), job `com.oid.desk.score-wide`.

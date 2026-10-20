@@ -1,0 +1,48 @@
+{
+  "version": 1,
+  "owner": "hal",
+  "account": "agentic-8444",
+  "updated_at": "2026-10-21T07:05:12-07:00",
+  "seats": [
+    {
+      "seat_id": "HAL-LIVE-20261021-AMD-540C",
+      "status": "open",
+      "account": "8444",
+      "underlying": "AMD",
+      "occ_symbol": "AMD261023C00540000",
+      "side": "long_call",
+      "qty": 2,
+      "entry_px": 9.40,
+      "option_stop": 7.05,
+      "stock_stop": 533.50,
+      "stock_stop_dir": "below",
+      "target_option": 14.10,
+      "target_stock": 552.00,
+      "structure": {"level": 535.00, "dir": "below", "bar": "5m_close"},
+      "take_half_pct": 20,
+      "half_taken": false,
+      "time_stop_pt": "12:45",
+      "dte": 2
+    },
+    {
+      "seat_id": "HAL-PAPER-20261021-QQQ-700-690P",
+      "account": "paper",
+      "underlying": "QQQ",
+      "legs": [
+        {"occ_symbol": "QQQ261030P00700000", "ratio": 1},
+        {"occ_symbol": "QQQ261030P00690000", "ratio": -1}
+      ],
+      "side": "put_debit_spread",
+      "qty": 1,
+      "entry_px": 3.10,
+      "option_stop": 1.90,
+      "stock_stop": 728.00,
+      "stock_stop_dir": "above",
+      "target_option": 5.50,
+      "target_stock": 705.00,
+      "structure": {"level": 726.00, "dir": "above", "bar": "5m_close"},
+      "take_half_pct": 20,
+      "time_stop_pt": null
+    }
+  ]
+}

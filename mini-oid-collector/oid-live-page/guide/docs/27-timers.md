@@ -1,6 +1,6 @@
 # 27 · Timers: how often every live-page metric updates
 
-> Reference for every number on the private live page and the mini jobs behind it. Values are read from the mini's launchd jobs (`~/Library/LaunchAgents/com.oid.*`) and the code on **Tue 10/20/2026, 3:00 PM PT**. All times PT. "Market hours" = 6:30 AM–1:00 PM PT weekdays. Items marked **live from 10/21** are being built on 10/20.
+> Reference for every number on the private live page and the mini jobs behind it. Values are read from the mini's launchd jobs (`~/Library/LaunchAgents/com.oid.*`) and the code on **Tue 10/20/2026, 4:15 PM PT** (light score rows added). All times PT. "Market hours" = 6:30 AM–1:00 PM PT weekdays. Items marked **live from 10/21** are being built on 10/20.
 
 ## Prices and volume
 
@@ -46,6 +46,9 @@
 | **Score changes saved as they happen** | Every change, with start and stop time (**live from 10/21**) | Same, plus C/P, surge, wall room, momentum and tape context | `com.oid.desk.score` |
 | **Score grading** | Every **15 min** (old fixed windows, through 10/20); holds graded start to stop (**live from 10/21**) | Saved rows + 5-second bars | `com.oid.desk.score-grade` (every 900 s) |
 | **Daily scorecard** | Once a weekday at about **1:10 PM PT**; results to Jeffrey in chat about **1:20 PM PT** (**live from 10/21**) | Graded holds | mini |
+| **Light score** (Sector watch, 144 names, page 24 §9: trend + volume + market only) | Re-scored every **5 s** in market hours; 1-minute bars re-read every **20 s**; every change saved as it happens (**live from 10/21**) | Wide collector tier (SIP trades + 1-minute bars), core market input | `com.oid.desk.score-wide` (always on, Nice 10) |
+| **Light score chip** (L±n on Sector watch rows) | Feed rewritten every **5 s**; page section refreshed every **5 s**; faded after 30 s, hidden after 15 min | `latest-wide.json` | `com.oid.desk.score-wide` + `com.oid.desk.livepage` |
+| **Light scorecard** (`scorecard-wide-YYYYMMDD`) | Same job, once a weekday at about **1:10 PM PT** (**live from 10/21**) | Light holds + wide 5-second bars | `com.oid.desk.score-scorecard` |
 | **Position trigger** | Every **30 s** | Held positions + quotes | `com.oid.desk.position-trigger` (every 30 s) |
 
 ## News
@@ -86,3 +89,10 @@
 | **Sector watch alerts** | Page only, **batched per sector** over the last 15 min; no chat alerts | Same | `com.oid.desk.livepage` |
 | **Sector watch walls** | Only after a SURGE/MOVE: up to **3 names per 10-min run**, **30 per day**, each name at most hourly, and only while FlashAlpha remaining is **≥ 800** | FlashAlpha | `com.oid.desk.fa-walls` |
 | **Sector watch raw archive** (5-second bars + 1-minute bars) | Written live; kept **21 days** (core stays 90) | Alpaca SIP | `com.oid.quote-collector` |
+
+## Exit watch (added 10/20)
+
+| Metric | Refresh | Source | Job |
+|---|---|---|---|
+| **Hal exit watcher** (option stop and target, +20% half, stock stop and target, 5-min structure break, time stop, 12:40 PM PT warning for 8 or fewer days to expiry; page 28) | Every **3 s** in market hours and for **15 min** after the close; status every 30 s otherwise. Price rules must hold 2 checks; each alert repeats at most every **2 min**, **3** times a day | Alpaca SIP stock trades and quotes, Alpaca OPRA option quotes, Alpaca SIP 5-minute bars (one fetch per name about 8 s after each 5-minute bar ends) | `com.oid.desk.hal-exit-watch` (always on, Nice 10; dry run until Hal's webhook is saved) |
+| **Hal's exit rules file** (box → mini) | Sent within about **15 s** of a change in market hours, 60 s otherwise | Box mirror poller (`/v1/desk-state`) | box `quotes/mirror_poller.py` |

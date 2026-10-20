@@ -18,3 +18,11 @@ Research/log only. Never places orders. Zero extra FlashAlpha/UW/paid calls. It 
 - `scores-*.jsonl` slots, `latest.json` badge (60 s) and the outcomes grader are unchanged.
 - `score_replay_changes.py <date>` replays a session from 5 s bars into `~/oid-data/score/replay-YYYYMMDD/` (test/measurement).
 - `daily_scorecard.py [date]` (launchd `com.oid.desk.score-scorecard`, weekdays 1:10 PM PT) writes `scorecard-YYYYMMDD.json/.md` from episodes (falls back to holds rebuilt from `scores-*.jsonl`).
+
+## light-v1.0-20261021 — LIGHT direction score for the 144 Sector watch names (separate from the core)
+- `score_wide.py` (launchd `com.oid.desk.score-wide`, KeepAlive, Nice 10): every 5 s in market hours scores each wide name with the **light** profile (`score-config.json` → `profiles.light`): the core's trend (1.00), volume (0.75) and market (0.75) inputs with the same calculations and weights; flip, walls and options flow are switched off, and `score_lib.combine()` divides by the enabled weights (2.50), so the score keeps the −3…+3 range. Raw and unsmoothed.
+- Writes only its own files: `changes-wide-YYYYMMDD.jsonl`, `episodes-wide-YYYYMMDD.jsonl`, `episodes-wide-buffered-YYYYMMDD.jsonl` (comparison-only shadow), `changes-wide-state.json`, `latest-wide.json` (live page). Every row has `score_profile: "light"`, `profile_version`, `sector_id`, `sector`.
+- Data: wide bar store `~/oid-quote/cache/bars-wide/store` (1-min bars, ATR history, `live-norms-1m.json`), wide 5 s bars `~/oid-data/archive-wide/volume_5s`, SPY/QQQ from the core store/archive, price from the live page's wide rows. WDC/STX/SNDK excluded.
+- `daily_scorecard.py` (same 1:10 PM PT job) also writes `scorecard-wide-YYYYMMDD.json/.md` (every core section + score × sector + ±2/±3 counts by sector + held before acting) and `changes-wide-fwd-YYYYMMDD.jsonl`. `--profile core|light|all`.
+- `score_replay_wide.py <date>` replays a session into `~/oid-data/score/replay-YYYYMMDD-wide/` (uses 1-min bars when no wide 5 s RTH bars exist).
+- Live page: Sector watch rows show a small `L±n` chip (light, raw, unsmoothed). Field Guide page 24 §"Light score" and page 27.

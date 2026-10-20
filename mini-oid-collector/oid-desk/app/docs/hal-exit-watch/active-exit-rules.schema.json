@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "oid/hal-live/active-exit-rules.schema.json",
+  "title": "Hal active exit rules (read by the mini hal-exit-watch)",
+  "description": "Hal writes this file on the box at paper-trades/hal-live/active-exit-rules.json at EVERY entry and exit (atomic write, whole file). The box mirror poller pushes it to the mini (POST /v1/desk-state) within ~15 s in market hours (60 s otherwise). The watcher re-reads it on every 3 s check. A seat that is not in the file is not watched. Hal's seed {owner, account, updated_at, seats: []} is valid. Unknown fields are ignored. Prices are per-share option prices (not x100).",
+  "type": "object",
+  "required": ["seats"],
+  "properties": {
+    "version": {"type": "integer", "const": 1, "default": 1},
+    "owner": {"type": "string", "examples": ["hal"]},
+    "account": {"type": "string", "description": "Default account for seats that omit it", "examples": ["agentic-8444"]},
+    "updated_at": {"type": "string", "format": "date-time", "description": "ISO 8601 with offset; set on every write"},
+    "seats": {"type": "array", "items": {"$ref": "#/$defs/seat"}}
+  },
+  "additionalProperties": true,
+  "$defs": {
+    "seat": {
+      "type": "object",
+      "required": ["seat_id", "underlying"],
+      "properties": {
+        "seat_id": {"type": "string", "description": "Stable id; de-dupe state is keyed on seat_id + rule"},
+        "status": {"type": "string", "enum": ["open", "active", "closed"], "default": "open", "description": "Only open/active seats are watched (or just remove the seat)"},
+        "account": {"type": "string", "enum": ["8444", "paper", "agentic-8444"]},
+        "underlying": {"type": "string", "examples": ["AMD"]},
+        "occ_symbol": {"type": ["string", "null"], "pattern": "^[A-Z.]{1,6}\\d{6}[CP]\\d{8}$", "description": "OCC symbol of a single-leg option, e.g. AMD261023C00540000. Added to the mini OPRA subscription automatically."},
+        "legs": {"type": "array", "description": "Multi-leg alternative to occ_symbol. Seat mark = sum(ratio x leg mid); seat bid = long legs at bid, short legs at ask.",
+                 "items": {"type": "object", "required": ["occ_symbol", "ratio"],
+                           "properties": {"occ_symbol": {"type": "string", "pattern": "^[A-Z.]{1,6}\\d{6}[CP]\\d{8}$"},
+                                          "ratio": {"type": "number", "description": "+1 long, -1 short"}}}},
+        "side": {"type": "string", "enum": ["long_call", "long_put", "call_debit_spread", "put_debit_spread", "call_credit_spread", "put_credit_spread", "long_stock", "short_stock"], "default": "long_call"},
+        "qty": {"type": ["integer", "null"]},
+        "entry_px": {"type": ["number", "null"], "description": "Fill price per share (option) - base for take_half"},
+        "option_stop": {"type": ["number", "null"], "description": "Trips when option MID <= this. Bid is reported too."},
+        "stock_stop": {"type": ["number", "null"], "description": "Trips when stock LAST is through this level"},
+        "stock_stop_dir": {"type": "string", "enum": ["below", "above"], "description": "below = trip when last <= stock_stop (calls); above = last >= stock_stop (puts). Default from side."},
+        "target_option": {"type": ["number", "null"], "description": "Trips when option mid >= this"},
+        "target_stock": {"type": ["number", "null"], "description": "Trips when stock last reaches this on the profit side (opposite of stock_stop_dir)"},
+        "structure": {"type": ["object", "null"], "properties": {
+            "level": {"type": "number"},
+            "dir": {"type": "string", "enum": ["below", "above"], "description": "below = trip when a 5-min bar CLOSES under level"},
+            "bar": {"type": "string", "const": "5m_close", "default": "5m_close"}}},
+        "take_half_pct": {"type": ["number", "null"], "default": 20, "description": "Trips when mid >= entry_px x (1 + pct/100)"},
+        "half_taken": {"type": "boolean", "default": false, "description": "Set true after the half is sold to silence take_half"},
+        "time_stop_pt": {"type": ["string", "null"], "pattern": "^\\d{1,2}:\\d{2}$", "description": "PT wall-clock HH:MM (24 h) at which the seat must be reviewed/closed"},
+        "dte": {"type": ["integer", "null"], "description": "Days to expiry; computed from occ_symbol when omitted. <= 8 gets the 12:40 PT pre-close warning."}
+      },
+      "additionalProperties": true
+    }
+  }
+}

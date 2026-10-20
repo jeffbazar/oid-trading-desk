@@ -32,6 +32,34 @@ def load_config(path=None):
     return json.loads(Path(path or CONFIG).read_text())
 
 
+def profile_config(cfg, name):
+    """Settings for a named score profile (cfg["profiles"][name]), e.g. "light" = the Sector watch score.
+    Same components, calculations, scales and weights as the core config; only the inputs listed in
+    components_enabled stay on (the rest are switched off, so combine() divides by the enabled weights only:
+    the score is renormalized to the same -3..+3 range). Optional "weights" / "components" override per input.
+    The profile's own config_version is stamped on every row it writes. The core config is never modified."""
+    import copy
+    prof = (cfg.get("profiles") or {}).get(name)
+    if not prof:
+        raise KeyError(f"no score profile {name!r} in config")
+    out = copy.deepcopy({k: v for k, v in cfg.items() if k != "profiles"})
+    on = set(prof.get("components_enabled") or [])
+    for comp, spec in out["components"].items():
+        spec["enabled"] = comp in on
+        if comp in (prof.get("weights") or {}):
+            spec["weight"] = float(prof["weights"][comp])
+        spec.update((prof.get("components") or {}).get(comp) or {})
+    out["config_version"] = prof["config_version"]
+    out["core_config_version"] = cfg.get("config_version")
+    out["score_profile"] = name
+    out["profile"] = copy.deepcopy(prof)
+    if prof.get("exclude") is not None:
+        out["exclude"] = list(prof["exclude"])
+    if prof.get("change_refresh_s") is not None:
+        out["cadence_pt"]["change_refresh_s"] = prof["change_refresh_s"]
+    return out
+
+
 def clamp(v, lo=-1.0, hi=1.0):
     return max(lo, min(hi, v))
 
@@ -52,10 +80,11 @@ def iso_t(s):
 
 
 # ------------------------------------------------------------------ bars / norms / ATR
-def load_day_bars(sym, date):
-    """1-min RTH bars for date (YYYY-MM-DD): live jsonl (last write wins per minute), else history store."""
+def load_day_bars(sym, date, store=None, hist_fallback=True):
+    """1-min RTH bars for date (YYYY-MM-DD): live jsonl (last write wins per minute), else history store.
+    store: bar store dir (default STORE = core; the light/wide profile passes the wide store)."""
     out = {}
-    p = STORE / "live" / f"{sym}-1m-{date.replace('-', '')}.jsonl"
+    p = Path(store or STORE) / "live" / f"{sym}-1m-{date.replace('-', '')}.jsonl"
     try:
         for ln in p.read_text().splitlines():
             try:
@@ -66,8 +95,8 @@ def load_day_bars(sym, date):
                 out[b["t"]] = b
     except OSError:
         pass
-    if not out:
-        for b in _hist(sym):
+    if not out and hist_fallback:
+        for b in _hist(sym, store):
             if b.get("d") == date:
                 out[b["t"]] = b
     bars = [out[k] for k in sorted(out)]
@@ -79,28 +108,29 @@ def load_day_bars(sym, date):
 _HIST = {}
 
 
-def _hist(sym):
-    p = STORE / f"{sym}-1m.json"
+def _hist(sym, store=None):
+    p = Path(store or STORE) / f"{sym}-1m.json"
+    key = sym if store is None else (str(store), sym)   # core keys unchanged
     try:
         m = p.stat().st_mtime
     except OSError:
         return []
-    if _HIST.get(sym, (None,))[0] != m:
+    if _HIST.get(key, (None,))[0] != m:
         try:
-            _HIST[sym] = (m, json.loads(p.read_text()).get("bars") or [])
+            _HIST[key] = (m, json.loads(p.read_text()).get("bars") or [])
         except Exception:
-            _HIST[sym] = (m, [])
-    return _HIST[sym][1]
+            _HIST[key] = (m, [])
+    return _HIST[key][1]
 
 
 def sessions(sym):
     return sorted({b["d"] for b in _hist(sym)})
 
 
-def daily_atr(sym, before_date, n=14):
+def daily_atr(sym, before_date, n=14, store=None):
     """ATR(n) of daily bars built from the 1-min history, sessions strictly before before_date."""
     days = {}
-    for b in _hist(sym):
+    for b in _hist(sym, store):
         d = b.get("d")
         if not d or d >= before_date:
             continue

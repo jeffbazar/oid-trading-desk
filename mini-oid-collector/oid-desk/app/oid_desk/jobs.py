@@ -54,7 +54,7 @@ def render_plist(reg: dict, job: str, *, py: str) -> bytes:
         "Label": label(reg, job), "ProgramArguments": args, "WorkingDirectory": str(cwd),
         "EnvironmentVariables": env, "RunAtLoad": True, "ProcessType": "Background",
         "StandardOutPath": str(r / "logs" / f"{job}.out.log"), "StandardErrorPath": str(r / "logs" / f"{job}.err.log"),
-        "ThrottleInterval": 15, "LowPriorityIO": True, "Nice": 5,
+        "ThrottleInterval": 15, "LowPriorityIO": True, "Nice": int(spec.get("nice", 5)),  # 2026-10-20 per-job nice
     }
     if spec["kind"] == "interval":
         pl["StartInterval"] = int(spec["interval_s"])

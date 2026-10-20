@@ -11,6 +11,11 @@ Writes ~/oid-data/score/scorecard-YYYYMMDD.json and .md.
 Per combo: holds, % that went with the score, median/mean gain bp (direction-signed, start->stop), mean peak (MFE)
 and trough (MAE) bp in the score's direction, median hold seconds. Score 0 holds have no direction (gain columns blank).
 Also 'score x held before acting': waits 0/15/30/60/120/300 s, entering at start+W from 5 s bar closes (no lookahead).
+
+LIGHT / Sector watch score (profiles.light, score_wide.py): the same run also writes scorecard-wide-YYYYMMDD.json/.md from
+episodes-wide-YYYYMMDD.jsonl (every section above + score x sector + ±2/±3 counts by sector). Bars for the light card =
+wide 5 s RTH bars (archive-wide), else the wide store's 1-min bars. --profile core|light|all (default all; the weekday
+1:10 PM PT job runs all). A light-card failure never touches the core card.
 """
 import argparse, bisect, json, statistics
 from datetime import datetime
@@ -224,12 +229,12 @@ def fmt(v):
     return "–" if v is None else (f"{v:g}" if isinstance(v, (int, float)) else str(v))
 
 
-def md(date, src, res, n, note):
+def md(date, src, res, n, note, title="Direction score scorecard"):
     H = "| holds | % with score | median gain bp | mean gain bp | mean peak bp | mean trough bp | median hold s |"
     S = "|---:|---:|---:|---:|---:|---:|---:|"
     cols = ("holds", "pct_with", "median_gain_bp", "mean_gain_bp", "mean_peak_bp", "mean_trough_bp", "median_hold_s")
     line = lambda st: " | ".join(fmt(st[c]) for c in cols)
-    out = [f"# Direction score scorecard — {date}", "", f"Source: **{src}** ({n} holds). {note}", "",
+    out = [f"# {title} — {date}", "", f"Source: **{src}** ({n} holds). {note}", "",
            "Gain = start-to-stop move in the score's direction. Peak/trough = best/worst move in the score's direction during the hold. "
            "±1/±2/±3 = score of that size in either direction, gains signed to the score. Score 0 has no direction, so its gain columns are blank. Times PT.", "", "## Score alone", "",
            "| score " + H, "|---" + S]
@@ -275,11 +280,23 @@ def md(date, src, res, n, note):
                            f"{'small sample' if st['small_sample'] else ''} |")
     else:
         out.append("Not available (needs 5 s bars for the day).")
+    bs = res.get("by_sector")
+    if bs:
+        out += ["", "## score x sector (light score only)", "", "| sector | scores " + H, "|---|---" + S]
+        for k, sub in bs.items():
+            for sk in ("all nonzero", "±1", "±2", "±3"):
+                if sk in sub:
+                    out.append(f"| {k} | {sk} | {line(sub[sk])} |")
+        bc = res.get("big_counts_by_sector") or {}
+        out += ["", "## ±2 / ±3 holds by sector (counts, % with score)", "",
+                "| sector | ±2 holds | ±2 % with | ±3 holds | ±3 % with | names scored |", "|---|---:|---:|---:|---:|---:|"]
+        for k, v in bc.items():
+            out.append(f"| {k} | {v['pm2']} | {fmt(v['pm2_pct_with'])} | {v['pm3']} | {fmt(v['pm3_pct_with'])} | {v['names']} |")
     out += ["", "Per-score (±1/±2/±3 separately) breakdowns are in the .json."]
     return "\n".join(out) + "\n"
 
 
-def fwd_secondary(date, d, tag, changes_p):
+def fwd_secondary(date, d, tag, changes_p, bars=None, prefix="changes-fwd-"):
     """Secondary check: move +5/15/30/60 s after each score change, from 5 s bar closes (post-session).
     Writes changes-fwd-YYYYMMDD<tag>.jsonl next to the changes file; returns per-horizon stats for nonzero scores."""
     if changes_p is None or not changes_p.exists() or changes_p.stat().st_size == 0:
@@ -287,8 +304,8 @@ def fwd_secondary(date, d, tag, changes_p):
     ch = [c for c in load_episodes(changes_p) if c.get("kind") == "score_change"]
     if not ch:
         return None
-    rows = SC.forward_moves(ch, SC.load_5s(date), t_end=SC.session_end_t(date))
-    outp = changes_p.with_name(f"changes-fwd-{d}{tag}.jsonl")
+    rows = SC.forward_moves(ch, bars if bars is not None else SC.load_5s(date), t_end=SC.session_end_t(date))
+    outp = changes_p.with_name(f"{prefix}{d}{tag}.jsonl")
     with outp.open("w") as f:
         for r in rows:
             f.write(json.dumps(r, separators=(",", ":")) + "\n")
@@ -302,13 +319,114 @@ def fwd_secondary(date, d, tag, changes_p):
     return res
 
 
+def by_sector(eps):
+    """Light score: stats per sector (nonzero holds) and ±2/±3 counts per sector."""
+    groups = {}
+    for e in eps:
+        if e["score"] != 0:
+            groups.setdefault(e.get("sector") or "unknown", []).append(e)
+    res, cnt = {}, {}
+    for k in sorted(groups):
+        g = groups[k]
+        res[k] = {"all nonzero": stats(g)}
+        for m in (1, 2, 3):
+            gm = [e for e in g if abs(e["score"]) == m]
+            if gm:
+                res[k][f"±{m}"] = stats(gm)
+        for sc in (-3, -2, -1, 1, 2, 3):
+            gs = [e for e in g if e["score"] == sc]
+            if gs:
+                res[k][f"score {sc:+d}"] = stats(gs)
+        g2 = [e for e in g if abs(e["score"]) == 2]
+        g3 = [e for e in g if abs(e["score"]) == 3]
+        cnt[k] = {"pm2": len(g2), "pm2_pct_with": stats(g2)["pct_with"], "pm3": len(g3), "pm3_pct_with": stats(g3)["pct_with"],
+                  "names": len({e["sym"] for e in g})}
+    allg = [e for e in eps if e["score"] != 0]
+    g2 = [e for e in allg if abs(e["score"]) == 2]
+    g3 = [e for e in allg if abs(e["score"]) == 3]
+    cnt["ALL SECTORS"] = {"pm2": len(g2), "pm2_pct_with": stats(g2)["pct_with"], "pm3": len(g3), "pm3_pct_with": stats(g3)["pct_with"],
+                          "names": len({e["sym"] for e in allg})}
+    return res, cnt
+
+
+def light_card(date, tag="", episodes=None):
+    """LIGHT / Sector watch scorecard -> scorecard-wide-YYYYMMDD<tag>.json/.md (separate from the core card)."""
+    import score_wide as W
+    cfg = L.load_config()
+    P, paths = W.setup(cfg)
+    ft = P["profile"].get("file_tag", "wide")
+    d = date.replace("-", "")
+    p = Path(episodes) if episodes else L.OUT / f"episodes-{ft}-{d}.jsonl"
+    if not p.exists() or p.stat().st_size == 0:
+        print(f"light scorecard {date}: no {p.name}; skipped")
+        return 1
+    eps = load_episodes(p)
+    syms = sorted({e["sym"] for e in eps})
+    bars, used = W.grading_bars(date, P, paths, syms)
+    res = build(eps)
+    res["by_sector"], res["big_counts_by_sector"] = by_sector(eps)
+    bp_ = p.with_name(p.name.replace(f"episodes-{ft}-", f"episodes-{ft}-buffered-", 1))
+    if bp_.exists() and bp_.stat().st_size > 0:
+        beps = [e for e in load_episodes(bp_) if e.get("score") != 0]
+        res["buffered_vs_raw"] = {"raw_all_nonzero": res["score_alone"]["all nonzero"], "buffered_all_nonzero": stats(beps),
+                                  "band": (beps[0].get("buffered_band") if beps else None), "file": bp_.name}
+    else:
+        res["buffered_vs_raw"] = None
+    chp = p.with_name(p.name.replace(f"episodes-{ft}-", f"changes-{ft}-", 1))
+    try:
+        res["secondary_fwd"] = fwd_secondary(date, d, tag, chp, bars=bars, prefix=f"changes-{ft}-fwd-")
+    except Exception as ex:
+        print(f"light secondary fwd check failed: {ex}")
+        res["secondary_fwd"] = None
+    try:
+        res["held_before_acting"] = held_before_acting(eps, bars)
+    except Exception as ex:
+        print(f"light held-before-acting view failed: {ex}")
+        res["held_before_acting"] = None
+    res.update({"date": date, "source": f"episodes ({p.name})", "n_holds": len(eps), "generated_pt": L.pt_str(datetime.now().timestamp()),
+                "score_profile": P["score_profile"], "config_version": P["config_version"], "inputs": sorted(W.enabled(P)),
+                "price_bars": used,
+                "definitions": {"light_score": "trend 1.00 + volume 0.75 + market 0.75, same calculations as the core, divided by 2.50 (enabled weights), x4.5, clamped to ±3, rounded",
+                                "surge": "rvol_1m >= 3 at hold start (wide collector 1-min rvol)",
+                                "cp_agrees / wall_room / momentum": "not available for wide names: always 'missing' (kept so the sections line up with the core card)",
+                                "stock_tape_agrees": "sign of the stock's own 60 s return = score sign",
+                                "market_agrees": "sign of mean SPY/QQQ 60 s return = score sign",
+                                "bars": "wide 5 s RTH bars where present, else 1-min bars from the wide store (coarser peak/trough/entry)"}})
+    note = (f"LIGHT score (profile {P['score_profile']} {P['config_version']}: trend + volume + market only, no flip/walls/options flow) "
+            f"for the Sector watch names. Price bars: {used['5s']} names on 5 s bars, {used['1m_fallback']} on 1-min fallback. "
+            "C/P, wall-room and momentum rows read 'missing' by design. Not directly comparable with the core card.")
+    base = L.OUT / f"scorecard-{ft}-{d}{tag}"
+    Path(str(base) + ".json").write_text(json.dumps(res, indent=1), encoding="utf-8")
+    Path(str(base) + ".md").write_text(md(date, res["source"], res, len(eps), note, title="LIGHT direction score scorecard (Sector watch)"), encoding="utf-8")
+    print(f"light scorecard {date}: {len(eps)} holds -> {base}.json/.md")
+    return 0
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("date", nargs="?", default=datetime.now(L.PT).strftime("%Y-%m-%d"))
     ap.add_argument("--episodes")
     ap.add_argument("--source", default="auto", choices=["auto", "episodes", "scores"])
     ap.add_argument("--tag", default="")
+    ap.add_argument("--profile", default="all", choices=["all", "core", "light"])
+    ap.add_argument("--light-episodes")
     a = ap.parse_args()
+    rc = 0
+    if a.profile in ("all", "core"):
+        rc = core_card(a)
+    if a.profile in ("all", "light"):
+        try:
+            lr = light_card(a.date, a.tag, a.light_episodes)
+            if a.profile == "light":
+                rc = lr
+        except Exception as ex:  # the light card must never break the core card
+            print(f"light scorecard failed: {type(ex).__name__}: {ex}")
+            if a.profile == "light":
+                rc = 1
+    return rc
+
+
+def core_card(a):
     cfg = L.load_config()
     d = a.date.replace("-", "")
     p = Path(a.episodes) if a.episodes else L.OUT / f"episodes-{d}.jsonl"
