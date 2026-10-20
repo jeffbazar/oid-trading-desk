@@ -1,0 +1,93 @@
+{
+ "_doc": "Settings for the Mac mini desk jobs (minihost/oid_desk). Ships in the desk snapshot and is re-pushed from the box via desk-state, so edit it here on the box.",
+ "version": "MINI-DESK-V1",
+ "vix": {
+  "_doc": "Pluggable VIX source (Jeffrey 2026-10-10 default: one agent Robinhood read). agent_rh = market-data/latest/vix-agent.json written on the box by scripts/vix_agent_ingest.py from an RH get_index_quotes pull and pushed via desk-state. Alternatives: cboe_delayed (public 15-min delayed JSON), fred (VIXCLS daily close). fallbacks are tried in order when the primary is missing/stale. | 2026-10-14 (Jeffrey, arch review R4): primary = flashalpha_live (mini job vix-live, FlashAlpha /stockquote/VIX every 120 s, real-time index feed); then agent_rh (RH read), cboe_delayed (15-min delayed), fred (daily close, labelled fallback).",
+  "source": "flashalpha_live",
+  "fallbacks": [
+   "agent_rh",
+   "cboe_delayed",
+   "fred"
+  ],
+  "agent_max_age_s": 5400,
+  "live_max_age_s": 600
+ },
+ "fred_series": {
+  "hy_oas": "BAMLH0A0HYM2",
+  "ig_oas": "BAMLC0A0CM",
+  "us10y": "DGS10",
+  "us30y": "DGS30",
+  "wti_spot": "DCOILWTICO",
+  "brent_spot": "DCOILBRENTEU",
+  "vixcls": "VIXCLS"
+ },
+ "eia": {
+  "_doc": "EIA API v2 weekly petroleum (WPSR). Needs EIA_API_KEY on the mini (free). Skipped cleanly without it.",
+  "series": {
+   "crude_stocks_ex_spr_kbbl": "WCESTUS1",
+   "gasoline_stocks_kbbl": "WGTSTUS1",
+   "distillate_stocks_kbbl": "WDISTUS1",
+   "cushing_stocks_kbbl": "W_EPC0_SAX_YCUOK_MBBL",
+   "refinery_util_pct": "WPULEUS3"
+  }
+ },
+ "edgar": {
+  "_doc": "SEC requires a descriptive User-Agent with a contact email. The job refuses to run while it contains SET-ME.",
+  "sec_user_agent": "OID desk research jb@jbv.com",
+  "forms": [
+   "4",
+   "8-K",
+   "10-Q",
+   "10-K",
+   "6-K",
+   "SC 13D",
+   "SC 13D/A",
+   "SC 13G",
+   "SC 13G/A",
+   "S-1",
+   "424B5"
+  ],
+  "lookback_days": 3,
+  "due_et": [
+   "08:15",
+   "12:15",
+   "16:30"
+  ],
+  "universe_extra": [
+   "NVDA",
+   "AMZN",
+   "META",
+   "GOOG",
+   "MSFT",
+   "AAPL",
+   "AMD",
+   "AVGO",
+   "TSLA",
+   "NFLX",
+   "PLTR"
+  ]
+ },
+ "marks": {
+  "_doc": "oid_desk.marks: local collector quotes (fresh) + Alpaca SIP snapshots (prev close / fallback) -> RH-shaped equity file -> dashboard/live_refresh.py --equity-quotes-file --options-from-mini --skip-rebuild.",
+  "interval_rth_s": 60,
+  "interval_ext_s": 300,
+  "snapshot_every_s": 60,
+  "extra_symbols": [
+   "SPY",
+   "QQQ",
+   "SMH",
+   "IWM",
+   "DIA",
+   "TLT",
+   "HYG",
+   "USO"
+  ]
+ },
+ "alert_channels": [],
+ "_alert_channels_doc": "Extra alert channels for oid_desk.alerts (pluggable second channel). Empty until Jeffrey picks a phone push service. Spec: {name, type: json_webhook|ntfy, url, secret: <secret file name>, min_status: [...], enabled}.",
+ "short_borrow": {
+  "_doc": "S5 short-interest/borrow archive (oid_desk.short_borrow). Daily on weekdays at/after due_et (ET). Append-only under data/short-borrow/.",
+  "due_et": "16:45",
+  "finra_lookback_days": 75
+ }
+}

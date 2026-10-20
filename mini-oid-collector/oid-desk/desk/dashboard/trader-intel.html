@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<meta http-equiv="refresh" content="120"/>
+<title>OID · Trader intel</title>
+<style>
+:root{
+  --bg:#070b10; --panel:#0e141c; --line:#1a2533;
+  --text:#e8eef7; --muted:#7f91a8; --accent:#4da3ff;
+  --good:#3dd68c; --bad:#ff6b7a; --warn:#f0b429; --flat:#9aa8b8;
+  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,system-ui,-apple-system,sans-serif;background:
+  radial-gradient(900px 420px at 8% -8%,#142033 0%,transparent 55%),
+  radial-gradient(700px 380px at 100% 0%,#1a1528 0%,transparent 50%),
+  var(--bg);color:var(--text);min-height:100vh}
+.wrap{max-width:1480px;margin:0 auto;padding:22px 18px 56px}
+h1{font-size:1.35rem;margin:0 0 6px}
+h2{font-size:1.05rem;margin:22px 0 10px;color:var(--text)}
+.sub{color:var(--muted);font-size:.88rem}
+.tabs{display:flex;gap:8px;margin:0 0 16px;flex-wrap:wrap}
+.tabs a{display:inline-block;padding:7px 14px;border-radius:999px;border:1px solid var(--line);color:var(--muted);text-decoration:none;font-size:.78rem;font-weight:650;letter-spacing:.04em;text-transform:uppercase}
+.tabs a.active,.tabs a:hover{color:var(--text);border-color:#2a4a70;background:#152030}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:14px 0 18px}
+@media(max-width:720px){.stats{grid-template-columns:1fr 1fr}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.card .k{font-size:.68rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.card .v{font-size:1.35rem;font-weight:700;margin-top:4px}
+.table-wrap{border:1px solid var(--line);border-radius:12px;overflow:auto;background:var(--panel)}
+table{width:100%;border-collapse:collapse;min-width:1100px}
+th,td{padding:8px 10px;text-align:left;font-size:.82rem;border-bottom:1px solid var(--line);vertical-align:top}
+th{color:var(--muted);font-weight:600;font-size:.65rem;text-transform:uppercase;background:#0a1018;position:sticky;top:0;z-index:1}
+th.num,td.num{text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+td.contract{font-family:var(--mono);font-size:.76rem;max-width:200px;color:var(--muted)}
+td.notes,td.why{font-size:.76rem;color:var(--muted);max-width:260px;line-height:1.35}
+.tiny{font-size:.62rem;color:var(--muted);margin-top:2px}
+.pos{color:var(--good)}
+.neg{color:var(--bad)}
+.flat{color:var(--muted)}
+code{font-size:.8em;background:#0a1018;padding:1px 5px;border-radius:4px}
+.tchip{display:inline-block;font-size:.62rem;padding:2px 6px;border-radius:999px;border:1px solid var(--line);color:var(--muted);background:#0a1018;text-transform:uppercase;letter-spacing:.03em;margin:1px 2px 1px 0}
+.tchip.ok{color:var(--good);border-color:#1e5c40;background:#123526}
+.tchip.warn{color:var(--warn);border-color:#6a4e18;background:#2a1f0a}
+.tchip.bad{color:var(--bad);border-color:#7a3038;background:#2a1216}
+.tchip.flat{color:var(--muted)}
+.empty{color:var(--muted);padding:16px;text-align:center}
+.lesson-card{border:1px solid var(--line);border-radius:12px;background:var(--panel);padding:12px 14px;margin-bottom:10px}
+.lesson-card .lid{font-weight:650;margin-bottom:8px}
+.lesson-body{margin:0;white-space:pre-wrap;font-family:inherit;font-size:.82rem;color:var(--muted);line-height:1.45}
+.note{font-size:.82rem;color:var(--muted);margin:8px 0 16px;line-height:1.4}
+footer{margin-top:24px;color:var(--muted);font-size:.8rem;line-height:1.45}
+</style>
+</head><body><div class="wrap">
+<div class="tabs"><a href="index.html">Blotter</a><a href="data-sources.html">Data sources</a><a href="architecture.html">Architecture</a><a href="setup.html">Setup</a><a class="active" href="trader-intel.html">Trader intel</a><a href="catalysts.html">Events</a><a href="soft-grader.html">Soft Grader</a><a href="news-archive.html">News Archive</a><a href="map.html">Map</a><a href="chart.html">Chart</a></div>
+<h1>Trader intel · Rose + Hal</h1>
+<div class="sub">Outcome-linked KB · handle → claim → action → outcome → rule · Built 2026-10-16 2:12 PM PT · index —</div>
+<div class="note">Soft color only — never elevate from a tweet alone. Jeffrey grades: <code>useful</code> / <code>noise</code> / <code>never_again</code>.
+Claims with a <strong>Ticket id</strong> join live marks from <code>paper-trades/trades.json</code> (ledger wins over MD). Unlinked rows show — for numeric cols; optional underlying day% from rh-quotes cache only.</div>
+<div class="stats">
+  <div class="card"><div class="k">Handles</div><div class="v">0</div></div>
+  <div class="card"><div class="k">Claims</div><div class="v">0</div></div>
+  <div class="card"><div class="k">Joined tickets</div><div class="v">0</div></div>
+  <div class="card"><div class="k">Lesson files</div><div class="v">0</div></div>
+</div>
+
+<h2>Claims · blotter outcomes</h2>
+<div class="table-wrap"><table>
+<thead><tr>
+  <th>Date</th><th>Handle</th><th>Ticker</th><th>Contract</th>
+  <th class="num">Cost</th><th class="num">Qty</th><th class="num">Total $</th><th class="num">Mark</th>
+  <th class="num">P&amp;L $</th><th class="num">P&amp;L %</th><th class="num">MFE</th>
+  <th>Status / Outcome</th><th>Action</th><th>Why</th>
+</tr></thead>
+<tbody>
+<tr><td colspan='14' class='empty'>No claims yet — Hal X / Rose append high-signal only.</td></tr>
+</tbody></table></div>
+
+<h2>Handles (allowlist)</h2>
+<div class="table-wrap"><table>
+<thead><tr><th>Handle</th><th>Focus</th><th>Trust grade</th></tr></thead>
+<tbody>
+<tr><td colspan='3' class='empty'>No handles yet.</td></tr>
+</tbody></table></div>
+
+<h2>Lessons</h2>
+<div class='empty'>No lessons yet.</div>
+
+<footer>
+Research / paper only · Zero RH execution. Hal X scan + Rose append high-signal claims only (not every tweet).
+Path: <code>options-intelligence-desk/trader-intel/</code>.
+Hover a claim row for ticket · In/Out · invalidate · rule.
+</footer>
+</div></body></html>

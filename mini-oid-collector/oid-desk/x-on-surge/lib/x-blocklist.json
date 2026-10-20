@@ -1,0 +1,26 @@
+{
+ "_doc": "X Summarizer blocklist v0.1 (2026-10-18). block = drop before grading (c=0). downgrade = cap at T5 c=0.15 regardless of followers. pattern_mute = keep the account but drop matching posts. Learned rule (SPEC s2.5): an author graded spam >= 3 times, or in >= 2 ring clusters within 7 days, is auto-added to block with reason+evidence; X Summarizer reviews weekly. Unblock requires a note.",
+ "block": [
+  {"handle":"OptionsFlowBoss","reason":"automated WHALE DETECTED spam; created Nov 2025 (x-trader-allowlist-research.md)"},
+  {"handle":"tradealgo_","reason":"SNDK promo noise (trader-intel 10/15)"},
+  {"handle":"grok","reason":"AI reply bot; summaries are not news (seen in 10/16 TSM replay, 9.2M followers would otherwise rank T4)"},
+  {"handle":"foarctwales","reason":"ring hub: '$GME $F $TSM ... If you hold any of the aforementioned stocks' copy-paste ring, 10/16 16:42-16:46Z"},
+  {"handle":"voynqs","reason":"ring member 10/16 TSM"},{"handle":"kpbjm","reason":"ring member 10/16 TSM"},
+  {"handle":"Arp188Arp","reason":"ring member 10/16 TSM"},{"handle":"baixonatural","reason":"ring member 10/16 TSM"},
+  {"handle":"Kare_Lyles","reason":"ring member 10/16 TSM"},{"handle":"stockmarketss01","reason":"ring member 10/16 TSM"},
+  {"handle":"stockmarketss09","reason":"ring member 10/16 TSM"},{"handle":"ncyssm","reason":"ring member (TSM 10/16 and AVGO 10/16)"},
+  {"handle":"sublondonBottom","reason":"same ring template on AVGO 10/16 ('If you hold the following stocks ... link')"},
+  {"handle":"stockRichard11","reason":"promo: 'locked in this week's high-growth potential stocks'"},
+  {"handle":"Robinsonwayqn","reason":"promo: 'community exclusively for $NVDA $AAPL $MSFT investors'"},
+  {"handle":"thebotexchang3","reason":"self-declared bot, crypto tape, 4 followers"}
+ ],
+ "downgrade": [
+  {"handle":"BlackBoxStocks","reason":"promo-heavy alert flow ('use sparingly / filter')"},
+  {"handle":"tastytrade","reason":"broker product promo"},
+  {"handle":"MoneyMarkStocks","reason":"'Stock Talk Live' promo links"}
+ ],
+ "pattern_mute": [
+  {"handle":"CheddarFlow","reason":"KEEP: flow posts are used by the desk. Mute only Discord/promo/'% winner' replies.","mute_if":["is_reply AND promo_regex","promo_regex"]},
+  {"handle":"unusual_whales","reason":"KEEP. Mute subscription/app promos.","mute_if":["promo_regex"]}
+ ]
+}

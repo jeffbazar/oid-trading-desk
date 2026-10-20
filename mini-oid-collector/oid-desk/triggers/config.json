@@ -1,0 +1,157 @@
+{
+ "_doc": "OID mini trigger engine config. Plain math on files the mini already writes; never calls RH/FA/UW, never trades. Edits are read every run.",
+ "desk_root": "~/oid-desk/desk",
+ "rth_pt": [
+  "06:30",
+  "13:05"
+ ],
+ "walls_stale_min": 10,
+ "move_bands_pct": [
+  10,
+  20,
+  -25,
+  -10
+ ],
+ "scale_out_pct": 20,
+ "option_quote_max_age_s": 180,
+ "feeds": {
+  "cache/mini-quotes.json": {
+   "epoch_key": "written_epoch",
+   "stale_s": 60,
+   "dead_s": 300
+  },
+  "cache/mini-option-quotes.json": {
+   "epoch_key": "written_epoch",
+   "stale_s": 120,
+   "dead_s": 600
+  },
+  "market-data/latest/fa-levels.json": {
+   "epoch_key": "mtime",
+   "stale_s": 1200,
+   "dead_s": 3600
+  },
+  "cache/bars/SPY-5m.json": {
+   "epoch_key": "newest_bar_end_epoch",
+   "stale_s": 600,
+   "dead_s": 1800
+  },
+  "cache/focus-watch.json": {
+   "epoch_key": "mtime",
+   "stale_s": 120,
+   "dead_s": 600
+  }
+ },
+ "forward_focus_events": [
+  "close5_above",
+  "close5_below",
+  "hold2_above",
+  "hold2_below",
+  "invalidation_5m_close",
+  "wall_roll"
+ ],
+ "seat_exit_lines": {
+  "_doc": "Optional per-seat underlying exit lines (5-min close). Rose/Hal add these when a seat opens. side=below means exit on a close under price.",
+  "OT1-LIVE-20261016-META705P": [
+   {
+    "price": 715.67,
+    "side": "above",
+    "name": "stop_flip_reclaim"
+   },
+   {
+    "price": 720.0,
+    "side": "above",
+    "name": "invalidate"
+   }
+  ]
+ },
+ "nvda_drivers": {
+  "_doc": "NVDA peer-driver watch: fires when a peer moves >= move_pct from prior close (bands at each multiple) or >= move15_pct over the last 3 closed 5-min bars. per_peer overrides by beta. Tuned 2026-10-16 after the parallel day: AMD/MU at 1% fired 7 move15 pings vs 1 LLM peer ping. prev_close falls back to market-data/latest/rh-quotes.json (mini SIP quotes carry none).",
+  "peers": [
+   "AMD",
+   "AVGO",
+   "TSM",
+   "MU",
+   "SMH",
+   "QQQ"
+  ],
+  "move_pct": 2.0,
+  "move15_pct": 1.0,
+  "per_peer": {
+   "AMD": {
+    "move_pct": 3.0,
+    "move15_pct": 1.5
+   },
+   "MU": {
+    "move_pct": 3.0,
+    "move15_pct": 1.5
+   },
+   "QQQ": {
+    "move_pct": 1.5,
+    "move15_pct": 0.6
+   },
+   "SMH": {
+    "move_pct": 2.0,
+    "move15_pct": 0.8
+   }
+  }
+ },
+ "vol_surge": {
+  "_doc": "Fast vol_surge loop (2026-10-18; launchd com.oid.desk.volsurge runs oid_triggers.py --vol-surge-loop every interval_s in RTH). Fires when rolling 1-min SIP print volume >= min_rvol_1m x the same-minute 20-session norm AND >= a share floor (per_symbol_min_shares_60s, else the name's median 1-min norm clamped to [min_shares_floor_low, min_shares_60s]) AND price crosses a level within ref_lookback_s (FA call/put wall + gamma flip if FA levels <= levels_max_age_min old, seat_exit_lines, day high/low as of 5 min ago) by >= break_buffer_bps. Skips first skip_open_min minutes, half days, stream/print lag > max_lag_s. Once per symbol/level/PT day. live=false => DRY-RUN (events.jsonl only, never POSTs) regardless of global mode; set live=true to POST (still needs OID_TRIGGERS_MODE=live). Hot-reloaded, no restart needed.",
+  "enabled": true,
+  "live": false,
+  "interval_s": 2.0,
+  "min_rvol_1m": 3.0,
+  "min_shares_60s": 20000,
+  "min_shares_floor_low": 2000,
+  "per_symbol_min_shares_60s": {
+   "DIA": 5000,
+   "RSP": 5000,
+   "VTV": 5000,
+   "VUG": 3000
+  },
+  "skip_open_min": 2,
+  "max_lag_s": 5.0,
+  "max_stream_age_s": 5.0,
+  "max_last_age_s": 15.0,
+  "break_buffer_bps": 2.0,
+  "ref_lookback_s": 60,
+  "levels_max_age_min": 30,
+  "use_walls": true,
+  "use_flip": true,
+  "use_seat_lines": true,
+  "use_day_extremes": true,
+  "notify_dry": true,
+  "notify_max_per_day": 20,
+  "notify_dedupe_min": 5,
+  "_notify_doc": "2026-10-18 ladder dry run: notify_dry=true POSTs DRY-RUN vol_surge events to the wake webhook (payload dry_run=true, tag=ladder-dryrun, trade_action=none; ticker/direction/rvol/price/time_pt) so Rose pulls the RH book read-only. Max notify_max_per_day posts per PT day, one per ticker per notify_dedupe_min minutes. Does not change live/trading behaviour. Turn off: notify_dry=false (hot-reloaded, no restart). Log: ~/oid-desk/state/triggers/notify.jsonl."
+ },
+ "news_surge": {
+  "_doc": "2026-10-18 v0.5.0 (SCHEMAS.md v1 \u00a73). LOG-ONLY sibling of vol_surge in the same 2 s loop: no level cross. Gate A rvol_1m>=min_rvol_1m AND shares_60s>=floor; gate B pace_rvol_10s>=min_pace_rvol_10s AND shares_10s>=floor/4 (floor = vol_surge's). Re-arm: >=rearm_min since last fire AND rvol_1m<rearm_rvol_below for rearm_below_s straight. Never POSTs to the webhook. Rows -> ~/oid-data/archive/surges (+ state/news-surge-events.jsonl). enabled=false turns it off (hot-reloaded).",
+  "enabled": true,
+  "min_rvol_1m": 3.0,
+  "min_pace_rvol_10s": 6.0,
+  "rearm_min": 10,
+  "rearm_rvol_below": 1.5,
+  "rearm_below_s": 120,
+  "etfs": [
+   "SPY",
+   "QQQ",
+   "DIA",
+   "RSP",
+   "VTV",
+   "VUG",
+   "TQQQ",
+   "SMH",
+   "SOXX",
+   "EWY",
+   "DRAM"
+  ]
+ },
+ "archive": {
+  "_doc": "surges archive table (both engines). Inert unless ~/oid-data exists. enabled=false stops writes (hot-reloaded).",
+  "enabled": true,
+  "root": "~/oid-data/archive",
+  "quotes_url": "http://127.0.0.1:8787/v1/quotes",
+  "quote_max_age_s": 5.0
+ }
+}

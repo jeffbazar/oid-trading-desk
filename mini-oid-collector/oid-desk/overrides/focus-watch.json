@@ -1,0 +1,2 @@
+{"_doc": "SHADOW override deep-merged over the box's config/focus-watch.json on the mini (installed to ~/oid-desk/overrides/). Keeps the mini's FlashAlpha spend small while the box still owns focus walls: 15-min cadence, 250 calls/day cap, and a 700-call reserve on the shared 2,500/day account so the box is never starved. Delete ~/oid-desk/overrides/focus-watch.json at the fa flip (then budget = box values, and the box focus-watch is stopped).",
+ "fa_refresh": {"interval_min": 15, "fallback_interval_min": 30, "daily_budget": 250, "reserve_remaining": 700}}

@@ -1,0 +1,616 @@
+{
+ "_doc": "X Summarizer per-ticker X query map for x_on_surge (v0.1, 2026-10-18). mode=cashtag_only: never bare words or company names. mode=cashtag_plus: cashtag OR any keyword (exact phrases quoted). mode=cashtag_plus_ctx: cashtag OR (keyword AND a context term) because the name is high-volume or generic. ctx terms are the shared CTX list unless overridden.",
+ "CTX": [
+  "stock",
+  "shares",
+  "earnings",
+  "guidance",
+  "revenue",
+  "CEO",
+  "deal",
+  "contract",
+  "order",
+  "downgrade",
+  "upgrade",
+  "\"price target\"",
+  "SEC",
+  "probe",
+  "acquire",
+  "acquisition",
+  "export",
+  "chips",
+  "chip",
+  "outage",
+  "layoff",
+  "layoffs",
+  "offering",
+  "bonds",
+  "debt"
+ ],
+ "tickers": {
+  "ADI": {
+   "mode": "cashtag_plus",
+   "kw": [
+    "\"Analog Devices\""
+   ]
+  },
+  "AMD": {
+   "mode": "cashtag_plus",
+   "kw": [
+    "\"Advanced Micro Devices\"",
+    "\"AMD stock\"",
+    "\"AMD shares\"",
+    "\"Lisa Su\"",
+    "MI450"
+   ]
+  },
+  "AMZN": {
+   "mode": "cashtag_plus_ctx",
+   "kw": [
+    "Amazon",
+    "AWS",
+    "\"Andy Jassy\""
+   ]
+  },
+  "ARM": {
+   "mode": "cashtag_only",
+   "why": "'arm' is a common word; 'Arm Holdings' optional phrase (off)",
+   "optional_kw": [
+    "\"Arm Holdings\""
+   ]
+  },
+  "ASML": {
+   "mode": "cashtag_plus",
+   "kw": [
+    "ASML"
+   ]
+  },
+  "AVGO": {
+   "mode": "cashtag_plus",
+   "kw": [
+    "Broadcom",
+    "\"Hock Tan\""
+   ]
+  },
+  "BE": {
+   "mode": "cashtag_only",
+   "why": "'be' stopword; 'Bloom' generic",
+   "optional_kw": [
+    "\"Bloom Energy\""
+   ]
+  },
+  "COHR": {
+   "mode": "cashtag_plus",
+   "kw": [
+    "\"Coherent Corp\"",
+    "\"Coherent stock\"",
+    "\"Coherent shares\""
+   ],
+   "why": "'coherent' is an English word; phrases only"
+  },
+  "CRDO": {
+   "mode": "cashtag_plus",
+   "kw": [
+    "\"Credo Technology\"",
+    "\"Credo stock\"",
+    "\"Credo shares\""
+   ],
+   "why": "'credo' is an English word; phrases only"
+  },
+  "CRWV": {
+   "mode": "cashtag_plus",
+   "kw": [
+    "CoreWeave"
+   ]
+  },
+  "EWY": {
+   "mode": "cashtag_only",
+   "why": "Korea ETF; macro, excluded from primary test"
+  },
+  "GLW": {
+   "mode": "cashtag_only",
+   "why": "'Corning' also the town/glass generic",
+   "optional_kw": [
+    "\"Corning Inc\""
+   ]
+  },
+  "GOOG": {
+   "mode": "cashtag_plus_ctx",
+   "kw": [
+    "Alphabet",
+    "Google",
+    "Gemini",
+    "\"Sundar Pichai\""
+   ],
+   "extra_cashtags": [
+    "$GOOGL"
+   ]
+  },
+  "INTC": {
+   "mode": "cashtag_plus_ctx",
+   "kw": [
+    "Intel",
+    "\"Lip-Bu Tan\"",
+    "\"Intel Foundry\""
+   ],
+   "why": "'intel' = intelligence (geopolitics); require context"
+  },
+  "INTU": {
+   "mode": "cashtag_plus",
+   "kw": [
+    "Intuit"
+   ],
+   "why": "v1.1 (Research Bot): exact name only; TurboTax/QuickBooks dropped"
+  },
+  "IREN": {
+   "mode": "cashtag_plus",
+   "kw": [
+    "\"IREN Limited\"",
+    "\"Iris Energy\"",
+    "\"IREN stock\""
+   ],
+   "why": "'Iren' is also an Italian utility and a given name"
+  },
+  "KEYS": {
+   "mode": "cashtag_only",
+   "why": "'keys' common word",
+   "optional_kw": [
+    "Keysight"
+   ]
+  },
+  "KLAC": {
+   "mode": "cashtag_plus",
+   "kw": [
+    "\"KLA Corp\"",
+    "\"KLA Corporation\"",
+    "\"KLA stock\""
+   ]
+  },
+  "LITE": {
+   "mode": "cashtag_plus",
+   "kw": [
+    "Lumentum"
+   ],
+   "why": "'lite' common word: never bare"
+  },
+  "LRCX": {
+   "mode": "cashtag_plus",
+   "kw": [
+    "\"Lam Research\""
+   ]
+  },
+  "META": {
+   "mode": "cashtag_plus_ctx",
+   "kw": [
+    "\"Meta Platforms\"",
+    "Zuckerberg",
+    "\"Meta stock\"",
+    "\"Meta shares\"",
+    "\"Meta AI\""
+   ],
+   "why": "'meta' generic; phrases only"
+  },
+  "MH": {
+   "mode": "cashtag_only",
+   "why": "2-letter; legal name unverified in supply-chain.db"
+  },
+  "MRVL": {
+   "mode": "cashtag_plus",
+   "kw": [
+    "Marvell"
+   ]
+  },
+  "MSFT": {
+   "mode": "cashtag_plus_ctx",
+   "kw": [
+    "Microsoft",
+    "Azure",
+    "\"Satya Nadella\"",
+    "Copilot"
+   ]
+  },
+  "MU": {
+   "mode": "cashtag_plus",
+   "kw": [
+    "Micron"
+   ],
+   "why": "'mu' Greek letter: never bare"
+  },
+  "NBIS": {
+   "mode": "cashtag_plus",
+   "kw": [
+    "Nebius"
+   ]
+  },
+  "NFLX": {
+   "mode": "cashtag_plus_ctx",
+   "kw": [
+    "Netflix"
+   ],
+   "why": "show chatter dominates without context"
+  },
+  "NVDA": {
+   "mode": "cashtag_plus_ctx",
+   "kw": [
+    "Nvidia",
+    "\"Jensen Huang\"",
+    "Blackwell",
+    "Rubin"
+   ]
+  },
+  "ORCL": {
+   "mode": "cashtag_plus_ctx",
+   "kw": [
+    "Oracle",
+    "OCI",
+    "\"Larry Ellison\""
+   ],
+   "why": "'oracle' generic + crypto oracles"
+  },
+  "QQQ": {
+   "mode": "cashtag_only",
+   "why": "index ETF; excluded from primary"
+  },
+  "SKHY": {
+   "mode": "cashtag_plus",
+   "kw": [
+    "\"SK hynix\"",
+    "Hynix"
+   ]
+  },
+  "SMH": {
+   "mode": "cashtag_only",
+   "why": "index ETF"
+  },
+  "SNDK": {
+   "mode": "cashtag_plus",
+   "kw": [
+    "SanDisk"
+   ]
+  },
+  "SPCX": {
+   "mode": "cashtag_plus_ctx",
+   "kw": [
+    "SpaceX"
+   ],
+   "ctx": [
+    "stock",
+    "shares",
+    "valuation",
+    "IPO",
+    "tender",
+    "SPCX",
+    "\"price target\""
+   ],
+   "why": "SpaceX launch chatter is huge and mostly not stock news"
+  },
+  "SPY": {
+   "mode": "cashtag_only",
+   "why": "index ETF"
+  },
+  "STX": {
+   "mode": "cashtag_only",
+   "why": "$STX collides with Stacks crypto token; also add -crypto guard",
+   "neg": [
+    "Stacks",
+    "bitcoin",
+    "BTC",
+    "sBTC",
+    "crypto"
+   ],
+   "optional_kw": [
+    "Seagate"
+   ]
+  },
+  "TSLA": {
+   "mode": "cashtag_plus_ctx",
+   "kw": [
+    "Tesla"
+   ],
+   "why": "Elon/Tesla chatter volume"
+  },
+  "TSM": {
+   "mode": "cashtag_plus",
+   "kw": [
+    "TSMC",
+    "\"Taiwan Semiconductor\""
+   ]
+  },
+  "WDC": {
+   "mode": "cashtag_plus",
+   "kw": [
+    "\"Western Digital\""
+   ],
+   "why": "v1.1 (Research Bot): exact phrase \"Western Digital\""
+  }
+ },
+ "mini_extra_22": {
+  "_doc": "Names on the mini's 61 allowlist but not in the 39 Tech+chip play union. Same rules.",
+  "AAOI": {
+   "mode": "cashtag_plus",
+   "kw": [
+    "\"Applied Optoelectronics\""
+   ]
+  },
+  "AAPL": {
+   "mode": "cashtag_plus_ctx",
+   "kw": [
+    "Apple",
+    "\"Tim Cook\""
+   ]
+  },
+  "ALAB": {
+   "mode": "cashtag_only",
+   "why": "'Astera Labs' optional",
+   "optional_kw": [
+    "\"Astera Labs\""
+   ]
+  },
+  "AMAT": {
+   "mode": "cashtag_plus",
+   "kw": [
+    "\"Applied Materials\""
+   ]
+  },
+  "ANET": {
+   "mode": "cashtag_plus",
+   "kw": [
+    "\"Arista Networks\"",
+    "Arista"
+   ]
+  },
+  "CBRS": {
+   "mode": "cashtag_plus",
+   "kw": [
+    "Cerebras"
+   ]
+  },
+  "DELL": {
+   "mode": "cashtag_plus_ctx",
+   "kw": [
+    "Dell",
+    "\"Michael Dell\""
+   ]
+  },
+  "DIA": {
+   "mode": "cashtag_only"
+  },
+  "DRAM": {
+   "mode": "cashtag_only",
+   "why": "'DRAM' is the memory product itself; bare word is all-industry chatter"
+  },
+  "GOOGL": {
+   "mode": "alias",
+   "of": "GOOG"
+  },
+  "ON": {
+   "mode": "cashtag_only",
+   "why": "stopword; 'onsemi' optional phrase",
+   "optional_kw": [
+    "onsemi"
+   ]
+  },
+  "PLTR": {
+   "mode": "cashtag_plus_ctx",
+   "kw": [
+    "Palantir",
+    "\"Alex Karp\""
+   ]
+  },
+  "QCOM": {
+   "mode": "cashtag_plus",
+   "kw": [
+    "Qualcomm"
+   ]
+  },
+  "RSP": {
+   "mode": "cashtag_only"
+  },
+  "SMCI": {
+   "mode": "cashtag_plus",
+   "kw": [
+    "Supermicro",
+    "\"Super Micro\""
+   ]
+  },
+  "SOXX": {
+   "mode": "cashtag_only"
+  },
+  "TQQQ": {
+   "mode": "cashtag_only"
+  },
+  "TXN": {
+   "mode": "cashtag_only",
+   "optional_kw": [
+    "\"Texas Instruments\""
+   ]
+  },
+  "VRT": {
+   "mode": "cashtag_only",
+   "optional_kw": [
+    "Vertiv"
+   ]
+  },
+  "VTV": {
+   "mode": "cashtag_only"
+  },
+  "VUG": {
+   "mode": "cashtag_only"
+  },
+  "WULF": {
+   "mode": "cashtag_plus",
+   "kw": [
+    "TeraWulf"
+   ]
+  }
+ },
+ "ETF_TOPICS": {
+  "_doc": "v0.4 fix (Research Bot B6/C): for ETFs the ticker check also passes posts on the ETF's topic: macro for broad index ETFs, constituents/sector terms for sector ETFs. Regexes, word-bounded; short acronyms case-sensitive. Applies to the prefilter ticker check only, not to query building. Terms starting with an uppercase letter or a regex escape match case-sensitively (so 'Fed' is not 'fed up'); lowercase terms match case-insensitively. v0.6: geopolitics/oil (GEO_OIL) only for broad ETFs SPY/QQQ/RSP/VTV; SMH/SOXX get the Taiwan/China channel (TW_CN) instead (Research Bot tightening 2).",
+  "groups": {
+   "MACRO": [
+    "CPI",
+    "PPI",
+    "PCE",
+    "FOMC",
+    "Fed",
+    "Powell",
+    "Goolsbee",
+    "Waller",
+    "Beige Book",
+    "rate hike",
+    "rate cut",
+    "hike odds",
+    "cut odds",
+    "yields?",
+    "Treasur(?:y|ies)",
+    "2y",
+    "10y",
+    "payrolls",
+    "NFP",
+    "jobs report",
+    "inflation",
+    "GDP",
+    "recession",
+    "tariffs?",
+    "S&P 500",
+    "S&P",
+    "Nasdaq",
+    "Dow",
+    "VIX",
+    "OPEX",
+    "opex",
+    "stop-run",
+    "rebalanc\\w*",
+    "Russell",
+    "index"
+   ],
+   "SEMI": [
+    "\\$(?:NVDA|TSM|AVGO|AMD|ASML|MU|INTC|QCOM|TXN|ADI|AMAT|LRCX|KLAC|MRVL|ARM|ON|MCHP|NXPI)\\b",
+    "Nvidia",
+    "NVIDIA",
+    "TSMC",
+    "Taiwan Semiconductor",
+    "Broadcom",
+    "ASML",
+    "Micron",
+    "Intel",
+    "Qualcomm",
+    "Applied Materials",
+    "Lam Research",
+    "KLA",
+    "Marvell",
+    "semis?",
+    "semiconductors?",
+    "chip(?:s|makers?)?",
+    "foundry",
+    "SOX",
+    "SOXX",
+    "SMH"
+   ],
+   "MEM": [
+    "\\$(?:MU|SNDK|WDC|STX)\\b",
+    "Micron",
+    "SK hynix",
+    "Hynix",
+    "Samsung",
+    "SanDisk",
+    "HBM",
+    "NAND",
+    "memory",
+    "DRAM prices",
+    "DRAM"
+   ],
+   "KOR": [
+    "Korea",
+    "Korean",
+    "KOSPI",
+    "Samsung",
+    "SK hynix",
+    "Hynix",
+    "Korean won",
+    "Hyundai",
+    "BOK"
+   ],
+   "MEGA": [
+    "\\$(?:AAPL|MSFT|NVDA|AMZN|GOOGL?|META|TSLA|AVGO|NFLX)\\b",
+    "Apple",
+    "Microsoft",
+    "Nvidia",
+    "Amazon",
+    "Alphabet",
+    "Google",
+    "Meta",
+    "Tesla",
+    "Broadcom",
+    "Magnificent 7",
+    "Mag 7",
+    "megacaps?"
+   ],
+   "GEO_OIL": [
+    "Iran",
+    "Saudi",
+    "crude",
+    "oil",
+    "OPEC",
+    "Hormuz"
+   ],
+   "TW_CN": [
+    "Taiwan",
+    "China",
+    "Chinese",
+    "Beijing",
+    "Taipei",
+    "export controls?",
+    "Huawei",
+    "SMIC"
+   ]
+  },
+  "map": {
+   "SPY": [
+    "MACRO",
+    "MEGA",
+    "GEO_OIL"
+   ],
+   "QQQ": [
+    "MACRO",
+    "MEGA",
+    "GEO_OIL"
+   ],
+   "TQQQ": [
+    "MACRO",
+    "MEGA"
+   ],
+   "DIA": [
+    "MACRO"
+   ],
+   "RSP": [
+    "MACRO",
+    "GEO_OIL"
+   ],
+   "VTV": [
+    "MACRO",
+    "GEO_OIL"
+   ],
+   "VUG": [
+    "MACRO",
+    "MEGA"
+   ],
+   "SMH": [
+    "SEMI",
+    "MACRO",
+    "TW_CN"
+   ],
+   "SOXX": [
+    "SEMI",
+    "MACRO",
+    "TW_CN"
+   ],
+   "DRAM": [
+    "MEM"
+   ],
+   "EWY": [
+    "KOR"
+   ]
+  }
+ }
+}

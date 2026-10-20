@@ -1,0 +1,212 @@
+{
+ "_doc": "X Summarizer credibility tiers for the volume-news scorer (v0.3 draft, 2026-10-18; tier enum per SCHEMAS s9 v1.1: T1 T2 T2b T3 T4 T5 / X). c values per Research Bot SPEC s5.1. Handles are matched case-insensitively on username; on day 1 resolve every handle to a numeric user id once (users/by lookup, ~70 user reads ~= $0.70) and match on id thereafter (handles can change). 'verify' = handle not yet confirmed by us; treat as T4/T5 by rule until confirmed.",
+ "T1_official": {
+  "c": 1.0,
+  "note": "Company / exec / issuer accounts. T1 only for the ticker(s) they speak for; on other tickers they are T3.",
+  "handles": {
+   "nvidia": [
+    "NVDA"
+   ],
+   "NVIDIADC": [
+    "NVDA"
+   ],
+   "AMD": [
+    "AMD"
+   ],
+   "LisaSu": [
+    "AMD"
+   ],
+   "MicronTech": [
+    "MU"
+   ],
+   "Broadcom": [
+    "AVGO"
+   ],
+   "Oracle": [
+    "ORCL"
+   ],
+   "Microsoft": [
+    "MSFT"
+   ],
+   "satyanadella": [
+    "MSFT"
+   ],
+   "Google": [
+    "GOOG",
+    "GOOGL"
+   ],
+   "sundarpichai": [
+    "GOOG",
+    "GOOGL"
+   ],
+   "Meta": [
+    "META"
+   ],
+   "Tesla": [
+    "TSLA"
+   ],
+   "elonmusk": [
+    "TSLA",
+    "SPCX"
+   ],
+   "SpaceX": [
+    "SPCX"
+   ],
+   "netflix": [
+    "NFLX"
+   ],
+   "intel": [
+    "INTC"
+   ],
+   "ASMLcompany": [
+    "ASML"
+   ],
+   "Arm": [
+    "ARM"
+   ],
+   "CoreWeave": [
+    "CRWV"
+   ],
+   "nebiusai": [
+    "NBIS"
+   ],
+   "MarvellTech": [
+    "MRVL"
+   ],
+   "Bloom_Energy": [
+    "BE"
+   ],
+   "SanDisk": [
+    "SNDK"
+   ],
+   "WesternDigital": [
+    "WDC"
+   ],
+   "Seagate": [
+    "STX"
+   ],
+   "Intuit": [
+    "INTU"
+   ],
+   "Keysight": [
+    "KEYS"
+   ],
+   "Corning": [
+    "GLW"
+   ],
+   "LamResearch": [
+    "LRCX"
+   ],
+   "KLAcorp": [
+    "KLAC"
+   ],
+   "amazon": [
+    "AMZN"
+   ],
+   "awscloud": [
+    "AMZN"
+   ],
+   "AnthropicAI": [
+    "_AI_LAB"
+   ],
+   "OpenAI": [
+    "_AI_LAB"
+   ]
+  },
+  "verify": [
+   "NVIDIADC",
+   "LisaSu",
+   "KLAcorp",
+   "Bloom_Energy",
+   "Keysight",
+   "Corning",
+   "nebiusai",
+   "MarvellTech",
+   "Arm",
+   "IREN (no confirmed handle)",
+   "Lumentum",
+   "Coherent",
+   "Credo",
+   "SK hynix",
+   "TSMC (no official X account known)",
+   "Analog Devices",
+   "McGraw Hill (MH)"
+  ],
+  "elonmusk_rule": "T1 only when the post is about Tesla/SpaceX business (grader relevant=true AND catalyst_type != none); otherwise T4. His volume is huge; never let him fill the 50-post budget (he is excluded from the crowd query, see design s1.4).",
+  "tier_enum": "T1"
+ },
+ "T2_news_desks": {
+  "c": 0.8,
+  "handles": [
+   "DeItaone",
+   "FirstSquawk",
+   "business",
+   "SemiAnalysis_",
+   "theinformation",
+   "Benzinga",
+   "carlquintanilla"
+  ],
+  "note": "DeItaone/FirstSquawk are our proven fastest wires (4-5 s latency in realtime logs). SemiAnalysis_ is T2 for its own research findings only. 'handles' = already in our follows/logs; 'proposed_additions' = standard desks not yet in our follows (Research Bot SPEC names Reuters/Bloomberg/CNBC/WSJ).",
+  "proposed_additions": [
+   "markets",
+   "Reuters",
+   "WSJ",
+   "CNBC",
+   "CNBCnow",
+   "FT"
+  ],
+  "tier_enum": "T2"
+ },
+ "T2b_aggregators": {
+  "c": 0.6,
+  "handles": [
+   "zerohedge",
+   "unusual_whales",
+   "faststocknewss"
+  ],
+  "note": "v1.1: own tier T2b (credibility_tier='T2b', c=0.6). Fast but re-reporting; is_primary usually false. zerohedge was flagged 'macro noise' for the options pulse but is a first-mover on credit (CoreWeave spreads 10/14). unusual_whales: news headlines here; its flow posts use T3. faststocknewss (119k) seen first-hand in the 10/14 NVDA CUDA-X replay; provisional.",
+  "tier_enum": "T2b"
+ },
+ "T3_flow_and_analysts": {
+  "c": 0.5,
+  "flow": [
+   "CheddarFlow",
+   "spotgamma",
+   "MenthorQpro",
+   "OptionsHawk",
+   "Tradytics",
+   "3PeaksTrading",
+   "GammaEdges",
+   "SqueezeMetrics",
+   "Alpha_Ex_LLC"
+  ],
+  "analysts_commentators": [
+   "StockSavvyShay",
+   "Beth_Kindig",
+   "ren_stocks",
+   "TheBigBerbowski",
+   "GavinSBaker",
+   "chamath",
+   "silicondata",
+   "TheProfInvestor",
+   "MentoviaX"
+  ],
+  "note": "Most T3 posts grade as options_flow_chatter or technical_chatter (materiality capped at 1 by the rubric), so they rarely 'explain' a surge alone. TheProfInvestor and MentoviaX are TA-only per HAL-X-ALLOWLIST.",
+  "tier_enum": "T3"
+ },
+ "T4_verified_large": {
+  "c": 0.3,
+  "rule": "verified_type in {business, government} OR (verified_type == blue AND followers >= 10000 AND account_age_days >= 365). Blue check alone is NOT credibility (paid; the 10/16 TSM ring accounts were all blue).",
+  "tier_enum": "T4"
+ },
+ "T5_other": {
+  "c": 0.15,
+  "thin_rule": "followers < 200 AND account_age_days < 180 -> c = 0.075 (thin) Thin stays tier T5 (no sub-tier enum).",
+  "tier_enum": "T5"
+ },
+ "zero": {
+  "tier_enum": "X",
+  "c": 0.0,
+  "when": "every dropped item_filter row (any drop_reason: blocklist, ring, promo, spam_cashtags, new_account, low_followers, low_activity, follow_farm, lang, irrelevant_collision)"
+ }
+}
