@@ -97,6 +97,16 @@ For each combo: how often the stock moved the score's way during the hold, the t
 | Score × stock tape agrees | The stock's last 60/120 s already moving the score's way |
 | Score × market agrees | SPY/QQQ moving the score's way |
 | Surge + C/P agrees + wall room | All three together: the setup closest to Jeffrey's own trades |
+| Score × held before acting | Wait 0, 15, 30, 60, 120 or 300 s after the score starts, then enter only if it has not changed yet |
+
+**Score × held before acting** (added 10/20). This asks: if you wait for the score to hold before you act, does it do better?
+- For each wait (0, 15, 30, 60, 120 and 300 seconds), only holds that lasted **longer** than the wait count. A hold that changed before or exactly at the wait is skipped, because you would never have entered it.
+- Pretend entry is the price at start + wait: the close of the last 5-second bar at or before that moment. Nothing after that moment is used to pick the entry.
+- The move is measured from that entry to the end of the hold (the next score change, or the 1:00 PM PT close), in the score's direction.
+- Each row shows: holds, the share of the wait-0 holds still alive at that wait, % that went with the score, median and mean gain (bp), mean best and mean worst move after entry (bp, from 5-second bar highs and lows), and the median time left in the hold after entry.
+- Wait 0 is the plain hold from its start, the same numbers as "Score alone".
+- Rows: ±1, ±2, ±3, all nonzero, then ±2 and ±3 with a volume surge (1-minute volume at 3× normal or more at the start), and ±2 and ±3 that started during a momentum resume or speed-up.
+- Any row with fewer than 20 holds is marked **small sample**.
 
 ### Old grading (through 10/20, retired as the main measure)
 
