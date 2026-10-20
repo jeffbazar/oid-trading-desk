@@ -1,0 +1,15 @@
+{
+  "_doc": "Box mirror of the Mac mini desk feeds (quotes/mirror_poller.py; MINI-MIGRATION-PLAN.md). Group modes: off | shadow (writes market-data/shadow/<path>, never touches live files) | live (writes the real path or the catalog live_target). Flip/rollback groups ONLY with scripts/oid-cutover.sh (it also stops/restarts the box daemon that used to own the group). The poller never runs unless started (scripts/mirror-poller.sh start, or touch cache/mirror-poller.enabled so the mini-link watchdog keeps it up). Kill switch: touch cache/mirror.disabled.",
+  "version": "MIRROR-V1",
+  "base_url": "http://100.106.118.33:8788",
+  "proxy": "http://localhost:1056",
+  "read_token_file": "/home/box/tailscale/secrets/OID_QUOTE_TOKEN",
+  "write_token_file": "/home/box/tailscale/secrets/OID_DESK_WRITE_TOKEN",
+  "interval_rth_s": 15,
+  "interval_other_s": 60,
+  "timeout_s": 8,
+  "push_desk_state": true,
+  "push_every_s": 60,
+  "apply_marks_every_s": 60,
+  "groups": {"uw": "shadow", "fa": "shadow", "bars": "shadow", "marks": "shadow", "macro": "shadow", "edgar": "shadow", "status": "shadow"}
+}

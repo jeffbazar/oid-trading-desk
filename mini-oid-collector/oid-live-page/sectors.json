@@ -1,0 +1,153 @@
+{
+ "_note": "Live-page sector groups. Edit freely: order here = order on the page; a ticker should appear in one group only; anything not listed falls into 'Other'. Reload the page to pick up changes (no restart needed). VIX/IWM tiles come from local desk files and WTI/BRENT from the futures-live job (CME futures via FlashAlpha), not the SIP stream; see Field Guide page 19.",
+ "groups": [
+  {
+   "id": "index",
+   "name": "Major indices",
+   "tickers": [
+    "SPY",
+    "QQQ",
+    "DIA",
+    "IWM",
+    "RSP",
+    "VTV",
+    "VUG",
+    "EWY"
+   ]
+  },
+  {
+   "id": "leveraged",
+   "name": "Leveraged funds",
+   "tickers": [
+    "TQQQ"
+   ]
+  },
+  {
+   "id": "vix",
+   "name": "VIX",
+   "tickers": [
+    "VIX"
+   ]
+  },
+  {
+   "id": "wti",
+   "name": "WTI crude",
+   "tickers": [
+    "WTI"
+   ]
+  },
+  {
+   "id": "brent",
+   "name": "Brent crude",
+   "tickers": [
+    "BRENT"
+   ]
+  },
+  {
+   "id": "hyper",
+   "name": "Hyperscalers / megacap",
+   "tickers": [
+    "MSFT",
+    "GOOGL",
+    "GOOG",
+    "AMZN",
+    "META",
+    "AAPL",
+    "ORCL"
+   ]
+  },
+  {
+   "id": "neo",
+   "name": "Neoclouds / AI infra",
+   "tickers": [
+    "CRWV",
+    "NBIS",
+    "IREN",
+    "WULF",
+    "CBRS",
+    "SMCI",
+    "DELL"
+   ]
+  },
+  {
+   "id": "semis",
+   "name": "Semiconductors",
+   "tickers": [
+    "NVDA",
+    "AMD",
+    "AVGO",
+    "MRVL",
+    "INTC",
+    "TSM",
+    "ARM",
+    "QCOM",
+    "ALAB",
+    "ADI",
+    "TXN",
+    "ON",
+    "SMH",
+    "SOXX"
+   ]
+  },
+  {
+   "id": "semicap",
+   "name": "Semi equipment",
+   "tickers": [
+    "ASML",
+    "AMAT",
+    "LRCX",
+    "KLAC"
+   ]
+  },
+  {
+   "id": "memory",
+   "name": "Memory / storage",
+   "tickers": [
+    "MU",
+    "SKHY",
+    "SNDK",
+    "WDC",
+    "STX",
+    "DRAM"
+   ]
+  },
+  {
+   "id": "net",
+   "name": "Networking / optics",
+   "tickers": [
+    "ANET",
+    "CRDO",
+    "LITE",
+    "COHR",
+    "AAOI",
+    "GLW",
+    "KEYS"
+   ]
+  },
+  {
+   "id": "soft",
+   "name": "Enterprise software",
+   "tickers": [
+    "PLTR",
+    "INTU"
+   ]
+  },
+  {
+   "id": "power",
+   "name": "Power / energy",
+   "tickers": [
+    "BE",
+    "VRT"
+   ]
+  },
+  {
+   "id": "consumer",
+   "name": "Consumer / other",
+   "tickers": [
+    "TSLA",
+    "NFLX",
+    "SPCX"
+   ]
+  }
+ ]
+}

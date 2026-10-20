@@ -1,0 +1,25 @@
+# OID private live page (Mac mini)
+
+Second-by-second volume heatmap + table for every streamed desk ticker, held option contract volume, live trades with
+marks, and vol_surge events. Separate launchd job `com.oid.desk.livepage`; stdlib python3; read-only.
+
+- Soft put/call lean badges (private page only): reads local `~/oid-desk/desk/market-data/latest/uw-net-prem.json` + `uw-flow-alerts.json` (+ optional tide) every ~45 s. Day C/P volume ratio + 15m net call−put lean chip on heatmap tiles for core-20+focus; flow lean strip under surges. Soft color only; cites Unusual Whales; **zero new UW API calls** (daemon stays ~240 s).
+- Server: `livepage.py` polls `http://127.0.0.1:8787/v1/live-volume?events=20` every 1 s (token read in-process from
+  `~/oid-quote/secrets/OID_QUOTE_TOKEN`, never sent to the browser), option marks (`/v1/options`) every 5 s for open live
+  trades, `~/oid-desk/desk/paper-trades/trades.json` every 30 s, and 1-min bars from the collector's files
+  (`cache/bars/store/<SYM>-1m.json` last session, `store/live/<SYM>-1m-<date>.jsonl` today). Pushes over SSE (`/stream`).
+- Binds 127.0.0.1:8791 only. Tailnet access: `./serve.sh on` (tailscale serve, HTTPS 443, tailnet-only). Never Funnel.
+- Stop: `./serve.sh off` (unpublish from tailnet) and/or `./install.sh --uninstall` (stop the job). Logs: `logs/livepage.log`.
+- Routes: `/` page · `/stream` SSE · `/state.json` · `/healthz` · `/sectors.json` (sector groups, edit + reload) · `/guide/` Field Guide (static: `guide/index.html` + vendored marked/mermaid + `guide/docs/` built by `./build_guide.sh` from `docs/live-page`) · `POST /ingest/ladder` (ladder dry-run snapshots from the box;
+  Bearer token `secrets/LADDER_PUSH_TOKEN` chmod 600; JSON only, <=64 KB, 1-20 whitelisted rows, 120/h; stored in `data/ladder.jsonl`).
+- Ladder feed off: `rm secrets/LADDER_PUSH_TOKEN` (all pushes then get 401) or `LADDER_PUSH=0` on the box.
+
+## Private address (do not publish)
+- After Serve is enabled for the tailnet and `./serve.sh on` has run: **https://oid-mini.tail3d8d4d.ts.net/** (HTTPS, tailnet-only).
+- Until then (and also afterwards): **http://100.106.118.33:8791/**. The mini's tailscaled runs in userspace mode, which forwards
+  tailnet connections to the mini's loopback ports, so this is reachable from tailnet devices only (WireGuard-encrypted), never the internet.
+- Open on phone/laptop: Tailscale app connected to the same tailnet, then open the address in Safari/Chrome (Add to Home Screen works).
+
+## Sectors and 5m lean (2026-10-19)
+- `sectors.json`: groups + order for the heatmap sections, table Group column and sector strip. Unlisted tickers → Other. No restart needed.
+- 5m UW lean: Δ of UW day net (call−put premium) between the newest `uw-net-prem.json` snapshot and one 3–10 min older (closest to 5); ±$25K FLAT; `—` if >10 min stale or no prior snapshot. History persisted in `data/uw-net-hist.json` (12 snapshots).

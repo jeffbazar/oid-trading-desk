@@ -1,0 +1,43 @@
+{
+ "as_of_pt": "2026-10-15",
+ "status": "locked",
+ "underlyings": [
+  "SPY",
+  "QQQ",
+  "NVDA",
+  "TSLA",
+  "META",
+  "AMZN",
+  "GOOG",
+  "AVGO",
+  "AMD",
+  "MU",
+  "PLTR",
+  "NFLX",
+  "ASML",
+  "TSM",
+  "INTC",
+  "MRVL",
+  "BE",
+  "NBIS",
+  "IREN",
+  "CRWV",
+  "DIA",
+  "RSP",
+  "VTV",
+  "VUG"
+ ],
+ "deferred_off_core": [
+  "CBRS",
+  "GOOGL",
+  "SNDK"
+ ],
+ "notes": {
+  "GOOGL": "Subscribe underlying only when a GOOGL seat is open; prefer GOOG for live Class C tape.",
+  "SNDK": "Soft A avoid \u2014 do not auto-subscribe.",
+  "CBRS": "Add only when a named Soft A / held seat needs it.",
+  "options": "Dynamic: held Rose/Hal paper + live RH option contracts + named near-entry Soft A only. Cap vs Alpaca 1000 option quotes.",
+  "2026-10-15": "DIA, RSP, VTV, VUG added 6:30 AM PT 10/15 (Jeffrey approved, Rose in favor) for the no-RH market-tape fallback. List otherwise still locked."
+ },
+ "ingress": "single Alpaca Plus websocket on Mac Mini; bots subscribe to Mini only"
+}

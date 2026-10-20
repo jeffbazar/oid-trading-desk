@@ -1,0 +1,66 @@
+# mini-oid-collector: code/config/docs only. Never commit secrets, data, logs or backups.
+# --- secrets
+secrets/
+**/secrets/
+.oid/
+*.env
+.env
+.env.*
+*.pem
+*.p12
+*.key
+*TOKEN*
+*_token
+*-token
+*api-key*
+*API_KEY*
+# code that HANDLES tokens is fine (case-insensitive FS would otherwise match *TOKEN*)
+!*token*.py
+!*tokens*.py
+tailscale/
+# --- market data / state / caches
+data/
+**/data/
+cache/
+**/cache/
+state/
+spool/
+archive/
+tmp/
+stage/
+*.jsonl
+*.parquet
+*.sqlite
+*.sqlite3
+*.db
+*.pid
+*.lock
+.*.lock
+fa-walls-pulse.json
+wall-weights.json
+ladder.jsonl
+# --- logs
+logs/
+*.log
+# --- backups
+*.bak
+*.bak-*
+*.bak.*
+bak-*/
+backup-*/
+app-backup-*/
+app.bak*/
+docs.bak*/
+*.prev
+*.v0*
+*.held-*
+*.tgz
+*.tar.gz
+*.zip
+# --- python / node / os
+venv/
+.venv/
+__pycache__/
+*.pyc
+node_modules/
+.DS_Store

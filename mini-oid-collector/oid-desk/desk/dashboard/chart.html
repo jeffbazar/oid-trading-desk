@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>OID · Chart</title>
+<style>
+:root{
+  --bg:#070b10; --panel:#0e141c; --panel2:#121a24; --line:#1a2533;
+  --text:#e8eef7; --muted:#7f91a8; --accent:#4da3ff;
+  --good:#3dd68c; --bad:#ff6b7a; --warn:#f0b429; --flat:#9aa8b8;
+  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,system-ui,-apple-system,sans-serif;background:
+  radial-gradient(900px 420px at 8% -8%,#142033 0%,transparent 55%),
+  radial-gradient(700px 380px at 100% 0%,#1a1528 0%,transparent 50%),
+  var(--bg);color:var(--text);min-height:100vh}
+.wrap{max-width:1340px;margin:0 auto;padding:14px 16px 48px}
+h1{font-size:1.35rem;margin:0 0 6px}
+.sub{color:var(--muted);font-size:.88rem;line-height:1.45}
+.tabs{display:flex;gap:8px;margin:0 0 10px;flex-wrap:wrap}
+.tabs a{display:inline-block;padding:7px 14px;border-radius:999px;border:1px solid var(--line);color:var(--muted);text-decoration:none;font-size:.78rem;font-weight:650;letter-spacing:.04em;text-transform:uppercase}
+.tabs a.active,.tabs a:hover{color:var(--text);border-color:#2a4a70;background:#152030}
+.table-wrap{border:1px solid var(--line);border-radius:12px;overflow:auto;background:var(--panel)}
+table{width:100%;border-collapse:collapse;min-width:1100px}
+th,td{padding:9px 11px;text-align:left;font-size:.84rem;border-bottom:1px solid var(--line);vertical-align:middle}
+th{color:var(--muted);font-weight:600;font-size:.68rem;text-transform:uppercase;background:#0a1018;position:sticky;top:0}
+td.num,.num{font-family:var(--mono);font-variant-numeric:tabular-nums;text-align:right}
+td.sym{letter-spacing:.04em}
+.tchip{display:inline-block;font-size:.62rem;padding:2px 6px;border-radius:999px;border:1px solid var(--line);color:var(--muted);background:#0a1018;text-transform:uppercase;letter-spacing:.03em}
+.tchip.ok{color:var(--good);border-color:#1e5c40;background:#123526}
+.tchip.warn{color:var(--warn);border-color:#6a4e18;background:#2a1f0a}
+.tchip.bad{color:var(--bad);border-color:#7a3038;background:#2a1216}
+.tchip.flat{color:var(--muted)}
+.ds-summary{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 14px}
+.ds-summary .tchip{font-size:.72rem;padding:4px 10px}
+tr.group td{background:#121a24;color:var(--text);font-weight:700;font-size:.72rem;letter-spacing:.06em;text-transform:uppercase}
+.note{font-size:.82rem;color:var(--muted);margin:8px 0 16px;line-height:1.45}
+code{font-size:.8em;background:#0a1018;padding:1px 5px;border-radius:4px}
+footer{margin-top:20px;color:var(--muted);font-size:.8rem;line-height:1.45}
+.empty{color:var(--muted);padding:16px;text-align:center}
+p.warn{border:1px solid #6a4e18;background:#2a1f0a;color:#f6d38a;border-radius:10px;padding:10px 12px;font-size:.88rem;line-height:1.45}
+h2{font-size:1.05rem;margin:18px 0 6px} h3{font-size:.95rem;margin:14px 0 4px} h4{font-size:.88rem;margin:10px 0 4px}
+.analysis{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:6px 16px 12px;font-size:.88rem;line-height:1.5}
+.analysis li{margin:3px 0}
+.analysis details{margin:6px 0;border-top:1px solid var(--line);padding-top:6px} .analysis summary{cursor:pointer;font-weight:650}
+p.callout{border:1px solid #2a4a70;background:#101b2a;border-radius:10px;padding:10px 12px;font-size:.88rem;line-height:1.45}
+</style>
+</head><body><div class="wrap">
+<div class="tabs"><a href="index.html">Blotter</a><a href="data-sources.html">Data sources</a><a href="architecture.html">Architecture</a><a href="setup.html">Setup</a><a href="trader-intel.html">Trader intel</a><a href="catalysts.html">Events</a><a href="soft-grader.html">Soft Grader</a><a href="news-archive.html">News Archive</a><a href="map.html">Map</a><a class="active" href="chart.html">Chart</a></div>
+<h1>Chart Bot daily read</h1>
+
+
+<div class="sub">Rule <code>CB-DAILY-V1</code> · Soft only · Never a trade signal · Forecasts off</div>
+<div class="sub">Last completed session <strong>—</strong> · calculated_at_pt <strong>—</strong> · 0 symbols · Built 2026-10-16 2:12 PM PT</div>
+<div class="ds-summary"><span class="tchip bad">Bearish: 0</span> <span class="tchip warn">Hold: 0</span> <span class="tchip flat">UNAVAILABLE: 0</span> <span class="tchip ok">Bullish: 0</span></div>
+<p class="note">Rule <code>CB-DAILY-V1</code> · universe <code>RH-TECH-CHIP-20261004</code> · <strong>GOOG Class C only</strong> · Chart is the <strong>sole writer</strong> of post-close daily historicals (does not share Rose/Hal live quote pulse). SKHY and SPCX are insufficient history (<code>INSUFFICIENT_HISTORY</code>), not a failed pull. Close is the split-adjusted regular-session close, USD/share. % vs EMA9 / EMA21 / SMA50 / SMA200 is close versus that average (Shay lineage). SMA20 + ATR14 are engineering-only / unvalidated. RS is the 20-session close-to-close return minus QQQ or SMH, in percentage points. N/A: Databento, Massive, 5/15/60-min bars, weekly bars, 1-min RVOL, pattern detector, SOXX, forecasts, push receiver, changes API. Nulls are an em dash. Soft only · never elevates · not trade readiness.</p>
+<div class="table-wrap"><table>
+<thead><tr>
+  <th>Symbol</th><th>Trend</th><th>Data status</th><th class="num">Last session</th>
+  <th class="num">Close</th>
+  <th class="num">% vs EMA9</th><th class="num">% vs EMA21</th><th class="num">% vs SMA50</th><th class="num">% vs SMA200</th>
+  <th class="num">RS 20s vs QQQ</th><th class="num">RS 20s vs SMH</th>
+</tr></thead>
+<tbody>
+<tr><td colspan='11' class='empty'>No observation files.</td></tr>
+</tbody></table></div>
+<footer>
+Research / paper only. Chart Bot MA-state observation from <code>chart-bot/observations/</code>. Soft only. Never a trade signal. Forecasts off. No order instructions. Does not replace the Shay MA table.
+</footer>
+
+
+</div></body></html>

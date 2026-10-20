@@ -1,0 +1,142 @@
+{
+ "_doc": "OID data-source status config (Jeffrey 2026-10-10). Read by dashboard/source_status.py every 5 min RTH / hourly otherwise and on every publish. Edit text fields freely. 'static' rows are not checked (status shown as configured: 'Needs purchase' or 'Missing'). 'known_missing': true = accepted gap that does not alarm until the row has been Live at least once (then a drop is a regression). Signal fields: path | glob (newest match) | proc (pgrep -f pattern) | exists; cadence: always (daemon heartbeat, any hour) | intraday (TTL in RTH, prior-close carry otherwise) | daily | event; ttl_s; required (default true); max_sessions (daily/event); due_et (daily: ET time on each trading day by which that day's write is expected), max_sessions (daily: how many trading days old is still OK).",
+ "version": "SRC-STATUS-V1",
+ "rows": [
+  {"id": "mini-sip", "feed": "Mini SIP core-20 spot (5s)",
+   "uses_now": "quotes/mini_poller.py → cache/mini-quotes.json every 5s; overlaid onto rh-quotes by refresh_marks/live_refresh and read by focus_watch.",
+   "source": "Alpaca SIP (overnight feed 8 PM–4 AM ET) · Robinhood fallback", "mini": "Yes",
+   "checks": ["mini_link"],
+   "signals": [
+     {"label": "mini-quotes.json", "path": "cache/mini-quotes.json", "cadence": "always", "ttl_s": 60},
+     {"label": "mini_poller.py", "proc": "quotes/mini_poller.py"},
+     {"label": "mini-link watchdog", "proc": "mini-link-up.sh --watch"}
+   ]},
+  {"id": "fa-walls", "feed": "FA walls get_levels",
+   "uses_now": "fa-levels.json + fa-focus-levels.json by quotes/fa_focus_refresh.py: focus names every 5 min (budget 900 calls/day), others via walls pulse/Q5.",
+   "source": "FlashAlpha Growth key (2,500/day)", "mini": "No (box)",
+   "checks": ["fa_quota"],
+   "signals": [
+     {"label": "fa-focus-levels.json", "path": "market-data/latest/fa-focus-levels.json", "cadence": "intraday", "ttl_s": 600},
+     {"label": "fa-levels.json", "path": "market-data/latest/fa-levels.json", "cadence": "intraday", "ttl_s": 1800, "required": false}
+   ]},
+  {"id": "focus-watch", "feed": "Spot-vs-wall 5s (focused name)",
+   "uses_now": "quotes/focus_watch.py: 5s mini spot vs fresh FA walls for focus names. Idle while market closed.",
+   "source": "Alpaca SIP (mini) + FlashAlpha Growth", "mini": "Partial (spot)",
+   "signals": [
+     {"label": "focus-watch.json", "path": "cache/focus-watch.json", "cadence": "always", "ttl_s": 120},
+     {"label": "focus_watch.py", "proc": "quotes/focus_watch.py"}
+   ]},
+  {"id": "rh-quotes", "feed": "rh-quotes / live_refresh",
+   "uses_now": "rh-quotes.json (TTL 120s) by refresh_marks.py / live_refresh.py, run by routines. Robinhood base; mini overlays core-20, other names RH only.",
+   "source": "Robinhood connector get_equity_quotes + Alpaca SIP overlay", "mini": "Partial (core-20)",
+   "risk": "routine-driven: goes stale if the 5-min live refresh stalls",
+   "signals": [
+     {"label": "rh-quotes.json", "path": "market-data/latest/rh-quotes.json", "cadence": "intraday", "ttl_s": 600},
+     {"label": "market-tape.json", "path": "market-data/latest/market-tape.json", "cadence": "intraday", "ttl_s": 900, "required": false}
+   ]},
+  {"id": "opra-marks", "feed": "Mini OPRA → paper marks (live option prices)",
+   "uses_now": "quotes/option_marks.py via the 5s mini poller → cache/mini-option-quotes.json (box-only); refresh_marks uses mini OPRA first, Robinhood get_option_quotes as fallback. Public page shows status only, never OPRA quotes.",
+   "source": "Alpaca OPRA on mini · Robinhood fallback", "mini": "Yes (OPRA), Robinhood fallback",
+   "checks": ["opra_link"],
+   "signals": [
+     {"label": "mini-option-quotes.json", "path": "cache/mini-option-quotes.json", "cadence": "always", "ttl_s": 60},
+     {"label": "mini-option-marks.json", "path": "market-data/latest/mini-option-marks.json", "cadence": "intraday", "ttl_s": 900, "required": false},
+     {"label": "rh-option-marks.json (fallback)", "path": "market-data/latest/rh-option-marks.json", "cadence": "intraday", "ttl_s": 900, "required": false}
+   ]},
+  {"id": "uw-flow", "feed": "UW flow / tide / net premium",
+   "uses_now": "whale_flow.py polls UW flow alerts every 60s in RTH → Evidence › Whale flow; uw_refresh.py box daemon refreshes net-prem / market-tide / flow-alerts on a timer. uw-oe dark pool: no writer.",
+   "source": "Unusual Whales API", "mini": "No",
+   "risk": "OE (dark pool) feed has no writer",
+   "signals": [
+     {"label": "whale-flow summary", "path": "chart-bot/whale-flow/latest/summary.json", "cadence": "intraday", "ttl_s": 300},
+     {"label": "whale_flow.py", "proc": "whale_flow.py --loop"},
+     {"label": "uw_refresh.py", "proc": "quotes/uw_refresh.py"},
+     {"label": "uw-refresh heartbeat", "path": "cache/uw-refresh.json", "cadence": "always", "ttl_s": 600},
+     {"label": "uw-net-prem.json", "path": "market-data/latest/uw-net-prem.json", "cadence": "intraday", "ttl_s": 900},
+     {"label": "uw-market-tide.json", "path": "market-data/latest/uw-market-tide.json", "cadence": "intraday", "ttl_s": 900},
+     {"label": "uw-flow-alerts.json", "path": "market-data/latest/uw-flow-alerts.json", "cadence": "intraday", "ttl_s": 900, "required": false}
+   ]},
+  {"id": "x-news", "feed": "X Summarizer news",
+   "uses_now": "Tech+chip news pulse (5 min), hourly brief, X-edge; Grade ≥3 to OID group. Hal X scan every 2h.",
+   "source": "X API (shared credit pool) + Benzinga + RH quotes", "mini": "No",
+   "signals": [
+     {"label": "news pulse log", "glob": "/workspace/tech-chip-news-pulse/20*.jsonl", "cadence": "intraday", "ttl_s": 5400},
+     {"label": "hal-x-scan.json", "path": "market-data/latest/hal-x-scan.json", "cadence": "intraday", "ttl_s": 10800, "required": false}
+   ]},
+  {"id": "benzinga", "feed": "Benzinga push",
+   "uses_now": "X Summarizer benzinga_pull.py (news, ratings, earnings, guidance) + ratings websocket. Reaches desk via X Summarizer posts and blotter news.",
+   "source": "Benzinga API (token on box)", "mini": "No",
+   "signals": [
+     {"label": "benzinga_ratings_stream.py", "proc": "benzinga_ratings_stream.py"},
+     {"label": "ratings stream log", "path": "/workspace/tech-chip-news-pulse/benzinga-ratings-stream.jsonl", "cadence": "intraday", "ttl_s": 14400, "required": false}
+   ]},
+  {"id": "peanut", "feed": "Peanut wire",
+   "uses_now": "peanut-news.json (writes only on an alert). X Summarizer is now the main wire.",
+   "source": "X news search + public web", "mini": "No",
+   "risk": "event-driven: writes only on an alert",
+   "signals": [
+     {"label": "peanut-news.json", "path": "market-data/latest/peanut-news.json", "cadence": "daily", "max_sessions": 3, "due_et": "09:30"}
+   ]},
+  {"id": "sec-ir", "feed": "SEC/IR push lane",
+   "uses_now": "premarket-edgar once a day 8:15 ET + uw-form4 insider sweep. No intraday 8-K / IR push.",
+   "source": "SEC EDGAR via Robinhood connector + UW insider", "mini": "No",
+   "risk": "no intraday 8-K / IR push",
+   "signals": [
+     {"label": "premarket-edgar.json", "path": "market-data/latest/premarket-edgar.json", "cadence": "daily", "max_sessions": 1, "due_et": "09:00"},
+     {"label": "uw-form4.json", "path": "market-data/latest/uw-form4.json", "cadence": "daily", "max_sessions": 2, "due_et": "16:30", "required": false}
+   ]},
+  {"id": "chart-daily", "feed": "Chart daily RH bars",
+   "uses_now": "chart-daily-observations.json, 37 names, weekdays 2:24 PM PT.",
+   "source": "Robinhood get_equity_historicals (day)", "mini": "No",
+   "signals": [
+     {"label": "chart-daily-observations.json", "path": "market-data/latest/chart-daily-observations.json", "cadence": "daily", "max_sessions": 1, "due_et": "18:30"}
+   ]},
+  {"id": "intraday-bars", "feed": "Chart 5/15-min bars + RVOL",
+   "uses_now": "quotes/mini_bars.py → cache/bars/<SYM>-5m/15m.json + summary.json (session and per-bar RVOL); Robinhood 5-min history fills gaps. Chart Bot 30-min/4h bars post-close.",
+   "source": "Alpaca SIP bars via mini · Robinhood 5minute fallback", "mini": "Yes (SIP bars), Robinhood fallback",
+   "known_missing": true,
+   "signals": [
+     {"label": "bars summary.json", "path": "cache/bars/summary.json", "cadence": "intraday", "ttl_s": 900}
+   ]},
+  {"id": "databento", "feed": "Databento/Massive history",
+   "uses_now": "Not connected. Desk history = Robinhood daily bars since 2024-01 only.",
+   "source": "— (Robinhood daily as stand-in)", "mini": "No", "static": "Needs purchase"},
+  {"id": "te-consensus", "feed": "Frozen econ consensus (TE)",
+   "uses_now": "Not connected. Macro Bot uses official BLS/BEA/Census/EIA releases + public pages.",
+   "source": "— (official releases as stand-in)", "mini": "No", "static": "Needs purchase"},
+  {"id": "macro-spot", "feed": "Live yields/futures identities",
+   "uses_now": "macro-spot.json via live_refresh: VIX + WTI/Brent via Robinhood/Macro note; 10Y from Macro Bot / FRED (lagged). FRED HY/IG OAS daily.",
+   "source": "FRED public CSV + Robinhood + Macro Bot", "mini": "No",
+   "risk": "10Y is FRED/Macro note (lagged), not a live futures feed",
+   "signals": [
+     {"label": "macro-spot.json", "path": "market-data/latest/macro-spot.json", "cadence": "intraday", "ttl_s": 900},
+     {"label": "fred-hy-oas.json", "path": "market-data/latest/fred-hy-oas.json", "cadence": "daily", "max_sessions": 2, "due_et": "17:00", "required": false}
+   ]},
+  {"id": "iv-surface", "feed": "ORATS / IV surface",
+   "uses_now": "No surface. IV30 / IV rank from UW screener in Chart 4h setups; contract IV from option quotes. FlashAlpha vol endpoints (3x/day plan) not wired yet.",
+   "source": "UW screener + Robinhood (FlashAlpha vol when wired)", "mini": "No",
+   "known_missing": true,
+   "signals": [
+     {"label": "fa vol snapshot", "glob": "market-data/latest/fa-vol*.json", "cadence": "daily", "max_sessions": 1, "due_et": "10:00"}
+   ]},
+  {"id": "fa-soft-rvol", "feed": "fa-soft / rh-rvol writers",
+   "uses_now": "No writer for fa-soft (NOT_BUILT). rh-rvol only from one-off routine pulls; RVOL now comes from mini bars (row 12).",
+   "source": "— (FlashAlpha Growth + Robinhood/mini when built)", "mini": "No",
+   "known_missing": true,
+   "signals": [
+     {"label": "fa-soft.json", "path": "market-data/latest/fa-soft.json", "cadence": "intraday", "ttl_s": 1800}
+   ]},
+  {"id": "cs-map", "feed": "C/S evidenced map",
+   "uses_now": "supply-chain.db: 40 entities, 37 instruments, 20 relationships (seed 10/8).",
+   "source": "Desk store from SEC primary docs (Robinhood get_sec_filing)", "mini": "No",
+   "signals": [
+     {"label": "supply-chain.db", "exists": "supply-chain/supply-chain.db"}
+   ]},
+  {"id": "cs-collector", "feed": "C/S weekday collector",
+   "uses_now": "collector=false: on-demand / seed only, no weekday loop.",
+   "source": "—", "mini": "No", "static": "Missing"},
+  {"id": "postgres-outbox", "feed": "Postgres + push outbox",
+   "uses_now": "Not built. No Postgres or push outbox in desk code; JSON files + here.now publish only.",
+   "source": "—", "mini": "No", "static": "Missing"}
+ ]
+}

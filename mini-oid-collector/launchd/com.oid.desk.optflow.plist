@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0"><dict>
+  <key>Label</key><string>com.oid.desk.optflow</string>
+  <key>ProgramArguments</key><array><string>/Users/jake/oid-quote/venv/bin/python</string><string>/Users/jake/oid-optflow/optflow.py</string></array>
+  <key>EnvironmentVariables</key><dict><key>PYTHONUNBUFFERED</key><string>1</string><key>OID_OPTFLOW_BUDGET</key><string>900</string></dict>
+  <key>WorkingDirectory</key><string>/Users/jake/oid-optflow</string>
+  <key>RunAtLoad</key><true/>
+  <key>KeepAlive</key><true/>
+  <key>ThrottleInterval</key><integer>15</integer>
+  <key>StandardOutPath</key><string>/Users/jake/oid-optflow/logs/optflow.log</string>
+  <key>StandardErrorPath</key><string>/Users/jake/oid-optflow/logs/optflow.log</string>
+</dict></plist>

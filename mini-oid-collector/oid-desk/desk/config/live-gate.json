@@ -1,0 +1,8 @@
+{
+ "_doc": "Live elevate/invalidate quote rule (mandate: 'live RH <=120 s'). Decision 2026-10-10 (pending Jeffrey's explicit sign-off): a mini SIP/OPRA quote no older than max_age_s counts as equivalent to a live Robinhood quote. accept_mini=false restores RH-only. quotes/live_gate.py implements both paths; routines call `python3 quotes/live_gate.py check SYM [...]`.",
+ "version": "LIVE-GATE-V1",
+ "accept_mini": true,
+ "max_age_s": 120,
+ "prefer": "mini",
+ "require_rh_for_live_agentic": false
+}

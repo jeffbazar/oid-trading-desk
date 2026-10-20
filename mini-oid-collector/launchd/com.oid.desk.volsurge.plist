@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0"><dict>
+  <key>Label</key><string>com.oid.desk.volsurge</string>
+  <key>ProgramArguments</key><array>
+    <string>/usr/bin/python3</string><string>/Users/jake/oid-desk/triggers/oid_triggers.py</string><string>--vol-surge-loop</string>
+  </array>
+  <key>EnvironmentVariables</key><dict>
+    <key>OID_TRIGGERS_MODE</key><string>live</string>
+  </dict>
+  <key>RunAtLoad</key><true/>
+  <key>KeepAlive</key><true/>
+  <key>ThrottleInterval</key><integer>15</integer>
+  <key>ProcessType</key><string>Interactive</string>
+  <key>StandardOutPath</key><string>/Users/jake/oid-desk/logs/volsurge.log</string>
+  <key>StandardErrorPath</key><string>/Users/jake/oid-desk/logs/volsurge.err</string>
+</dict></plist>

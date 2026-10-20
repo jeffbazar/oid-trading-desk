@@ -1,0 +1,95 @@
+{
+ "_doc": "OID 5s spot-vs-wall FOCUS watch (Jeffrey 2026-10-09). Only names under an active buy/sell look: open Rose/Hal paper seats (auto from paper-trades/trades.json) + entries below (elevate / Soft A / close review). Walls are READ from market-data/latest/fa-levels.json (never FlashAlpha at 5s). Research / paper only - zero Robinhood execution. Edits are picked up within ~30s, no restart needed.",
+ "auto_include_open_seats": true,
+ "approach_pct": 0.3,
+ "touch_pct": 0.03,
+ "quote_stale_s": 30,
+ "walls_stale_min": 10,
+ "sessions": [
+  "rth"
+ ],
+ "quote_alias": {
+  "GOOGL": "GOOG"
+ },
+ "symbols": [
+  {
+   "symbol": "AMZN",
+   "reason": "Rose live Agentic look: put credit spread under 260 put-wall floor, needs 2 FA pulls holding 260 (Rose 10/9 10:13)",
+   "seat": null,
+   "look": "agentic_live_look",
+   "expires": "2026-10-09",
+   "levels": [],
+   "enabled": true,
+   "disabled_note": "OID-PAPER-20261009-1 closed 2026-10-09 8:09 AM PT (ROSE-CLOSE-20261009-0809); re-enable on a new look"
+  },
+  {
+   "symbol": "NVDA",
+   "reason": "Jeffrey's live RH NVDA Nov20 245C (watch only - never orders) + Hal's 230 put-wall hold long look \u2014 kept while Jeffrey holds the live position (Rose 10/9)",
+   "look": "position_watch",
+   "expires": "2026-11-20",
+   "levels": []
+  },
+  {
+   "symbol": "PLTR",
+   "reason": "Hal Path B call-wall breakthrough look: break + hold over 205 CW while < +3% on day (Hal 10/9)",
+   "look": "soft_a",
+   "expires": "2026-10-09",
+   "levels": [
+    {
+     "name": "cw_205",
+     "price": 205,
+     "kind": "call_wall_fixed",
+     "note": "205 call wall: touch / 5m close-through + hold"
+    },
+    {
+     "name": "pw_200",
+     "price": 200,
+     "kind": "put_wall_fixed",
+     "note": "old 200 CW now put wall - look dead if lost"
+    }
+   ],
+   "invalidation": {
+    "price": 200,
+    "side": "below",
+    "basis": "5m_close",
+    "note": "Hal: look off on 5m close < 200"
+   }
+  },
+  {
+   "symbol": "MU",
+   "reason": "Hal D1 put-wall hold look: 5m hold/bounce off re-cut 1025 PW with call buying (Hal 10/9)",
+   "look": "soft_a",
+   "expires": "2026-10-09",
+   "levels": [
+    {
+     "name": "pw_1025",
+     "price": 1025,
+     "kind": "put_wall_fixed",
+     "note": "re-cut put wall 9:1x PT: hold/bounce"
+    },
+    {
+     "name": "cw_1050",
+     "price": 1050,
+     "kind": "call_wall_fixed"
+    }
+   ],
+   "invalidation": {
+    "price": 1022,
+    "side": "below",
+    "basis": "5m_close",
+    "note": "Hal: look off on 5m close < 1022"
+   }
+  }
+ ],
+ "fa_refresh": {
+  "enabled": true,
+  "interval_min": 15,
+  "fallback_interval_min": 30,
+  "daily_budget": 250,
+  "reserve_remaining": 700,
+  "hard_floor": 100,
+  "account_check_min": 30,
+  "timeout_s": 10,
+  "_doc": "Box-side GET /v1/flow/levels for focus names only, once per RTH 5-min slot. Budget = names x 78 slots; backs off to 10 min, then seat names only, then pauses. Everything else stays on routine cadence. Budget raised 400->900 (Jeffrey 2026-10-10) on the Growth plan (2,500/day, key secrets/flashalpha-api-key); reserve_remaining 500 and hard_floor 100 unchanged."
+ }
+}

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0"><dict>
+  <key>Label</key><string>com.oid.desk.triggers</string>
+  <key>ProgramArguments</key><array>
+    <string>/usr/bin/python3</string><string>/Users/jake/oid-desk/triggers/oid_triggers.py</string>
+  </array>
+  <key>EnvironmentVariables</key><dict>
+    <key>OID_TRIGGERS_MODE</key><string>live</string>
+  </dict>
+  <key>StartInterval</key><integer>60</integer>
+  <key>RunAtLoad</key><true/>
+  <key>StandardOutPath</key><string>/Users/jake/oid-desk/logs/triggers.log</string>
+  <key>StandardErrorPath</key><string>/Users/jake/oid-desk/logs/triggers.err</string>
+</dict></plist>
