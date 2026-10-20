@@ -9,6 +9,7 @@ import argparse
 import datetime as dt
 import hashlib
 import json
+import os
 import sys
 from pathlib import Path
 from typing import Any, Optional
@@ -71,7 +72,8 @@ def main(argv=None) -> int:
     ap.add_argument("--delete", action="store_true")
     a = ap.parse_args(argv)
     res = check(delete=a.delete)
-    atomic_write_json(data_root() / "state" / "integrity-status.json", res)
+    tag = os.environ.get("OID_ARCHIVE_TAG", "")   # WIDECP
+    atomic_write_json(data_root() / "state" / f"integrity{'-' + tag if tag else ''}-status.json", res)
     print(json.dumps({k: (v if k != "deleted" else len(v)) for k, v in res.items()}))
     return 0 if not res["problems"] else 2
 

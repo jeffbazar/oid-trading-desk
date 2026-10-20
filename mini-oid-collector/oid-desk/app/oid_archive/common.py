@@ -169,7 +169,8 @@ def read_universe(path: Optional[str] = None) -> list[str]:
     for c in cands:
         if c and Path(c).expanduser().exists():
             d = json.loads(Path(c).expanduser().read_text())
-            syms = d.get("underlyings") if isinstance(d, dict) else d
+            syms = (d.get("underlyings") or d.get("symbols")) if isinstance(d, dict) else d   # "symbols": wide-allowlist.json (WIDECP)
+            syms = [(x if isinstance(x, str) else (x or {}).get("symbol")) for x in (syms or [])]
             return sorted({s.upper() for s in syms or [] if s})
     raise FileNotFoundError("stream-quote-allowlist.json not found")
 

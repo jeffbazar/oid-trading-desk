@@ -278,7 +278,8 @@ def ctx_live(r, row, ring, t):
     mom = {"state": m.get("st"), "raw": m.get("raw"), "since_t": m.get("t"), "since_pt": m.get("since_pt"),
            "age_s": round(t - m["t"]) if m.get("t") else None, "prov": m.get("prov")} if m else {"state": None}
     return build_ctx(r["sym"], t, row["px"], row.get("atr"), flow, r.get("rvol"), walls, mom, ring,
-                     extra={"day_rvol": r.get("day_rvol"), "chg_pct": r.get("chg")})
+                     extra={"day_rvol": r.get("day_rvol"), "chg_pct": r.get("chg"),
+                            "vdir": r.get("vdir"), "cpdir": r.get("cpdir")})   # WIDECP: live-page volume + C/P direction arrows
 
 
 # ------------------------------------------------------------------ replay sources (logged files only, no lookahead)

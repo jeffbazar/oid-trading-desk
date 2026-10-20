@@ -1,134 +1,165 @@
 {
-  "config_version": "v1.1-20261020",
-  "note": "OID composite direction score. Research/log only - never places orders. Edit weights/enabled flags, bump config_version, then re-score history with score_report.py --config.",
-  "scale": {
-    "gain": 1.5,
-    "max_abs": 3,
-    "missing": "shrink"
+ "config_version": "v1.1-20261020",
+ "note": "OID composite direction score. Research/log only - never places orders. Edit weights/enabled flags, bump config_version, then re-score history with score_report.py --config.",
+ "scale": {
+  "gain": 1.5,
+  "max_abs": 3,
+  "missing": "shrink"
+ },
+ "components": {
+  "flip": {
+   "enabled": true,
+   "weight": 1.0,
+   "scale_atr": 0.3,
+   "q_low_conf_flip": 0.5
   },
-  "components": {
-    "flip": {
-      "enabled": true,
-      "weight": 1.0,
-      "scale_atr": 0.3,
-      "q_low_conf_flip": 0.5
-    },
-    "walls": {
-      "enabled": true,
-      "weight": 0.75,
-      "beyond_wall": 0.3
-    },
-    "volume": {
-      "enabled": true,
-      "weight": 0.75,
-      "window_min": 15,
-      "rvol_lo": 0.8,
-      "rvol_span": 1.2
-    },
-    "flow": {
-      "enabled": true,
-      "weight": 0.5,
-      "cp_log_base": 3.0,
-      "uw_lean_value": 0.5,
-      "q_uw": 0.5
-    },
-    "trend": {
-      "enabled": true,
-      "weight": 1.0,
-      "vwap_scale_atr": 0.15,
-      "ret_window_min": 15,
-      "ret_scale_atr": 0.1
-    },
-    "market": {
-      "enabled": true,
-      "weight": 0.75,
-      "vix_scale_pct": 5.0,
-      "tide_scale_usd": 50000000,
-      "tide_window_min": 30
-    },
-    "news": {
-      "enabled": false,
-      "weight": 0.5,
-      "window_min": 60,
-      "net_scale": 4.0,
-      "x_weight": 0.5,
-      "source": "~/oid-desk/state/news/sentiment-YYYYMMDD.jsonl",
-      "note": "OPTIONAL, OFF (added 2026-10-20 per Jeffrey; do not enable without his OK). c = clamp(net 60-min news sentiment / net_scale, -1, 1); headlines -2..+2 each (FinBERT ProsusAI/finbert, lexicon fallback), X posts x0.5. Test with score_report.py --config on a copy with enabled=true."
-    }
+  "walls": {
+   "enabled": true,
+   "weight": 0.75,
+   "beyond_wall": 0.3
   },
-  "staleness": {
-    "walls_stale_s": 1200,
-    "q_stale_walls": 0.5,
-    "flow_stale_s": 60,
-    "bars_stale_s": 180,
-    "vix_stale_s": 900,
-    "tide_stale_s": 1200,
-    "q_stale_other": 0.5
+  "volume": {
+   "enabled": true,
+   "weight": 0.75,
+   "window_min": 15,
+   "rvol_lo": 0.8,
+   "rvol_span": 1.2
   },
-  "cadence_pt": {
-    "anchors": [
-      "06:35",
-      "06:45",
-      "07:00",
-      "07:30",
-      "08:30",
-      "10:00",
-      "11:30",
-      "12:30"
-    ],
-    "grid_every_min": 15,
-    "grid_start": "06:45",
-    "grid_end": "12:45",
-    "vol_surge": true,
-    "badge_refresh_s": 60,
-    "change_refresh_s": 5
+  "flow": {
+   "enabled": true,
+   "weight": 0.5,
+   "cp_log_base": 3.0,
+   "uw_lean_value": 0.5,
+   "q_uw": 0.5
   },
-  "horizons_min": [
-    5,
-    15,
-    30,
-    60,
-    120
-  ],
-  "extra_horizons": [
-    "close",
-    "next_open"
-  ],
-  "exclude": [
-    "VIX",
-    "WTI",
-    "BRENT"
-  ],
-  "changes": {
-    "enabled": true,
-    "note": "v1.1-20261020 (Jeffrey OK 2026-10-20): LOGGING ONLY, score math unchanged. Fast pass re-scores every cadence_pt.change_refresh_s on live price/1m bars/flow; writes ~/oid-data/score/changes-YYYYMMDD.jsonl on every score change and episodes-YYYYMMDD.jsonl when a score ends (score_changes.py). scores-*.jsonl slots, latest.json badge and outcomes grading unchanged.",
-    "buffer_band": 0.15,
-    "buffer_note": "COMPARISON-ONLY shadow: buffered_score moves only when raw clears the .5 cutoff by buffer_band; logged on change rows + episodes-buffered-*.jsonl. Raw score stays primary everywhere."
+  "trend": {
+   "enabled": true,
+   "weight": 1.0,
+   "vwap_scale_atr": 0.15,
+   "ret_window_min": 15,
+   "ret_scale_atr": 0.1
   },
-  "profiles": {
-    "light": {
-      "config_version": "light-v1.0-20261021",
-      "enabled": true,
-      "note": "LIGHT direction score for the Sector watch names (score_wide.py, launchd com.oid.desk.score-wide). Research/log only. Copies this config and keeps only components_enabled on (same calculations, scales and weights as the core); combine() divides by the enabled weights only (1.00+0.75+0.75=2.50) so the score keeps the -3..+3 range. Add/drop inputs by editing components_enabled (optional per-input 'weights' / 'components' overrides), then bump config_version. Core settings and core files are never touched.",
-      "components_enabled": [
-        "trend",
-        "volume",
-        "market"
-      ],
-      "weights": {},
-      "components": {},
-      "change_refresh_s": 5,
-      "file_tag": "wide",
-      "exclude": [
-        "WDC",
-        "STX",
-        "SNDK"
-      ],
-      "universe": "~/oid-quote/wide-allowlist.json",
-      "sectors": "~/oid-live-page/wide-sectors.json",
-      "store": "~/oid-quote/cache/bars-wide/store",
-      "norms": "~/oid-quote/cache/bars-wide/live-norms-1m.json",
-      "v5_dir": "~/oid-data/archive-wide/volume_5s"
-    }
+  "market": {
+   "enabled": true,
+   "weight": 0.75,
+   "vix_scale_pct": 5.0,
+   "tide_scale_usd": 50000000,
+   "tide_window_min": 30
+  },
+  "news": {
+   "enabled": false,
+   "weight": 0.5,
+   "window_min": 60,
+   "net_scale": 4.0,
+   "x_weight": 0.5,
+   "source": "~/oid-desk/state/news/sentiment-YYYYMMDD.jsonl",
+   "note": "OPTIONAL, OFF (added 2026-10-20 per Jeffrey; do not enable without his OK). c = clamp(net 60-min news sentiment / net_scale, -1, 1); headlines -2..+2 each (FinBERT ProsusAI/finbert, lexicon fallback), X posts x0.5. Test with score_report.py --config on a copy with enabled=true."
   }
+ },
+ "staleness": {
+  "walls_stale_s": 1200,
+  "q_stale_walls": 0.5,
+  "flow_stale_s": 60,
+  "bars_stale_s": 180,
+  "vix_stale_s": 900,
+  "tide_stale_s": 1200,
+  "q_stale_other": 0.5
+ },
+ "cadence_pt": {
+  "anchors": [
+   "06:35",
+   "06:45",
+   "07:00",
+   "07:30",
+   "08:30",
+   "10:00",
+   "11:30",
+   "12:30"
+  ],
+  "grid_every_min": 15,
+  "grid_start": "06:45",
+  "grid_end": "12:45",
+  "vol_surge": true,
+  "badge_refresh_s": 60,
+  "change_refresh_s": 5
+ },
+ "horizons_min": [
+  5,
+  15,
+  30,
+  60,
+  120
+ ],
+ "extra_horizons": [
+  "close",
+  "next_open"
+ ],
+ "exclude": [
+  "VIX",
+  "WTI",
+  "BRENT"
+ ],
+ "changes": {
+  "enabled": true,
+  "note": "v1.1-20261020 (Jeffrey OK 2026-10-20): LOGGING ONLY, score math unchanged. Fast pass re-scores every cadence_pt.change_refresh_s on live price/1m bars/flow; writes ~/oid-data/score/changes-YYYYMMDD.jsonl on every score change and episodes-YYYYMMDD.jsonl when a score ends (score_changes.py). scores-*.jsonl slots, latest.json badge and outcomes grading unchanged.",
+  "buffer_band": 0.15,
+  "buffer_note": "COMPARISON-ONLY shadow: buffered_score moves only when raw clears the .5 cutoff by buffer_band; logged on change rows + episodes-buffered-*.jsonl. Raw score stays primary everywhere."
+ },
+ "profiles": {
+  "light": {
+   "config_version": "light-v1.0-20261021",
+   "enabled": true,
+   "note": "LIGHT direction score for the Sector watch names (score_wide.py, launchd com.oid.desk.score-wide). Research/log only. Copies this config and keeps only components_enabled on (same calculations, scales and weights as the core); combine() divides by the enabled weights only (1.00+0.75+0.75=2.50) so the score keeps the -3..+3 range. Add/drop inputs by editing components_enabled (optional per-input 'weights' / 'components' overrides), then bump config_version. Core settings and core files are never touched. WIDECP 2026-10-20: change/episode rows now also log the Sector watch C/P (15 s / 1 m, tick test), flow lean and wall room as CONTEXT; the light score itself is unchanged (trend, volume, market only).",
+   "components_enabled": [
+    "trend",
+    "volume",
+    "market"
+   ],
+   "weights": {},
+   "components": {},
+   "change_refresh_s": 5,
+   "file_tag": "wide",
+   "exclude": [
+    "WDC",
+    "STX",
+    "SNDK"
+   ],
+   "universe": "~/oid-quote/wide-allowlist.json",
+   "sectors": "~/oid-live-page/wide-sectors.json",
+   "store": "~/oid-quote/cache/bars-wide/store",
+   "norms": "~/oid-quote/cache/bars-wide/live-norms-1m.json",
+   "v5_dir": "~/oid-data/archive-wide/volume_5s"
+  },
+  "wide_full": {
+   "config_version": "widefull-v1.0-20261021",
+   "enabled": true,
+   "note": "FULL direction score for the Sector watch names (score_wide.py with OID_SCORE_PROFILE=wide_full, launchd com.oid.desk.score-widefull). Research/log only. All six core inputs with the core weights and math. flow = 1-min aggressor C/P from optflow-wide.json, classified by TICK TEST (trades only: no OPRA quotes for wide contracts), its quality multiplied by components.flow.q_tick. flip/walls = FlashAlpha levels from fa-walls-wide.json, which are pulled on surge only (<=30/day); names without levels log flip/walls as missing and the score shrinks toward 0 exactly as it does for a core name without walls. Added 2026-10-20 (WIDECP).",
+   "components_enabled": [
+    "flip",
+    "walls",
+    "volume",
+    "flow",
+    "trend",
+    "market"
+   ],
+   "weights": {},
+   "components": {
+    "flow": {
+     "q_tick": 0.5
+    }
+   },
+   "change_refresh_s": 5,
+   "file_tag": "widefull",
+   "exclude": [
+    "WDC",
+    "STX",
+    "SNDK"
+   ],
+   "universe": "~/oid-quote/wide-allowlist.json",
+   "sectors": "~/oid-live-page/wide-sectors.json",
+   "store": "~/oid-quote/cache/bars-wide/store",
+   "norms": "~/oid-quote/cache/bars-wide/live-norms-1m.json",
+   "v5_dir": "~/oid-data/archive-wide/volume_5s"
+  }
+ }
 }

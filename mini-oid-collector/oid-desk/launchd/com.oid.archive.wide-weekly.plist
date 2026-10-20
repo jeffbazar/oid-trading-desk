@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0"><dict>
+  <key>Label</key><string>com.oid.archive.wide-weekly</string>
+  <key>ProgramArguments</key><array>
+    <string>/Users/jake/oid-desk/venv/bin/python</string><string>-m</string><string>oid_archive.integrity</string><string>--delete</string>
+  </array>
+  <key>EnvironmentVariables</key><dict>
+    <key>PYTHONPATH</key><string>/Users/jake/oid-desk/app</string>
+    <key>OID_DATA_ROOT</key><string>/Users/jake/oid-data</string>
+    <key>OID_ARCHIVE_ROOT</key><string>/Users/jake/oid-data/archive-wide</string>
+    <key>OID_UNIVERSE_FILE</key><string>/Users/jake/oid-quote/wide-allowlist.json</string>
+    <key>OID_ARCHIVE_TAG</key><string>wide</string>
+    <key>PYTHONUNBUFFERED</key><string>1</string>
+  </dict>
+  <key>WorkingDirectory</key><string>/Users/jake/oid-data</string>
+  <key>StartCalendarInterval</key><array>
+    <dict><key>Weekday</key><integer>6</integer><key>Hour</key><integer>10</integer><key>Minute</key><integer>15</integer></dict>
+  </array>
+  <key>StandardOutPath</key><string>/Users/jake/oid-data/logs/com.oid.archive.wide-weekly.log</string>
+  <key>StandardErrorPath</key><string>/Users/jake/oid-data/logs/com.oid.archive.wide-weekly.log</string>
+  <key>LowPriorityIO</key><true/>
+  <key>Nice</key><integer>10</integer>
+  <key>ProcessType</key><string>Background</string>
+</dict></plist>

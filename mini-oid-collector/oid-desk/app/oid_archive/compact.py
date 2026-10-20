@@ -9,6 +9,7 @@ from __future__ import annotations
 import argparse
 import datetime as dt
 import json
+import os
 import sys
 from pathlib import Path
 from typing import Any, Optional
@@ -135,7 +136,8 @@ def main(argv=None) -> int:
         print(json.dumps({"skipped": "weekend"})); return 0
     date = a.date or today.strftime("%Y-%m-%d")
     res = run_pass(a.pass_name, date, rest=not a.no_rest)
-    atomic_write_json(data_root() / "state" / f"compact-{a.pass_name}-status.json", res)
+    tag = os.environ.get("OID_ARCHIVE_TAG", "")   # WIDECP: "wide" -> compact-wide-main-status.json (core status untouched)
+    atomic_write_json(data_root() / "state" / f"compact-{tag + '-' if tag else ''}{a.pass_name}-status.json", res)
     print(json.dumps(res, default=str))
     return 0 if not res["errors"] else 2
 

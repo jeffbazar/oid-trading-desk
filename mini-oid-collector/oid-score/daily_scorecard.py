@@ -349,9 +349,12 @@ def by_sector(eps):
     return res, cnt
 
 
-def light_card(date, tag="", episodes=None):
-    """LIGHT / Sector watch scorecard -> scorecard-wide-YYYYMMDD<tag>.json/.md (separate from the core card)."""
+def light_card(date, tag="", episodes=None, profile="light"):
+    """LIGHT / Sector watch scorecard -> scorecard-wide-YYYYMMDD<tag>.json/.md (separate from the core card).
+    WIDECP: profile="wide_full" -> scorecard-widefull-YYYYMMDD<tag>.json/.md from episodes-widefull-*.jsonl."""
     import score_wide as W
+    W.PROFILE = profile
+    full = profile != "light"
     cfg = L.load_config()
     P, paths = W.setup(cfg)
     ft = P["profile"].get("file_tag", "wide")
@@ -386,19 +389,29 @@ def light_card(date, tag="", episodes=None):
     res.update({"date": date, "source": f"episodes ({p.name})", "n_holds": len(eps), "generated_pt": L.pt_str(datetime.now().timestamp()),
                 "score_profile": P["score_profile"], "config_version": P["config_version"], "inputs": sorted(W.enabled(P)),
                 "price_bars": used,
-                "definitions": {"light_score": "trend 1.00 + volume 0.75 + market 0.75, same calculations as the core, divided by 2.50 (enabled weights), x4.5, clamped to ±3, rounded",
+                "definitions": {("full_score" if full else "light_score"): (
+                                    "all six core inputs (flip 1.00, trend 1.00, volume 0.75, walls 0.75, market 0.75, flow 0.50), core math; flow = 1-min TICK-TEST C/P with quality x0.5; flip/walls only for names with on-surge FlashAlpha levels (else missing -> shrinks toward 0)"
+                                    if full else "trend 1.00 + volume 0.75 + market 0.75, same calculations as the core, divided by 2.50 (enabled weights), x4.5, clamped to ±3, rounded"),
                                 "surge": "rvol_1m >= 3 at hold start (wide collector 1-min rvol)",
-                                "cp_agrees / wall_room / momentum": "not available for wide names: always 'missing' (kept so the sections line up with the core card)",
+                                "cp_agrees": "1-min (else 15 s) TICK-TEST aggressor C/P on the score's side (C/P > 1.10 call, < 0.91 put); logged from 2026-10-21, 'missing' before",
+                                "wall_room": "ATR to the on-surge FlashAlpha call/put wall; 'missing' for names without levels",
+                                "momentum": "the ACCEL/DECEL/RESUME engine does not run for wide names: always 'missing'",
                                 "stock_tape_agrees": "sign of the stock's own 60 s return = score sign",
                                 "market_agrees": "sign of mean SPY/QQQ 60 s return = score sign",
                                 "bars": "wide 5 s RTH bars where present, else 1-min bars from the wide store (coarser peak/trough/entry)"}})
-    note = (f"LIGHT score (profile {P['score_profile']} {P['config_version']}: trend + volume + market only, no flip/walls/options flow) "
-            f"for the Sector watch names. Price bars: {used['5s']} names on 5 s bars, {used['1m_fallback']} on 1-min fallback. "
-            "C/P, wall-room and momentum rows read 'missing' by design. Not directly comparable with the core card.")
+    if full:
+        note = (f"FULL score (profile {P['score_profile']} {P['config_version']}: all six inputs; options flow = tick-test C/P, flip/walls on-surge only) "
+                f"for the Sector watch names. Price bars: {used['5s']} names on 5 s bars, {used['1m_fallback']} on 1-min fallback. "
+                "Momentum rows read 'missing' by design. Not directly comparable with the core card.")
+    else:
+        note = (f"LIGHT score (profile {P['score_profile']} {P['config_version']}: trend + volume + market only, no flip/walls/options flow) "
+                f"for the Sector watch names. Price bars: {used['5s']} names on 5 s bars, {used['1m_fallback']} on 1-min fallback. "
+                "C/P and wall-room rows are context only (logged from 2026-10-21); momentum reads 'missing' by design. Not directly comparable with the core card.")
     base = L.OUT / f"scorecard-{ft}-{d}{tag}"
     Path(str(base) + ".json").write_text(json.dumps(res, indent=1), encoding="utf-8")
-    Path(str(base) + ".md").write_text(md(date, res["source"], res, len(eps), note, title="LIGHT direction score scorecard (Sector watch)"), encoding="utf-8")
-    print(f"light scorecard {date}: {len(eps)} holds -> {base}.json/.md")
+    Path(str(base) + ".md").write_text(md(date, res["source"], res, len(eps), note,
+                                          title=("FULL" if full else "LIGHT") + " direction score scorecard (Sector watch)"), encoding="utf-8")
+    print(f"{profile} scorecard {date}: {len(eps)} holds -> {base}.json/.md")
     return 0
 
 
@@ -408,7 +421,7 @@ def main():
     ap.add_argument("--episodes")
     ap.add_argument("--source", default="auto", choices=["auto", "episodes", "scores"])
     ap.add_argument("--tag", default="")
-    ap.add_argument("--profile", default="all", choices=["all", "core", "light"])
+    ap.add_argument("--profile", default="all", choices=["all", "core", "light", "wide_full"])
     ap.add_argument("--light-episodes")
     a = ap.parse_args()
     rc = 0
@@ -422,6 +435,15 @@ def main():
         except Exception as ex:  # the light card must never break the core card
             print(f"light scorecard failed: {type(ex).__name__}: {ex}")
             if a.profile == "light":
+                rc = 1
+    if a.profile in ("all", "wide_full"):   # WIDECP: second wide profile card; never breaks the others
+        try:
+            fr = light_card(a.date, a.tag, None, profile="wide_full")
+            if a.profile == "wide_full":
+                rc = fr
+        except Exception as ex:
+            print(f"wide_full scorecard failed: {type(ex).__name__}: {ex}")
+            if a.profile == "wide_full":
                 rc = 1
     return rc
 

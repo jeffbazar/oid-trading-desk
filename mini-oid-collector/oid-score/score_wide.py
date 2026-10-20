@@ -22,6 +22,15 @@ Writes (append-only, ~/oid-data/score):
   changes-wide-YYYYMMDD.jsonl, episodes-wide-YYYYMMDD.jsonl, episodes-wide-buffered-YYYYMMDD.jsonl (comparison-only shadow),
   changes-wide-state.json (restart-safe open holds), latest-wide.json (live page feed, every pass)
 Every row carries score_profile=light, profile_version, sector_id, sector.
+
+WIDECP (2026-10-20): second profile "wide_full" (launchd com.oid.desk.score-widefull, OID_SCORE_PROFILE=wide_full,
+file tag "widefull": changes-widefull-*, episodes-widefull-*, episodes-widefull-buffered-*, changes-widefull-state.json,
+latest-widefull.json). Same six inputs, weights and math as the core score:
+  flow  = the Sector watch 1-min aggressor C/P from optflow-wide.json (TICK-TEST classified, trades only), quality x q_tick 0.5
+  flip / walls = FlashAlpha levels from ~/oid-live-page/data/fa-walls-wide.json (fetched on surge only, within the FA budget);
+          names without levels log flip/walls as missing (shrinks the score toward 0, exactly like a core name without walls)
+Both profiles now log the same CONTEXT as the core on every change/episode: C/P 15 s / 1 m (+thin, prints, net), flow lean,
+room to the call/put wall in ATR and wall age (when levels exist). The light SCORE still uses only trend, volume and market.
 """
 import json, os, resource, sys, time, traceback, urllib.request
 from datetime import datetime
@@ -82,10 +91,13 @@ def enabled(P):
     return {k for k, sp in P["components"].items() if sp.get("enabled", True)}
 
 
-def score_row(sym, t, px, date, P, bars, atr, mkt, mode, extra=None):
-    """Same make_row/combine as the core, with no walls and no flow; logs only the profile's inputs."""
-    row = E.make_row(sym, t, float(px), date, P, bars, atr, None, None, mkt, mode, "fast", extra=extra)
+def score_row(sym, t, px, date, P, bars, atr, mkt, mode, extra=None, walls=None, flow=None):
+    """Same make_row/combine as the core; walls/flow are passed only when the profile enables them (light: never).
+    Logs only the profile's inputs."""
     on = enabled(P)
+    w = walls if ({"flip", "walls"} & on) else None
+    f = flow if "flow" in on else None
+    row = E.make_row(sym, t, float(px), date, P, bars, atr, w, f, mkt, mode, "fast", extra=extra)
     row["comps"] = {k: c for k, c in row["comps"].items() if k in on}
     row["missing"] = [k for k in row["missing"] if k in on]
     row["stale"] = [k for k in row["stale"] if k in on]
@@ -93,10 +105,43 @@ def score_row(sym, t, px, date, P, bars, atr, mkt, mode, extra=None):
     return row
 
 
-def ctx_for(sym, t, px, atr, rvol_1m, ring, extra=None):
-    """Same context as the core change rows; flow/walls/momentum are not available for wide names (logged as missing)."""
-    return SC.build_ctx(sym, t, px, atr, None, rvol_1m, None, {"state": None, "note": "momentum not tracked for wide names"},
+def ctx_for(sym, t, px, atr, rvol_1m, ring, extra=None, flow=None, walls=None):
+    """Same context as the core change rows. flow = tick-test C/P from the wide live row (WIDECP); walls = on-surge FA levels;
+    the momentum engine (ACCEL/DECEL/RESUME) does not run for wide names (logged as state None)."""
+    return SC.build_ctx(sym, t, px, atr, flow, rvol_1m, walls, {"state": None, "note": "momentum not tracked for wide names"},
                         ring, extra=extra)
+
+
+def flow_ctx(wr):
+    """WIDECP: context flow block from a wide live-page row (same keys as SC.ctx_live), or None when no C/P."""
+    a15, a60 = wr.get("af15") or {}, wr.get("af60") or {}
+    if not (a15 or a60):
+        return None
+    return {"cp_15s": a15.get("cp"), "thin_15s": a15.get("thin"), "net_k_15s": a15.get("net_k"), "n_15s": a15.get("n"),
+            "cp_60s": a60.get("cp"), "thin_60s": a60.get("thin"), "net_k_60s": a60.get("net_k"), "n_60s": a60.get("n"),
+            "age_s": wr.get("af_age"), "stale": wr.get("af_stale"), "uw_cp": None, "lean5": None, "lean15": None, "ask_lean": None,
+            "lean": wr.get("fl"), "cls": "tick", "contracts": wr.get("af_n"), "src": "live_page_wide"}
+
+
+def score_flow(wr, t, P):
+    """WIDECP: score flow input (1-min tick-test C/P) via the core flow_from_row, re-labelled cls=tick."""
+    if not (wr.get("af60") or {}).get("cp"):
+        return {"x": None, "f": {"missing": True, "why": "no aggressor C/P for symbol"}}
+    fl = L.flow_from_row({"af60": wr.get("af60"), "af_age": wr.get("af_age"), "af_stale": wr.get("af_stale")}, t, P)
+    if not (fl.get("f") or {}).get("missing"):
+        fl["f"]["src"] = "alpaca-opra-tick-1m"
+        fl["f"]["cls"] = "tick"
+    return fl
+
+
+def walls_of(wr, t, P):
+    """WIDECP: FA levels from the wide live row ("w": cw/pw/gf, ts epoch, gs flip status) -> score/ctx walls dict, else None."""
+    w = wr.get("w") or {}
+    if not w or w.get("ts") is None or (w.get("cw") is None and w.get("pw") is None and w.get("gf") is None):
+        return None
+    age = round(t - w["ts"])
+    return {"cw": w.get("cw"), "pw": w.get("pw"), "gf": w.get("gf"), "gf_ok": w.get("gs") == "available", "gf_status": w.get("gs"),
+            "stale": age > P.get("staleness", {}).get("walls_stale_s", 1200), "age_s": age, "src": "fa-walls-wide", "as_of_pt": w.get("t")}
 
 
 def synth_1m_as_5s(bars1m, norms_sym):
@@ -272,17 +317,21 @@ def main():
                 if px is None or not ctx.atr.get(s):
                     continue
                 rv = wr.get("r") if wr.get("r") is not None else (lb[7] if lb else None)
+                wl = walls_of(wr, now, P)
                 row = score_row(s, now, px, date, P, ctx.bars.get(s), ctx.atr.get(s), mkt, "live",
-                                extra={"rvol_1m": rv, "day_rvol": wr.get("dr"), "chg_pct": wr.get("c")})
+                                extra={"rvol_1m": rv, "day_rvol": wr.get("dr"), "chg_pct": wr.get("c")},
+                                walls=wl, flow=score_flow(wr, now, P))
                 cx = ctx_for(s, now, row["px"], row.get("atr"), rv, ring,
-                             extra={"day_rvol": wr.get("dr"), "chg_pct": wr.get("c"), "px_src": "live_last" if wr.get("m") == "L" and wr.get("p") else "5s_close"})
+                             extra={"day_rvol": wr.get("dr"), "chg_pct": wr.get("c"), "px_src": "live_last" if wr.get("m") == "L" and wr.get("p") else "5s_close",
+                                    "vdir": wr.get("vdir"), "cpdir": wr.get("cpdir")},
+                             flow=flow_ctx(wr), walls=wl)
                 trk.observe(date, now, s, row["px"], row, cx, P["config_version"])
                 e = trk.ep.get(s) or {}
                 badge[s] = {"s": row["score"], "raw": row["raw"], "cov": row["coverage"], "since_t": round(e["t0"], 1) if e.get("t0") else None,
                             "comps": {k: [c["c"], c["q"], c["w"]] for k, c in row["comps"].items()}, "missing": row["missing"],
                             "sector_id": fn(s).get("sector_id")}
             trk.save(now)
-            save_json(L.OUT / "latest-wide.json", {"as_of": round(now, 1), "as_of_pt": L.pt_str(now), "kind": "light_live",
+            save_json(L.OUT / f"latest-{P['profile'].get('file_tag', 'wide')}.json", {"as_of": round(now, 1), "as_of_pt": L.pt_str(now), "kind": f"{P['score_profile']}_live",
                                                    "score_profile": P["score_profile"], "config_version": P["config_version"],
                                                    "inputs": sorted(enabled(P)), "refresh_s": fs, "raw_unsmoothed": True,
                                                    "n": len(badge), "by_sym": badge})

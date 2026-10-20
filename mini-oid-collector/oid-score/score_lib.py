@@ -262,6 +262,8 @@ def q_from_f(name, f, cfg):
     elif name == "flow":
         if f.get("src") == "uw":
             q *= p.get("q_uw", 0.5)
+        if f.get("cls") == "tick":   # WIDECP: Sector watch C/P is tick-test classified (no quotes); core rows never carry cls
+            q *= p.get("q_tick", 0.5)
         if f.get("stale"):
             q *= s.get("q_stale_other", 0.5)
     elif name == "market":

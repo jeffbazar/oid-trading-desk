@@ -71,6 +71,9 @@ WIDE_MOVE_PCT = 3.0       # |% change vs prior close| >= this -> mover flag
 WIDE_BATCH_S = 15 * 60    # sector alert batch window
 WIDE_WALLS_MAX_AGE_S = 8 * 3600
 WIDE_LIGHT_FILE = Path(os.environ.get("OID_LIVEPAGE_WIDE_SCORE", str(HOME / "oid-data/score/latest-wide.json")))  # LIGHT score (com.oid.desk.score-wide)
+WIDE_OPTFLOW_FILE = Path(os.environ.get("OID_LIVEPAGE_WIDE_OPTFLOW", str(HOME / "oid-optflow/data/optflow-wide.json")))  # WIDECP: trades-only tick-test C/P
+WIDE_FULL_FILE = Path(os.environ.get("OID_LIVEPAGE_WIDE_FULL", str(HOME / "oid-data/score/latest-widefull.json")))  # WIDECP: full score, 2nd wide profile
+WIDE_CP_BAND = 1.10          # WIDECP flow lean: 1m (else 15s) C/P > 1.10 CALL, < 1/1.10 PUT, else FLAT (same band as the score context)
 WIDE_LIGHT_STALE_S = 30      # light feed older than this -> chip greyed
 WIDE_LIGHT_MAX_AGE_S = 900   # older than this -> chip hidden
 
@@ -1125,6 +1128,9 @@ class WideWatch:
         self.prev_m, self.prev = {}, {}     # sym -> store mtime, {date: last close}
         self.walls_m, self.walls = None, {}
         self.light_m, self.light = None, {}  # LIGHT: latest-wide.json (raw, unsmoothed light direction score, 5 s)
+        self.full_m, self.full = None, {}    # WIDECP: latest-widefull.json (full score, wide_full profile)
+        self.cpdir = None                    # WIDECP: own CpDir (C/P now vs ~60 s ago), created lazily
+        self.of_meta = None
         self.flags = {}                     # sym -> (surge, mover) last tick (RTH crossings -> events)
         self.events = []                    # [{sym, sector, kind, t, time_pt, rvol, chg}]
         self.err = None
@@ -1193,6 +1199,78 @@ class WideWatch:
                 pass
             self.light_m = m
 
+    def _full(self):
+        try:
+            m = WIDE_FULL_FILE.stat().st_mtime
+        except OSError:
+            self.full = {}
+            return
+        if m != self.full_m:
+            try:
+                self.full = json.loads(WIDE_FULL_FILE.read_text())
+            except Exception:
+                pass
+            self.full_m = m
+
+    def _full_row(self, sym, now):
+        """WIDECP: full direction score (wide_full profile) {s, raw, h, st, cov, mi: missing inputs} or None. Research only."""
+        F = self.full or {}
+        x = (F.get("by_sym") or {}).get(sym)
+        age = now - (F.get("as_of") or 0)
+        if not x or age > WIDE_LIGHT_MAX_AGE_S:
+            return None
+        return {"s": x.get("s"), "raw": x.get("raw"), "h": round(now - x["since_t"]) if x.get("since_t") else None,
+                "st": age > WIDE_LIGHT_STALE_S, "cov": x.get("cov"), "mi": x.get("missing")}
+
+    def _optflow(self, now):
+        """WIDECP: ~/oid-optflow/data/optflow-wide.json (every 1 s; trades-only, tick-test classification)."""
+        try:
+            d = json.loads(WIDE_OPTFLOW_FILE.read_text())
+        except Exception:
+            self.of_meta = None
+            return {}
+        age = now - float(d.get("computed_epoch") or 0)
+        self.of_meta = {"computed_at": d.get("computed_at"), "age_s": round(age, 2), "subs": d.get("subs"), "cls": "tick",
+                        "ws": (d.get("ws") or {}).get("state")}
+        return (d.get("underlyings") or {}) if age < 10 else {}
+
+    @staticmethod
+    def _af(a, rth, now):
+        """WIDECP: same chip fields as the core rows (af15/af60/af_age/af_stale/af_n) from one optflow-wide entry."""
+        if not a:
+            return {"af15": None, "af60": None, "af_age": None, "af_stale": True, "af_n": None}
+
+        def _c(w):
+            w = a.get(w) or {}
+            out = {"cp": w.get("cp_buy"), "net_k": round((w.get("net") or 0) / 1000, 1), "cov": w.get("coverage"),
+                   "n": w.get("n"), "thin": bool(w.get("thin", True)), "cb_k": round((w.get("cb") or 0) / 1000, 1),
+                   "pb_k": round((w.get("pb") or 0) / 1000, 1), "cls": "tick"}
+            return out
+        r = {"af15": _c("15s"), "af60": _c("60s")}
+        mo = a.get("mom") or {}
+        for k, w in (("af15", "15s"), ("af60", "60s")):
+            m = mo.get(w)
+            if m:
+                r[k].update({"md": m.get("d"), "ms": m.get("s"), "mh": m.get("h"), "mrr": bool(m.get("rr"))})
+        lr = a.get("last_recv")
+        try:
+            r["af_age"] = round(now - datetime.fromisoformat(lr).timestamp(), 1) if lr else None
+        except Exception:
+            r["af_age"] = None
+        r["af_stale"] = bool(rth and (r["af_age"] is None or r["af_age"] > OPTFLOW_STALE_S))
+        r["af_n"] = a.get("contracts")
+        return r
+
+    @staticmethod
+    def _lean(af):
+        """WIDECP flow lean from the aggressor C/P: 1m window first, else 15 s; thin windows give no lean."""
+        for k in ("af60", "af15"):
+            w = af.get(k) or {}
+            cp = w.get("cp")
+            if cp is not None and not w.get("thin", True):
+                return "CALL" if cp > WIDE_CP_BAND else "PUT" if cp < 1.0 / WIDE_CP_BAND else "FLAT"
+        return None
+
     def _light_row(self, sym, now):
         """LIGHT: {s: score -3..+3, raw, h: seconds the score has held, st: feed stale} or None. Research only."""
         L = self.light or {}
@@ -1208,7 +1286,8 @@ class WideWatch:
         if not r or now - r["t"] > WIDE_WALLS_MAX_AGE_S:
             return None
         wdate = datetime.fromtimestamp(r["t"], ET).strftime("%Y-%m-%d")
-        out = {"t": datetime.fromtimestamp(r["t"], PT).strftime("%-I:%M %p PT"), "st": bool(et_date and wdate < str(et_date)) or now - r["t"] > 3600}
+        out = {"t": datetime.fromtimestamp(r["t"], PT).strftime("%-I:%M %p PT"), "st": bool(et_date and wdate < str(et_date)) or now - r["t"] > 3600,
+               "ts": round(r["t"], 1), "gs": r.get("gf_status")}   # WIDECP: epoch + flip status for the wide_full score
         for k in ("cw", "pw", "gf"):
             px = r.get(k)
             if px is not None:
@@ -1235,8 +1314,20 @@ class WideWatch:
             self._light()
         except Exception:
             self.light = {}
+        try:
+            self._full()
+        except Exception:
+            self.full = {}
         live, last_s = raw.get("symbols") or {}, raw.get("last_session") or {}
         rth = raw.get("session") == "RTH"
+        try:
+            of = self._optflow(now)
+        except Exception:
+            of = {}
+        if self.cpdir is None:
+            self.cpdir = CpDir()
+        if not rth:
+            self.cpdir.h.clear()
         et_date = raw.get("et_date")
         groups, n_live, cross = [], 0, []
         for g in self.groups:
@@ -1261,6 +1352,16 @@ class WideWatch:
                 i = self.info.get(sym) or {}
                 row = {"s": sym, "p": rnd(last, 4), "c": chg, "r": rv, "dr": drv, "sg": sg, "mv": mv, "m": mode, "d": d,
                        "i": i.get("industry"), "w": self._wall_row(sym, last, now, et_date), "ls": self._light_row(sym, now)}
+                try:  # WIDECP: aggressor C/P chips, C/P direction, flow lean, volume direction, full score
+                    af = self._af(of.get(sym), rth, now)
+                    row.update(af)
+                    row["fl"] = self._lean(af)
+                    row["cpdir"] = self.cpdir.update({"sym": sym, **af}, now) if (rth and (af.get("af15") or af.get("af60"))) else None
+                    row["vdir"] = vol_dir(v) if (rth and use_live and v) else None
+                    row["fs"] = self._full_row(sym, now)
+                except Exception as e:
+                    row["fs"] = None
+                    self.err = self.err or f"wide C/P error ({type(e).__name__})"
                 rows.append(row)
                 p_sg, p_mv = self.flags.get(sym, (False, False))
                 if rth and ((sg and not p_sg) or (mv and not p_mv)):
@@ -1290,6 +1391,9 @@ class WideWatch:
                         "walls_n": sum(1 for g in groups for r in g["rows"] if r["w"]),
                         "light": {"cfg": (self.light or {}).get("config_version"), "as_of_pt": (self.light or {}).get("as_of_pt"),
                                   "n": sum(1 for g in groups for r in g["rows"] if r.get("ls"))},
+                        "full": {"cfg": (self.full or {}).get("config_version"), "as_of_pt": (self.full or {}).get("as_of_pt"),
+                                 "n": sum(1 for g in groups for r in g["rows"] if r.get("fs"))},
+                        "optflow": self.of_meta, "cp_n": sum(1 for g in groups for r in g["rows"] if r.get("af15") or r.get("af60")),
                         "groups": groups, "alerts": alerts,
                         "surging": [r["s"] for g in groups for r in g["rows"] if r["sg"] or (rth and r["mv"])]}
         return True

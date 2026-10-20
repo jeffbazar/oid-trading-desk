@@ -13,6 +13,15 @@ Separate process + separate websocket from oid-quote-collector (:8787). Never pl
     ((call buy - call sell) - (put buy - put sell)), contracts, and a 'strict' (ask/bid-only) variant.
   - Serves  http://127.0.0.1:8792/v1/optflow  (+ /v1/health, /v1/recent?sym=)  and writes
     ~/oid-optflow/data/optflow.json atomically every second.
+
+WIDE tier (v0.4.0, 2026-10-20): the 144 Sector watch names (~/oid-quote/wide-allowlist.json, minus core, minus
+WDC/STX/SNDK) ride the SAME websocket as TRADES ONLY (Alpaca caps option QUOTE subscriptions at 1,000 per connection,
+the core uses 900 of them, and the account allows only 2 OPRA connections, both in use; trade subscriptions have no
+cap - probed 2026-10-20). With no NBBO for those contracts, a wide print is classified by the TICK TEST only
+(price above the contract's previous print = buy, below = sell, equal = previous side, first print = neutral).
+Everything else (15 s / 60 s windows, C/P, net, momentum slots) is the same code. Wide output goes to separate files so
+core consumers are untouched:  data/optflow-wide.json (every 1 s) and data/cp-history-wide/YYYY-MM-DD.jsonl (15 s).
+Every wide window carries cls="tick". Kill switch: OID_OPTFLOW_WIDE=0.
 """
 from __future__ import annotations
 import asyncio, gzip, json, logging, math, os, queue, re, signal, ssl, statistics, sys, threading, time
@@ -63,6 +72,16 @@ L_CAP = math.log(10)
 DB = {"15s": (float(os.environ.get("OID_OPTFLOW_DB15_IN", "0.35")), float(os.environ.get("OID_OPTFLOW_DB15_OUT", "0.20"))),
       "60s": (float(os.environ.get("OID_OPTFLOW_DB60_IN", "0.20")), float(os.environ.get("OID_OPTFLOW_DB60_OUT", "0.10")))}
 WKEYS = {"15s": "15", "60s": "60"}
+# --- WIDE tier (trades only, tick-test classification)
+WIDE_ON = os.environ.get("OID_OPTFLOW_WIDE", "1") != "0"
+WIDE_ALLOWLIST = Path(os.environ.get("OID_OPTFLOW_WIDE_ALLOWLIST", str(HOME / "oid-quote/wide-allowlist.json")))
+WIDE_BUDGET = int(os.environ.get("OID_OPTFLOW_WIDE_BUDGET", "3000"))   # trade-only subscriptions (no Alpaca cap)
+WIDE_CAP, WIDE_FLOOR = 40, 4
+WIDE_EXCLUDE = {"WDC", "STX", "SNDK"}
+WIDE_OUT = ROOT / "data/optflow-wide.json"
+WIDE_SUBS_OUT = ROOT / "data/optflow-wide-subs.json"
+HIST_DIR_WIDE = ROOT / "data/cp-history-wide"
+VERSION = "0.4.0"
 
 
 def _logratio(cb, pb):
@@ -139,9 +158,21 @@ def underlyings():
         return ["SPY", "QQQ", "NVDA"]
 
 
+def wide_underlyings():
+    """WIDE: Sector watch names, minus anything in the core allowlist, minus WDC/STX/SNDK."""
+    try:
+        d = json.loads(WIDE_ALLOWLIST.read_text())
+        syms = [(x if isinstance(x, str) else (x or {}).get("symbol")) for x in d.get("symbols", [])]
+    except Exception as e:  # pragma: no cover
+        log.warning("wide allowlist read failed: %s", e)
+        return []
+    core = set(underlyings())
+    return sorted({s for s in syms if s and s not in core and s not in WIDE_EXCLUDE})
+
+
 # ----------------------------------------------------------------------------- selection
-def select_contracts(budget=BUDGET):
-    syms = underlyings()
+def select_contracts(budget=BUDGET, syms=None, floor=4, cap=110):
+    syms = underlyings() if syms is None else syms
     today = datetime.now(ET).date()
     spots = {}
     for i in range(0, len(syms), 50):
@@ -193,7 +224,6 @@ def select_contracts(budget=BUDGET):
     # allocate budget proportional to sqrt(window premium) with floor/cap
     w = {s: max(sum(r["prem"] for r in rows), sum(r["prev"] for r in rows) * 50.0, 1.0) ** 0.5 for s, rows in per.items()}
     W = sum(w.values()) or 1.0
-    floor, cap = 4, 110
     alloc = {s: max(floor, min(cap, int(round(budget * w[s] / W)))) for s in per}
     while sum(alloc.values()) > budget:
         big = max(alloc, key=lambda s: alloc[s]); alloc[big] -= 1
@@ -260,6 +290,11 @@ class State:
         self.histq: queue.Queue = queue.Queue(maxsize=200)
         self.subs_ready_at = None  # OPTMOM2: first non-empty subscription ack on this connection
         self.day_date_seen = False  # OPTMOM3
+        self.wide: set[str] = set()          # WIDE: underlyings classified by tick test (trades only)
+        self.wide_subs: list[str] = []
+        self.wide_coverage = {}
+        self.wide_selected_at = None
+        self.wide_snapshot = {}
 
     # --- classification
     def classify(self, sym, p, exch):
@@ -298,6 +333,17 @@ class State:
                 how = "neutral"
         return side, how
 
+    def classify_tick(self, sym, p):
+        """WIDE: tick test only (no NBBO subscribed for wide contracts)."""
+        lp = self.last_px.get(sym)
+        if lp is not None and p > lp:
+            return 1, "tick"
+        if lp is not None and p < lp:
+            return -1, "tick"
+        if lp is not None and self.last_side.get(sym):
+            return self.last_side[sym], "tick0"
+        return 0, "neutral"
+
     def on_trade(self, m, recv):
         sym = m.get("S"); p = m.get("p"); sz = m.get("s") or 0
         if not sym or p is None:
@@ -308,22 +354,24 @@ class State:
         und, cp = mm.group(1), mm.group(3)
         exch = _ts(m.get("t"))
         cond = m.get("c") or ""
-        self.counts["trades"] += 1
+        wide = und in self.wide
+        self.counts["wide_trades" if wide else "trades"] += 1
         if exch:
             self.lat.append((recv, recv - exch))
             self.last_trade[und] = (exch, recv)
         prem = float(p) * sz * 100.0
+        pre = "wide_" if wide else ""
         if any(ch in CANCEL_LATE for ch in cond):
-            self.counts["excl_cancel_late"] += 1; return
+            self.counts[pre + "excl_cancel_late"] += 1; return
         if any(ch in MULTI_COND or ch in STOCKOPT_COND for ch in cond):
-            self.counts["excl_complex"] += 1
+            self.counts[pre + "excl_complex"] += 1
             self.events[und].append((recv, cp, 0, prem, sz, "complex"))
             return
-        side, how = self.classify(sym, float(p), exch)
+        side, how = self.classify_tick(sym, float(p)) if wide else self.classify(sym, float(p), exch)
         self.last_px[sym] = float(p)
         if side:
             self.last_side[sym] = side
-        self.counts["cls_" + how] += 1
+        self.counts[pre + "cls_" + how] += 1
         self.events[und].append((recv, cp, side, prem, sz, how))
         self.recent[und].append({"S": sym, "t": _iso(exch), "recv": _iso(recv), "lag_ms": round((recv - exch) * 1000, 1) if exch else None,
                                  "p": p, "s": sz, "c": cond, "side": side, "how": how,
@@ -382,7 +430,11 @@ class State:
             lt = self.last_trade.get(und)
             res["last_trade_t"] = _iso(lt[0]) if lt else None
             res["last_recv"] = _iso(lt[1]) if lt else None
-            res["contracts"] = (self.coverage.get(und) or {}).get("n")
+            res["contracts"] = ((self.wide_coverage if und in self.wide else self.coverage).get(und) or {}).get("n")
+            if und in self.wide:
+                res["tier"], res["cls"] = "wide", "tick"
+                for k in ("15s", "60s", "day"):
+                    res[k]["cls"] = "tick"
             out[und] = res
         if MOMENTUM:  # OPTMOM
             try:
@@ -399,8 +451,23 @@ class State:
             lagstat = {"n": len(ls), "p50_ms": round(ls[len(ls) // 2] * 1000, 1),
                        "p95_ms": round(ls[min(len(ls) - 1, int(len(ls) * 0.95))] * 1000, 1),
                        "max_ms": round(ls[-1] * 1000, 1)}
+        if WIDE_ON:  # WIDE: separate file / snapshot; the core snapshot keeps only core names
+            wout = {u: out.pop(u) for u in list(out) if u in self.wide}
+            self.wide_snapshot = {
+                "service": "oid-optflow", "version": VERSION, "tier": "wide", "source": "alpaca-opra-ws (trades only)",
+                "computed_at": _iso(now), "computed_epoch": round(now, 3),
+                "ws": {"state": self.ws_state, "connected_at": _iso(self.ws_connected_at),
+                       "last_msg_age_s": round(now - self.ws_last_msg, 2) if self.ws_last_msg else None},
+                "subs": len(self.wide_subs), "selected_at": _iso(self.wide_selected_at),
+                "counts": {k: v for k, v in self.counts.items() if k.startswith("wide_")},
+                "method": "TICK TEST ONLY (no OPRA quotes for wide contracts: Alpaca 1,000-quote cap per connection is used by the core): "
+                          "print above the contract's previous print = buy, below = sell, equal = previous side, first print of the day = neutral; "
+                          "multi-leg + stock-tied (complex), cancel/late excluded. Same 15 s / 60 s windows, C/P, net and momentum as the core.",
+                "momentum": ({"enabled": True, "hist_n": HIST_N, "sample_s": SAMPLE_S, "deadband": DB} if MOMENTUM else {"enabled": False}),
+                "thin_prints": THIN_PRINTS, "underlyings": wout,
+            }
         self.snapshot = {
-            "service": "oid-optflow", "version": "0.3.0", "source": "alpaca-opra-ws",
+            "service": "oid-optflow", "version": VERSION, "source": "alpaca-opra-ws",
             "computed_at": _iso(now), "computed_epoch": round(now, 3),
             "ws": {"state": self.ws_state, "connected_at": _iso(self.ws_connected_at),
                    "last_msg_age_s": round(now - self.ws_last_msg, 2) if self.ws_last_msg else None},
@@ -459,9 +526,13 @@ class State:
             line[und] = lu
             self.mom[und] = {w: self.momentum(und, w) for w in WKEYS}
         if HIST_LOG and _rth(b):
+            wl = {u: line.pop(u) for u in list(line) if u in self.wide}   # WIDE: own file
             try:
                 self.histq.put_nowait({"t": b, "pt": datetime.fromtimestamp(b, PT).strftime("%H:%M:%S"),
                                        "sel": _iso(self.selected_at), "u": line})
+                if wl:
+                    self.histq.put_nowait({"t": b, "pt": datetime.fromtimestamp(b, PT).strftime("%H:%M:%S"),
+                                           "sel": _iso(self.wide_selected_at), "tier": "wide", "cls": "tick", "u": wl})
             except queue.Full:
                 pass
 
@@ -519,8 +590,10 @@ class Stream:
     def __init__(self, st: State):
         self.st = st
         self.ws = None
-        self.want: set[str] = set()
-        self.have: set[str] = set()
+        self.want: set[str] = set()        # core: quotes + trades
+        self.want_wide: set[str] = set()   # WIDE: trades only
+        self.have_q: set[str] = set()
+        self.have_t: set[str] = set()
         self.lock = asyncio.Lock()
 
     async def send(self, obj):
@@ -530,15 +603,22 @@ class Stream:
         if not self.ws or self.st.ws_state != "subscribed_ready":
             return
         async with self.lock:
-            add = sorted(self.want - self.have); rem = sorted(self.have - self.want)
-            for i in range(0, len(rem), 200):
-                ch = rem[i:i + 200]
-                await self.send({"action": "unsubscribe", "quotes": ch, "trades": ch})
-            for i in range(0, len(add), 200):
-                ch = add[i:i + 200]
+            want_t = self.want | (self.want_wide if WIDE_ON else set())
+            rem_q = sorted(self.have_q - self.want); rem_t = sorted(self.have_t - want_t)
+            add_core = sorted(self.want - (self.have_q & self.have_t))
+            add_t = sorted(want_t - self.have_t - set(add_core))
+            for i in range(0, len(rem_q), 200):
+                await self.send({"action": "unsubscribe", "quotes": rem_q[i:i + 200]})
+            for i in range(0, len(rem_t), 200):
+                await self.send({"action": "unsubscribe", "trades": rem_t[i:i + 200]})
+            for i in range(0, len(add_core), 200):
+                ch = add_core[i:i + 200]
                 await self.send({"action": "subscribe", "quotes": ch, "trades": ch})
-            if add or rem:
-                log.info("subscribe +%d -%d (want=%d)", len(add), len(rem), len(self.want))
+            for i in range(0, len(add_t), 200):   # WIDE: trades only, never quotes
+                await self.send({"action": "subscribe", "trades": add_t[i:i + 200]})
+            if add_core or add_t or rem_q or rem_t:
+                log.info("subscribe core +%d, trades-only +%d, -%dq -%dt (want core=%d wide=%d)",
+                         len(add_core), len(add_t), len(rem_q), len(rem_t), len(self.want), len(self.want_wide))
 
     async def run(self):
         backoff = 2
@@ -553,7 +633,7 @@ class Stream:
                 async with aiohttp.ClientSession() as sess:
                     async with sess.ws_connect(WS_URL, headers={"Content-Type": "application/msgpack"},
                                                heartbeat=20, ssl=ssl_ctx, max_msg_size=0) as ws:
-                        self.ws = ws; self.have = set(); self.st.ws_state = "connected"; self.st.subs_ready_at = None  # OPTMOM2
+                        self.ws = ws; self.have_q = set(); self.have_t = set(); self.st.ws_state = "connected"; self.st.subs_ready_at = None  # OPTMOM2
                         async for msg in ws:
                             if msg.type != aiohttp.WSMsgType.BINARY:
                                 if msg.type in (aiohttp.WSMsgType.CLOSED, aiohttp.WSMsgType.ERROR):
@@ -577,9 +657,9 @@ class Stream:
                                     log.info("authenticated on %s", WS_URL)
                                     await self.sync_subs()
                                 elif T == "subscription":
-                                    _had = bool(self.have)
-                                    self.have = set(m.get("quotes") or []) & set(m.get("trades") or [])
-                                    if self.have and not _had:
+                                    _had = bool(self.have_q)
+                                    self.have_q = set(m.get("quotes") or []); self.have_t = set(m.get("trades") or [])
+                                    if self.have_q and not _had:
                                         self.st.subs_ready_at = recv  # OPTMOM2
                                     log.info("subscription now quotes=%d trades=%d", len(m.get("quotes") or []), len(m.get("trades") or []))
                                 elif T == "error":
@@ -587,8 +667,11 @@ class Stream:
                                     self.st.ws_errors.append({"at": _iso(recv), **{k: m.get(k) for k in ("code", "msg")}})
                                     if m.get("code") in (406, 402, 409):
                                         backoff = 60
-                                    if m.get("code") == 405:  # symbol limit: shrink the budget
-                                        self.want = set(sorted(self.want)[: int(len(self.want) * 0.8)])
+                                    if m.get("code") == 405:  # symbol limit: shrink WIDE first (trades-only), core only if no wide left
+                                        if self.want_wide:
+                                            self.want_wide = set(sorted(self.want_wide)[: int(len(self.want_wide) * 0.8)])
+                                        else:
+                                            self.want = set(sorted(self.want)[: int(len(self.want) * 0.8)])
             except Exception as e:
                 log.warning("ws error: %s", e)
                 self.st.ws_errors.append({"at": _iso(time.time()), "msg": str(e)[:200]})
@@ -628,6 +711,30 @@ async def selector():
         await asyncio.sleep(RESELECT_S)
 
 
+async def selector_wide():
+    """WIDE: trades-only contract set for the Sector watch names (own loop so core selection is never delayed)."""
+    if not WIDE_ON:
+        return
+    loop = asyncio.get_running_loop()
+    await asyncio.sleep(45)
+    while True:
+        try:
+            syms = await loop.run_in_executor(None, wide_underlyings)
+            ST.wide = set(syms)
+            chosen, cov = await loop.run_in_executor(None, lambda: select_contracts(WIDE_BUDGET, syms, WIDE_FLOOR, WIDE_CAP))
+            if chosen:
+                ST.wide_subs = chosen; ST.wide_coverage = cov; ST.wide_selected_at = time.time()
+                STREAM.want_wide = set(chosen) - STREAM.want
+                WIDE_SUBS_OUT.write_text(json.dumps({"selected_at": _iso(ST.wide_selected_at), "budget": WIDE_BUDGET, "max_dte": MAX_DTE,
+                                                     "channels": ["trades"], "cls": "tick", "n": len(chosen), "underlyings": len(syms),
+                                                     "coverage": cov, "contracts": chosen}, indent=1))
+                log.info("WIDE selected %d trade-only contracts across %d underlyings", len(chosen), len(cov))
+                await STREAM.sync_subs()
+        except Exception as e:
+            log.exception("wide selector failed: %s", e)
+        await asyncio.sleep(RESELECT_S)
+
+
 async def writer():
     while True:
         t0 = time.time()
@@ -636,16 +743,25 @@ async def writer():
             tmp = OUT.with_suffix(".tmp")
             tmp.write_text(json.dumps(snap, separators=(",", ":")))
             os.replace(tmp, OUT)
+            if WIDE_ON and ST.wide_snapshot:
+                tmp = WIDE_OUT.with_suffix(".tmp")
+                tmp.write_text(json.dumps(ST.wide_snapshot, separators=(",", ":")))
+                os.replace(tmp, WIDE_OUT)
         except Exception as e:
             log.exception("writer: %s", e)
         await asyncio.sleep(max(0.05, 1.0 - (time.time() - t0)))
 
 
-def _hist_rotate():
+def _hist_rotate(hdir=None):
     """OPTMOM: gzip non-today JSONL, delete gz older than HIST_KEEP_D days."""
-    HIST_DIR.mkdir(parents=True, exist_ok=True)
+    if hdir is None:
+        for h in ((HIST_DIR, HIST_DIR_WIDE) if WIDE_ON else (HIST_DIR,)):
+            _hist_rotate(h)
+        return
+    HIST_DIR_ = hdir
+    HIST_DIR_.mkdir(parents=True, exist_ok=True)
     today = datetime.now(ET).date()
-    for f in HIST_DIR.glob("*.jsonl"):
+    for f in HIST_DIR_.glob("*.jsonl"):
         try:
             if date.fromisoformat(f.stem) < today:
                 with open(f, "rb") as src, gzip.open(str(f) + ".gz", "wb") as dst:
@@ -653,7 +769,7 @@ def _hist_rotate():
                 f.unlink()
         except Exception as e:
             log.warning("hist rotate %s: %s", f.name, e)
-    for f in HIST_DIR.glob("*.jsonl.gz"):
+    for f in HIST_DIR_.glob("*.jsonl.gz"):
         try:
             if (today - date.fromisoformat(f.name[:10])).days > HIST_KEEP_D:
                 f.unlink()
@@ -667,22 +783,28 @@ def _hist_thread():
         rec = ST.histq.get()
         try:
             day = datetime.fromtimestamp(rec["t"], ET).date().isoformat()
-            f = HIST_DIR / f"{day}.jsonl"
+            wide = rec.get("tier") == "wide"
+            f = (HIST_DIR_WIDE if wide else HIST_DIR) / f"{day}.jsonl"
             if cur != day:
                 _hist_rotate(); cur = day
             new = not f.exists()
             with open(f, "a") as fh:
                 if new:
-                    fh.write(json.dumps({"hdr": 1, "version": "0.3.0", "tuple": ["cp", "L", "cb", "pb", "n", "why"],
-                                         "deadband": DB, "hist_n": HIST_N, "sample_s": SAMPLE_S}) + "\n")
+                    hdr = {"hdr": 1, "version": VERSION, "tuple": ["cp", "L", "cb", "pb", "n", "why"],
+                           "deadband": DB, "hist_n": HIST_N, "sample_s": SAMPLE_S}
+                    if wide:
+                        hdr.update({"tier": "wide", "cls": "tick", "note": "trades-only, tick-test classification"})
+                    fh.write(json.dumps(hdr) + "\n")
                 fh.write(json.dumps(rec, separators=(",", ":")) + "\n")
         except Exception as e:
             log.warning("hist log write: %s", e)
 
 
-def _hist_warm():
+def _hist_warm(hdir=None):
     """OPTMOM: refill deques from the tail of today's JSONL after a restart."""
-    f = HIST_DIR / f"{datetime.now(ET).date().isoformat()}.jsonl"
+    if hdir is None:
+        return sum(_hist_warm(h) for h in ((HIST_DIR, HIST_DIR_WIDE) if WIDE_ON else (HIST_DIR,)))
+    f = hdir / f"{datetime.now(ET).date().isoformat()}.jsonl"
     if not f.exists():
         return 0
     try:
@@ -718,8 +840,12 @@ async def h_flow(req):
 
 async def h_health(req):
     s = ST.snapshot or {}
+    w = ST.wide_snapshot or {}
     return web.json_response({k: s.get(k) for k in ("service", "version", "computed_at", "ws", "subs", "selected_at", "exch_to_recv_lag_5m", "counts")}
-                             | {"errors": list(ST.ws_errors), "coverage": ST.coverage})
+                             | {"errors": list(ST.ws_errors), "coverage": ST.coverage,
+                                "wide": {"enabled": WIDE_ON, "subs": len(ST.wide_subs), "subscribed_trades": len(STREAM.have_t - STREAM.have_q),
+                                         "underlyings": len(ST.wide), "selected_at": _iso(ST.wide_selected_at), "counts": w.get("counts"),
+                                         "coverage": ST.wide_coverage}})
 
 
 async def h_recent(req):
@@ -734,6 +860,8 @@ async def main():
     app.router.add_get("/v1/health", h_health)
     app.router.add_get("/v1/recent", h_recent)
     app.router.add_get("/v1/history", h_history)  # OPTMOM
+    if WIDE_ON:
+        ST.wide = set(wide_underlyings())   # known before the warm start so wide slots never land in the core file
     if MOMENTUM:
         try:
             _hist_rotate()
@@ -744,8 +872,8 @@ async def main():
             threading.Thread(target=_hist_thread, daemon=True, name="cp-hist").start()
     runner = web.AppRunner(app); await runner.setup()
     await web.TCPSite(runner, "127.0.0.1", PORT).start()
-    log.info("oid-optflow listening on 127.0.0.1:%d budget=%d max_dte=%d", PORT, BUDGET, MAX_DTE)
-    await asyncio.gather(STREAM.run(), selector(), writer())
+    log.info("oid-optflow %s listening on 127.0.0.1:%d budget=%d max_dte=%d wide=%s wide_budget=%d", VERSION, PORT, BUDGET, MAX_DTE, WIDE_ON, WIDE_BUDGET)
+    await asyncio.gather(STREAM.run(), selector(), selector_wide(), writer())
 
 
 if __name__ == "__main__":
