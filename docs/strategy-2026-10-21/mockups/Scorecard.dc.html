@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>OID scorecard</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;600&amp;display=swap">
+<style>
+body{margin:0;background:#0f1419;color:#e6edf3;font-family:Inter,system-ui,sans-serif;font-size:13px}
+a{color:#9ec5ff}a:hover{color:#c9ddff}
+button{font:inherit;cursor:pointer}
+table{border-collapse:collapse}
+td,th{padding:6px 8px;border-bottom:1px solid #222b36;white-space:nowrap}
+th{font-weight:500;color:#9aa7b4;text-align:left}
+.num{font-family:"JetBrains Mono",monospace;font-variant-numeric:tabular-nums}
+</style>
+</helmet>
+<div style="min-height: 1080px; background: #0f1419; color: #e6edf3; display: flex; flex-direction: column">
+<header style="display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 10px 16px; background: #171d25; border-bottom: 1px solid #2a3340">
+  <nav aria-label="Tabs" style="display: flex; gap: 4px">
+    <a href="Main.dc.html" style="padding: 5px 10px; border-radius: 6px; color: #9aa7b4; text-decoration: none">Heatmap</a>
+    <a href="Main.dc.html" style="padding: 5px 10px; border-radius: 6px; color: #9aa7b4; text-decoration: none">Table</a>
+    <a href="Main.dc.html" style="padding: 5px 10px; border-radius: 6px; color: #9aa7b4; text-decoration: none">Cockpit</a>
+    <a href="Scorecard.dc.html" style="padding: 5px 10px; border-radius: 6px; background: #1b2430; color: #e6edf3; text-decoration: none; font-weight: 600">Research</a>
+    <a href="Main.dc.html" style="padding: 5px 10px; border-radius: 6px; color: #9aa7b4; text-decoration: none">Field Guide</a>
+  </nav>
+  <h1 style="margin: 0 0 0 12px; font-size: 15px; font-weight: 600">Scorecard</h1>
+  <span style="font-size: 12px; color: #9aa7b4">as of 2026-10-21 · champion <span class="num" style="color: #e6edf3">core v1.1 · 3f0a9c1e</span> · lane <span class="num" style="color: #e6edf3">v0.1</span> · policy <span class="num" style="color: #e6edf3">v1 unsigned</span></span>
+  <span style="margin-left: auto; padding: 3px 8px; border-radius: 6px; background: #2b2416; color: #f5a524; font-size: 12px">replay days only · live labels from 10/21 · 2 of 15 sessions</span>
+</header>
+
+<div style="display: flex; flex-direction: column; gap: 16px; padding: 16px">
+
+  <section aria-label="Headline rates" style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px">
+    <div style="border: 1px solid #2a3340; border-radius: 8px; background: #171d25; padding: 12px; display: flex; flex-direction: column; gap: 4px">
+      <div style="font-size: 12px; color: #9aa7b4">Core |S| = 2 · right at 5 m</div>
+      <div class="num" style="font-size: 26px; font-weight: 600">53.5%</div>
+      <div style="font-size: 11px; color: #9aa7b4">15 m <span class="num" style="color: #e6edf3">55.7%</span> · n 14,703 snapshots, about 700 effective · 10/19 to 10/20 replay</div>
+      <div style="font-size: 11px; color: #9aa7b4">baseline B0 same-window: <span style="color: #f5a524">not yet reported</span></div>
+    </div>
+    <div style="border: 1px solid #2a3340; border-radius: 8px; background: #171d25; padding: 12px; display: flex; flex-direction: column; gap: 4px">
+      <div style="font-size: 12px; color: #9aa7b4">Light |S| = 3 · right at 5 m</div>
+      <div class="num" style="font-size: 26px; font-weight: 600">59.2%</div>
+      <div style="font-size: 11px; color: #9aa7b4">15 m <span class="num" style="color: #e6edf3">64.8%</span> · n 20,130 · |S| = 1 to 2 about 45 to 46%</div>
+      <div style="font-size: 11px; color: #9aa7b4">144 sector names · 1-minute bars</div>
+    </div>
+    <div style="border: 1px solid #f5a524; border-radius: 8px; background: #171d25; padding: 12px; display: flex; flex-direction: column; gap: 4px">
+      <div style="font-size: 12px; color: #9aa7b4">Surge + held cells (the only positive conditioner)</div>
+      <div class="num" style="font-size: 26px; font-weight: 600; color: #f5a524">61.5% · 67.5%</div>
+      <div style="font-size: 11px; color: #9aa7b4">core ±2 with surge held 2 m, n 26 (CI about 41 to 80) · light ±3 with surge held 5 m, n 40 (CI about 51 to 81)</div>
+      <div style="font-size: 11px; color: #9aa7b4">needs 800 events over 15 sessions before promotion</div>
+    </div>
+    <div style="border: 1px dashed #2a3340; border-radius: 8px; background: #171d25; padding: 12px; display: flex; flex-direction: column; gap: 4px">
+      <div style="font-size: 12px; color: #9aa7b4">Option-leg label L_opt · target before stop</div>
+      <div class="num" style="font-size: 26px; font-weight: 600; color: #6b7785">[no data]</div>
+      <div style="font-size: 11px; color: #9aa7b4">needs the streamed OPRA quote archive (R2) · starts day 1 · first labels after 100 events</div>
+      <div style="font-size: 11px; color: #9aa7b4">owner fills 10/20: 8 of 8 reached +10% (one up-day, two names)</div>
+    </div>
+  </section>
+
+  <section aria-label="Conditioner lifts and momentum state" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px">
+    <div style="border: 1px solid #2a3340; border-radius: 8px; background: #171d25; padding: 12px; overflow-x: auto">
+      <h2 style="margin: 0 0 8px; font-size: 15px; font-weight: 600">Conditioner lifts · replay 10/20</h2>
+      <table style="width: 100%; font-size: 12px">
+        <thead><tr><th>Conditioner</th><th>Without</th><th>With</th><th>n</th><th>Verdict</th></tr></thead>
+        <tbody>
+          <tr><td>Core ±2 held 30 s before acting</td><td class="num">37.0%</td><td class="num" style="color: #4c9aff">43.2%</td><td class="num">782</td><td><span style="padding: 1px 6px; border-radius: 4px; background: #2b2416; color: #f5a524; font-size: 11px">mixed</span></td></tr>
+          <tr><td>1-min rvol ≥ 3× · 15-min breakout, away from walls</td><td class="num">8.7%</td><td class="num" style="color: #4c9aff">26.7%</td><td class="num">subset of 82,190</td><td><span style="padding: 1px 6px; border-radius: 4px; background: #1f2a1f; color: #7ee787; font-size: 11px">robust</span></td></tr>
+          <tr><td>Drop the C/P flow input · ±2 right after 5 m</td><td class="num">50.3%</td><td class="num" style="color: #4c9aff">55.8%</td><td class="num">1,552 → 1,034</td><td><span style="padding: 1px 6px; border-radius: 4px; background: #14233a; color: #9ec5ff; font-size: 11px">E1 shadow</span></td></tr>
+          <tr><td>Drop the C/P flow input · ±3</td><td class="num">54.3%</td><td class="num" style="color: #ff7a45">42.9%</td><td class="num">46 → 14</td><td><span style="padding: 1px 6px; border-radius: 4px; background: #2b2416; color: #f5a524; font-size: 11px">tiny n</span></td></tr>
+          <tr><td>Live C/P agrees with the score</td><td class="num">46.0% (disagree)</td><td class="num">41.8% (agree)</td><td class="num">845 / 4,210</td><td><span style="padding: 1px 6px; border-radius: 4px; background: #2a1414; color: #ff7b72; font-size: 11px">not supported</span></td></tr>
+          <tr><td>Price just above the call wall touches it in 5 m</td><td class="num">44.9% chance</td><td class="num">46.9%</td><td class="num">325 ticker-days</td><td><span style="padding: 1px 6px; border-radius: 4px; background: #2a1414; color: #ff7b72; font-size: 11px">not supported</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div style="border: 1px solid #2a3340; border-radius: 8px; background: #171d25; padding: 12px; display: flex; flex-direction: column; gap: 8px">
+      <h2 style="margin: 0; font-size: 15px; font-weight: 600">Score × momentum state · hit rate at 5 m</h2>
+      <div style="position: relative; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; align-items: end; height: 180px; padding: 0 8px">
+        <div style="position: absolute; left: 0; right: 0; top: 50%; border-top: 1px dashed #4c9aff; opacity: 0.6"></div>
+        <div style="position: absolute; right: 8px; top: 50%; font-size: 10.5px; color: #9ec5ff; transform: translateY(-110%)">50%</div>
+        <div style="display: flex; flex-direction: column; justify-content: flex-end; height: 100%"><div class="num" style="font-size: 12px; text-align: center">46.7%</div><div style="height: 93.4%; background: #4c9aff; border-radius: 4px 4px 0 0"></div></div>
+        <div style="display: flex; flex-direction: column; justify-content: flex-end; height: 100%"><div class="num" style="font-size: 12px; text-align: center">39.6%</div><div style="height: 79.2%; background: #3a4654; border-radius: 4px 4px 0 0"></div></div>
+        <div style="display: flex; flex-direction: column; justify-content: flex-end; height: 100%"><div class="num" style="font-size: 12px; text-align: center">34.8%</div><div style="height: 69.6%; background: #3a4654; border-radius: 4px 4px 0 0"></div></div>
+        <div style="display: flex; flex-direction: column; justify-content: flex-end; height: 100%"><div class="num" style="font-size: 12px; text-align: center">31.3%</div><div style="height: 62.6%; background: #ff7a45; border-radius: 4px 4px 0 0"></div></div>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; padding: 0 8px; font-size: 11px; color: #9aa7b4; text-align: center">
+        <div>DECEL<br><span class="num">n 2,131</span></div><div>RESUME<br><span class="num">n 260</span></div><div>quiet<br><span class="num">n 5,554</span></div><div>ACCEL<br><span class="num">n 163 · fragility flag</span></div>
+      </div>
+      <div style="font-size: 11px; color: #9aa7b4">Right most often while decelerating, worst while accelerating: the score saturates after the move. E3 registers act-on-DECEL-only against act-on-all.</div>
+    </div>
+  </section>
+
+  <section aria-label="Calibration and promotion ladder" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px">
+    <div style="border: 1px solid #2a3340; border-radius: 8px; background: #171d25; padding: 12px; display: flex; flex-direction: column; gap: 8px">
+      <h2 style="margin: 0; font-size: 15px; font-weight: 600">Calibration by raw score · 5 m · 10-session rolling</h2>
+      <div style="display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 6px; font-size: 11px; text-align: center">
+        <div style="border: 1px solid #2a3340; border-radius: 6px; padding: 8px 4px"><div class="num" style="color: #ff7a45">−3.0</div><div style="color: #6b7785">[n &lt; 50]</div></div>
+        <div style="border: 1px solid #ff7a45; border-radius: 6px; padding: 8px 4px"><div class="num" style="color: #ff7a45">−2.5</div><div class="num" style="font-size: 14px">33.0%</div><div style="color: #9aa7b4">forecast 25%</div></div>
+        <div style="border: 1px solid #2a3340; border-radius: 6px; padding: 8px 4px"><div class="num" style="color: #ff7a45">−2.0</div><div style="color: #6b7785">[n &lt; 50]</div></div>
+        <div style="border: 1px solid #2a3340; border-radius: 6px; padding: 8px 4px"><div class="num" style="color: #ff7a45">−1.0</div><div style="color: #6b7785">[n &lt; 50]</div></div>
+        <div style="border: 1px solid #2a3340; border-radius: 6px; padding: 8px 4px"><div class="num" style="color: #4c9aff">+1.0</div><div style="color: #6b7785">[n &lt; 50]</div></div>
+        <div style="border: 1px solid #4c9aff; border-radius: 6px; padding: 8px 4px"><div class="num" style="color: #4c9aff">+2.0</div><div class="num" style="font-size: 14px">58.0%</div><div style="color: #9aa7b4">forecast 70%</div></div>
+        <div style="border: 1px solid #2a3340; border-radius: 6px; padding: 8px 4px"><div class="num" style="color: #4c9aff">+2.5</div><div style="color: #6b7785">[n &lt; 50]</div></div>
+        <div style="border: 1px solid #2a3340; border-radius: 6px; padding: 8px 4px"><div class="num" style="color: #4c9aff">+3.0</div><div style="color: #6b7785">[n &lt; 50]</div></div>
+      </div>
+      <div style="font-size: 11px; color: #9aa7b4">Expected calibration error: <span style="color: #f5a524">not computable</span> until every bucket holds 50 observations. Live gate is ECE ≤ 0.05. The bearish extreme is wrong 67% of the time on two up-days: an up-day base rate, not skill.</div>
+    </div>
+    <div style="border: 1px solid #2a3340; border-radius: 8px; background: #171d25; padding: 12px; overflow-x: auto">
+      <h2 style="margin: 0 0 8px; font-size: 15px; font-weight: 600">Promotion ladder</h2>
+      <table style="width: 100%; font-size: 12px">
+        <thead><tr><th>Candidate</th><th>Stage</th><th>Sessions</th><th>Events</th><th>Brier skill vs B2</th><th>Next gate</th></tr></thead>
+        <tbody>
+          <tr><td>core v1.1 <span class="num" style="color: #9aa7b4">3f0a9c1e</span></td><td><span style="padding: 1px 6px; border-radius: 4px; background: #1f2a1f; color: #7ee787; font-size: 11px">INCUMBENT</span></td><td class="num">2</td><td class="num">—</td><td class="num" style="color: #9aa7b4">B2 not yet computed</td><td>demotes if a 20-session mirror test fails</td></tr>
+          <tr><td>core v1.2 · drop C/P flow</td><td><span style="padding: 1px 6px; border-radius: 4px; background: #14233a; color: #9ec5ff; font-size: 11px">SHADOW</span></td><td class="num">0 / 15</td><td class="num">0 / 800</td><td class="num">—</td><td>E1: +3 points at 5 m, CI excludes 0</td></tr>
+          <tr><td>setup A · surge continuation</td><td><span style="padding: 1px 6px; border-radius: 4px; background: #14233a; color: #9ec5ff; font-size: 11px">REGISTERED</span></td><td class="num">0 / 15</td><td class="num">0 / 400</td><td class="num">—</td><td>E2 and E4: beats B2 on L_opt</td></tr>
+          <tr><td>setup B · held score + surge</td><td><span style="padding: 1px 6px; border-radius: 4px; background: #1b2430; color: #9aa7b4; font-size: 11px">DRAFT</span></td><td class="num">—</td><td class="num">66 (replay)</td><td class="num">—</td><td>n ≥ 300 before any claim</td></tr>
+          <tr><td>L2 logistic · tier-1 features</td><td><span style="padding: 1px 6px; border-radius: 4px; background: #1b2430; color: #9aa7b4; font-size: 11px">DEVELOPING</span></td><td class="num">—</td><td class="num">—</td><td class="num">—</td><td>walk-forward on dev dates ≥ 10/21</td></tr>
+          <tr><td>gradient boosting · depth 3</td><td><span style="padding: 1px 6px; border-radius: 4px; background: #1b2430; color: #9aa7b4; font-size: 11px">not started</span></td><td class="num">—</td><td class="num">—</td><td class="num">—</td><td>admitted only if ≥ 0.01 over logistic</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section aria-label="Lane, latency and archive coverage" style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px">
+    <div style="border: 1px solid #2a3340; border-radius: 8px; background: #171d25; padding: 12px; display: flex; flex-direction: column; gap: 6px">
+      <h2 style="margin: 0; font-size: 15px; font-weight: 600">Now lane · precision</h2>
+      <div style="font-size: 12px; color: #9aa7b4">lane candidates acted on that hit the target before the stop</div>
+      <div class="num" style="font-size: 22px; color: #6b7785">[no lane sessions yet]</div>
+      <div style="font-size: 11px; color: #9aa7b4">gate: ≥ 45% with lower bound ≥ 35% · reported apart from the owner's own hit rate on the same events · human-versus-lane agreement [—]</div>
+    </div>
+    <div style="border: 1px solid #2a3340; border-radius: 8px; background: #171d25; padding: 12px; display: flex; flex-direction: column; gap: 6px">
+      <h2 style="margin: 0; font-size: 15px; font-weight: 600">Latency · decision to fill</h2>
+      <div style="font-size: 12px; color: #9aa7b4">decision → order-ready → broker ack → fill</div>
+      <div class="num" style="font-size: 22px; color: #6b7785">[not measured]</div>
+      <div style="font-size: 11px; color: #9aa7b4">budget p99: 500 ms to order-ready, 2 s to ack · no policy runs with a horizon under 5× the measured path · collector lag histogram: R15 pending</div>
+    </div>
+    <div style="border: 1px solid #2a3340; border-radius: 8px; background: #171d25; padding: 12px; overflow-x: auto">
+      <h2 style="margin: 0 0 6px; font-size: 15px; font-weight: 600">Archive coverage · rows per day</h2>
+      <table style="width: 100%; font-size: 12px">
+        <tbody>
+          <tr><td>decisions</td><td class="num" style="color: #f5a524">0 · ticket not shipped</td></tr>
+          <tr><td>opra_quotes (R2)</td><td class="num" style="color: #f5a524">0 · sink not enabled</td></tr>
+          <tr><td>score_features_15s</td><td class="num" style="color: #7ee787">built 10/20</td></tr>
+          <tr><td>score_labels (nightly)</td><td class="num" style="color: #7ee787">built 10/20</td></tr>
+          <tr><td>bars_1m</td><td class="num" style="color: #7ee787">82,190 ticker-min since 9/25</td></tr>
+          <tr><td>walls</td><td class="num" style="color: #7ee787">1,045 snapshots</td></tr>
+          <tr><td>owner_fills</td><td class="num" style="color: #f5a524">14 rows · 10/20 only</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <nav aria-label="More" style="display: flex; flex-wrap: wrap; gap: 8px; font-size: 12px">
+    <a href="#studies" style="padding: 6px 12px; border-radius: 6px; border: 1px solid #2a3340; background: #171d25; color: #e6edf3; text-decoration: none">Studies · 20 · 1 promising · 2 mixed · 5 adopted · 3 not supported ▸</a>
+    <a href="#gaps" style="padding: 6px 12px; border-radius: 6px; border: 1px solid #2a3340; background: #171d25; color: #e6edf3; text-decoration: none">Field Guide › 13 · gap audit ▸</a>
+    <a href="#replay" style="padding: 6px 12px; border-radius: 6px; border: 1px solid #2a3340; background: #171d25; color: #e6edf3; text-decoration: none">Replay and scrub · last 5 minutes of any ticker ▸</a>
+  </nav>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1080}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

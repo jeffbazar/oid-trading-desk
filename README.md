@@ -10,7 +10,7 @@ The imported October 4 publication reports **zero open positions**. Its page bui
 >
 > Production root on the box is this tree (`/workspace/oid-trading-desk`). `/workspace/options-intelligence-desk` is a symlink to it (`CUTOVER-20261005.md`). Rose is the sole `rh-quotes` writer. Support-map and market-tape piggyback on that file. Research/paper only. Zero brokerage orders.
 >
-> **Strategy review (2026-10-21):** `docs/SCALING-STRATEGY-20261021.md` sets out how to scale the discretionary same-day options book with bots, with its evidence trail in `docs/strategy-2026-10-21/`. Research and paper only.
+> **Strategy review (2026-10-21):** `docs/SCALING-STRATEGY-20261021.md` sets out how to scale the discretionary same-day options book with bots, with its evidence trail in `docs/strategy-2026-10-21/`. `docs/MODEL-AND-HARDWARE-PLAN-20261021.md` names the open-weight and proprietary model for each bot and the machine it runs on. Research and paper only.
 >
 > Read `docs/SETUP-VS-PRODUCTION.md`, `docs/API-INVENTORY.md`, `docs/QUERY-ARCHITECTURE.md`, `docs/HANDBOOK-ERRATA.md` and `data/live-bridge.md` before treating any feed as live.
 

@@ -12,3 +12,6 @@ Produced 2026-10-21 by a multi-agent review of both repositories and the three l
 | `judge-summary.md` | Three judges' scores, rankings, must-keep ideas and the disagreements the synthesis had to settle. |
 | `synthesis-draft.md` | The merged plan before fact-check corrections. Superseded by the main report where they differ. |
 | `verification-log.md` | Twelve claims, two adversarial checkers each, with evidence, corrections and sources. |
+| `model-plan-sources.md` | The eight claims checked for `../MODEL-AND-HARDWARE-PLAN-20261021.md` (the per-bot model and hardware plan), with verdicts, corrections and sources. |
+| `model-plan/` | The three research sheets (open-weight models, Apple-silicon serving, proprietary APIs), the two draft plans (API-first, local-first) and the synthesis the model plan was built from. Superseded by the plan where they differ. |
+| `mockups/` | The three UI mockups from section 9 of the main report as Claude Design artboards (`Main`, `Ticket`, `Scorecard`) plus the canvas layout. See `mockups/README.md`. |

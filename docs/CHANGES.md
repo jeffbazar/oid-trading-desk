@@ -54,3 +54,10 @@ Implementation status for each item is recorded in `changes.json`. Verification 
 - Added `docs/strategy-2026-10-21/` with the evidence trail: desk, research and UI maps, the vendor fact sheet with corrections, five lens proposals, the judge summary, the synthesis draft and the verification log.
 - Review only. No bot, schedule, feed, order authority or vendor plan was changed. Three vendor claims were corrected by the fact-check: Robinhood's agentic account supports single-leg options and its agreement authorizes agent orders; Alpaca retired the pattern-day-trader rule on 2026-06-04; FlashAlpha Basic is 250 requests a day.
 - Added section 2.5 to the strategy report: the owner's live fills for 2026-10-20 (eight round trips, nearest-weekly calls, 100 to 400 contracts, holds of 87 seconds to 13 minutes) and the six plan adjustments they imply (nearest-weekly contracts, sizing as a fraction of the real ticket, capacity measurement, per-venue fees, a continuation re-entry setup, automatic fill capture).
+
+## 2026-10-21: Model and hardware plan, UI mockups
+
+- Added `docs/MODEL-AND-HARDWARE-PLAN-20261021.md`: for each bot, the open-weight model and the proprietary model, which is primary and which is the fallback, and which machine it runs on across the hardware already owned (the 64 GB Mac mini, four 8 GB Mac minis, and the 128 GB Mac as a Phase 2 addition). Includes the memory budget at the macOS default wired limit, the serving stack and its determinism limits, monthly cost with the actual cache rates, the gold-set and promotion rules for model swaps, a fallback matrix, and a first-week measurement checklist.
+- Added `docs/strategy-2026-10-21/model-plan-sources.md` (eight checked claims, four corrected) and `docs/strategy-2026-10-21/model-plan/` (the research sheets and draft plans behind it).
+- Added `docs/strategy-2026-10-21/mockups/`: the three UI mockups from section 9 of the strategy report as design artboards.
+- Review only. No model was deployed, no daemon installed, no API key created, no order authority changed.

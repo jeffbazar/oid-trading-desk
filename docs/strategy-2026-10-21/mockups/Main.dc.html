@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>OID execution cockpit</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;600&amp;display=swap">
+<style>
+body{margin:0;background:#0f1419;color:#e6edf3;font-family:Inter,system-ui,sans-serif;font-size:13px}
+a{color:#9ec5ff}a:hover{color:#c9ddff}
+button{font:inherit;cursor:pointer}
+table{border-collapse:collapse}
+th{font-weight:500;color:#9aa7b4;text-align:left}
+td,th{padding:6px 8px;border-bottom:1px solid #222b36;white-space:nowrap}
+.num{font-family:"JetBrains Mono",monospace;font-variant-numeric:tabular-nums}
+</style>
+</helmet>
+<div style="display: flex; flex-direction: column; min-height: 960px; background: #0f1419; color: #e6edf3">
+
+<header style="display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 8px 16px; background: #171d25; border-bottom: 1px solid #2a3340">
+  <div style="font-weight: 600; font-size: 14px">OID cockpit</div>
+  <span style="padding: 3px 8px; border-radius: 6px; background: #1f2a1f; color: #7ee787; font-size: 12px">RTH · 07:41:12 PT</span>
+  <span style="padding: 3px 8px; border-radius: 6px; background: #1b2430; color: #9aa7b4; font-size: 12px">Alpaca stream <b class="num" style="color: #e6edf3">0.4s</b></span>
+  <span style="padding: 3px 8px; border-radius: 6px; background: #1b2430; color: #9aa7b4; font-size: 12px">OPRA <b class="num" style="color: #e6edf3">0.6s</b></span>
+  <span style="padding: 3px 8px; border-radius: 6px; background: #1b2430; color: #9aa7b4; font-size: 12px">FlashAlpha <b class="num" style="color: #e6edf3">1,870 / 2,500</b></span>
+  <span style="padding: 3px 8px; border-radius: 6px; background: #2b2416; color: #f5a524; font-size: 12px">UW lean <b class="num">11m</b> past TTL</span>
+  <span style="padding: 3px 8px; border-radius: 6px; background: #1f2a1f; color: #7ee787; font-size: 12px">Gateway heartbeat <b class="num">1.2s</b></span>
+  <span style="padding: 3px 8px; border-radius: 6px; background: #1b2430; color: #9aa7b4; font-size: 12px">page poll <b class="num" style="color: #e6edf3">0.3s</b></span>
+  <span style="margin-left: auto; padding: 3px 10px; border-radius: 6px; border: 1px solid #4c9aff; color: #4c9aff; font-weight: 600; font-size: 12px">PAPER</span>
+  <span style="padding: 3px 8px; border-radius: 6px; background: #1b2430; color: #9aa7b4; font-size: 12px">seats <b class="num" style="color: #e6edf3">1 / 2</b></span>
+  <span style="padding: 3px 8px; border-radius: 6px; background: #1b2430; color: #9aa7b4; font-size: 12px">open debit <b class="num" style="color: #e6edf3">$66,000</b></span>
+  <span style="padding: 3px 8px; border-radius: 6px; background: #1b2430; color: #9aa7b4; font-size: 12px">day P&amp;L <b class="num" style="color: #7ee787">+$39,349</b> · stop <b class="num" style="color: #e6edf3">−$750</b></span>
+  <button type="button" aria-label="Kill switch, two-step confirmation" style="padding: 6px 14px; border-radius: 6px; border: 1px solid #f85149; background: #2a1414; color: #ff7b72; font-weight: 600">KILL</button>
+</header>
+
+<div style="display: flex; flex-wrap: wrap; gap: 16px; padding: 16px; flex: 1">
+
+  <section aria-label="Now lane and compact heatmap" style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 14px">
+    <div style="display: flex; align-items: baseline; gap: 10px">
+      <h2 style="margin: 0; font-size: 15px; font-weight: 600">Now lane</h2>
+      <span style="color: #9aa7b4; font-size: 12px">lane v0.1 · rank = rvol × held-score × state × spread fitness · hysteresis 60 s</span>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px">
+      <article style="border: 1px solid #f5a524; border-radius: 8px; background: #171d25; padding: 10px; display: flex; flex-direction: column; gap: 6px">
+        <div style="display: flex; justify-content: space-between; align-items: baseline"><b style="font-size: 15px">GOOG</b><span class="num" style="font-size: 20px; font-weight: 600; color: #f5a524">7.50×</span></div>
+        <div style="color: #ff7a45; font-size: 12px">▼ day_low · 12:21:30</div>
+        <div style="display: flex; gap: 6px; align-items: center"><span style="padding: 1px 6px; border-radius: 4px; background: #2a1d14; color: #ff7a45; font-size: 11px" class="num">−2 · 48s</span><span style="font-size: 11px; color: #9aa7b4">DECEL</span></div>
+        <div style="font-size: 11px; color: #9aa7b4">put wall <span class="num" style="color: #e6edf3">−0.8%</span> · spread <span class="num" style="color: #e6edf3">1.1%</span> · age <span class="num" style="color: #e6edf3">2s</span></div>
+        <div style="display: flex; gap: 4px; margin-top: 2px"><button type="button" style="flex: 1; padding: 4px; border-radius: 5px; border: 1px solid #2a3340; background: #1b2430; color: #e6edf3; font-size: 11px">Ack</button><button type="button" style="flex: 1; padding: 4px; border-radius: 5px; border: 1px solid #2a3340; background: #1b2430; color: #e6edf3; font-size: 11px">Ignore</button><button type="button" style="flex: 1.4; padding: 4px; border-radius: 5px; border: 1px solid #4c9aff; background: #15233a; color: #9ec5ff; font-size: 11px">Ticket</button></div>
+      </article>
+      <article style="border: 1px solid #f5a524; border-radius: 8px; background: #171d25; padding: 10px; display: flex; flex-direction: column; gap: 6px">
+        <div style="display: flex; justify-content: space-between; align-items: baseline"><b style="font-size: 15px">QCOM</b><span class="num" style="font-size: 20px; font-weight: 600; color: #f5a524">4.42×</span></div>
+        <div style="color: #4c9aff; font-size: 12px">▲ day_high · 11:16:48</div>
+        <div style="display: flex; gap: 6px; align-items: center"><span style="padding: 1px 6px; border-radius: 4px; background: #14233a; color: #9ec5ff; font-size: 11px" class="num">+2 · 2m 10s</span><span style="font-size: 11px; color: #9aa7b4">RESUME</span></div>
+        <div style="font-size: 11px; color: #9aa7b4">call wall <span class="num" style="color: #e6edf3">+0.4%</span> · spread <span class="num" style="color: #e6edf3">2.3%</span> · age <span class="num" style="color: #e6edf3">1s</span></div>
+        <div style="display: flex; gap: 4px; margin-top: 2px"><button type="button" style="flex: 1; padding: 4px; border-radius: 5px; border: 1px solid #2a3340; background: #1b2430; color: #e6edf3; font-size: 11px">Ack</button><button type="button" style="flex: 1; padding: 4px; border-radius: 5px; border: 1px solid #2a3340; background: #1b2430; color: #e6edf3; font-size: 11px">Ignore</button><button type="button" style="flex: 1.4; padding: 4px; border-radius: 5px; border: 1px solid #4c9aff; background: #15233a; color: #9ec5ff; font-size: 11px">Ticket</button></div>
+      </article>
+      <article style="border: 1px solid #2a3340; border-radius: 8px; background: #171d25; padding: 10px; display: flex; flex-direction: column; gap: 6px">
+        <div style="display: flex; justify-content: space-between; align-items: baseline"><b style="font-size: 15px">NFLX</b><span class="num" style="font-size: 20px; font-weight: 600; color: #f5a524">3.34×</span></div>
+        <div style="color: #ff7a45; font-size: 12px">▼ day_low · 10:14:31</div>
+        <div style="display: flex; gap: 6px; align-items: center"><span style="padding: 1px 6px; border-radius: 4px; background: #2a1d14; color: #ff7a45; font-size: 11px" class="num">−1 · 15s</span><span style="font-size: 11px; color: #9aa7b4">ACCEL</span></div>
+        <div style="font-size: 11px; color: #9aa7b4">put wall <span class="num" style="color: #e6edf3">−1.4%</span> · spread <span class="num" style="color: #e6edf3">4.8%</span> · age <span class="num" style="color: #e6edf3">3s</span></div>
+        <div style="display: flex; gap: 4px; margin-top: 2px"><button type="button" style="flex: 1; padding: 4px; border-radius: 5px; border: 1px solid #2a3340; background: #1b2430; color: #e6edf3; font-size: 11px">Ack</button><button type="button" style="flex: 1; padding: 4px; border-radius: 5px; border: 1px solid #2a3340; background: #1b2430; color: #e6edf3; font-size: 11px">Ignore</button><button type="button" style="flex: 1.4; padding: 4px; border-radius: 5px; border: 1px solid #4c9aff; background: #15233a; color: #9ec5ff; font-size: 11px">Ticket</button></div>
+      </article>
+      <article style="border: 1px solid #2a3340; border-radius: 8px; background: #171d25; padding: 10px; display: flex; flex-direction: column; gap: 6px">
+        <div style="display: flex; justify-content: space-between; align-items: baseline"><b style="font-size: 15px">SMCI</b><span class="num" style="font-size: 20px; font-weight: 600; color: #f5a524">3.16×</span></div>
+        <div style="color: #4c9aff; font-size: 12px">▲ day_high · 11:59:26</div>
+        <div style="display: flex; gap: 6px; align-items: center"><span style="padding: 1px 6px; border-radius: 4px; background: #14233a; color: #9ec5ff; font-size: 11px" class="num">+1 · 40s</span><span style="font-size: 11px; color: #9aa7b4">quiet</span></div>
+        <div style="font-size: 11px; color: #9aa7b4">call wall <span class="num" style="color: #e6edf3">+2.1%</span> · spread <span class="num" style="color: #e6edf3">6.0%</span> · age <span class="num" style="color: #e6edf3">1s</span></div>
+        <div style="display: flex; gap: 4px; margin-top: 2px"><button type="button" style="flex: 1; padding: 4px; border-radius: 5px; border: 1px solid #2a3340; background: #1b2430; color: #e6edf3; font-size: 11px">Ack</button><button type="button" style="flex: 1; padding: 4px; border-radius: 5px; border: 1px solid #2a3340; background: #1b2430; color: #e6edf3; font-size: 11px">Ignore</button><button type="button" style="flex: 1.4; padding: 4px; border-radius: 5px; border: 1px solid #4c9aff; background: #15233a; color: #9ec5ff; font-size: 11px">Ticket</button></div>
+      </article>
+      <article style="border: 1px solid #2a3340; border-radius: 8px; background: #171d25; padding: 10px; display: flex; flex-direction: column; gap: 6px">
+        <div style="display: flex; justify-content: space-between; align-items: baseline"><b style="font-size: 15px">WULF</b><span class="num" style="font-size: 20px; font-weight: 600; color: #f5a524">3.00×</span></div>
+        <div style="color: #4c9aff; font-size: 12px">▲ day_high · 07:42:04</div>
+        <div style="display: flex; gap: 6px; align-items: center"><span style="padding: 1px 6px; border-radius: 4px; background: #1b2430; color: #9aa7b4; font-size: 11px" class="num">0 · —</span><span style="font-size: 11px; color: #9aa7b4">quiet</span></div>
+        <div style="font-size: 11px; color: #9aa7b4">walls after surge · spread <span class="num" style="color: #ff7a45">9.5%</span> · age <span class="num" style="color: #e6edf3">4s</span></div>
+        <div style="display: flex; gap: 4px; margin-top: 2px"><button type="button" style="flex: 1; padding: 4px; border-radius: 5px; border: 1px solid #2a3340; background: #1b2430; color: #e6edf3; font-size: 11px">Ack</button><button type="button" style="flex: 1; padding: 4px; border-radius: 5px; border: 1px solid #2a3340; background: #1b2430; color: #e6edf3; font-size: 11px">Ignore</button><button type="button" disabled style="flex: 1.4; padding: 4px; border-radius: 5px; border: 1px solid #2a3340; background: #1b2430; color: #6b7785; font-size: 11px">spread gate</button></div>
+      </article>
+    </div>
+
+    <div style="display: flex; align-items: baseline; gap: 10px; margin-top: 4px">
+      <h2 style="margin: 0; font-size: 15px; font-weight: 600">Active names</h2>
+      <span style="color: #9aa7b4; font-size: 12px">rvol ≥ 1.5× or a held score · 11 of 209 · big glyph = rvol, corner = score with held-for timer</span>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px">
+      <div style="border: 1px solid #2a3340; border-radius: 6px; background: #171d25; padding: 8px; display: flex; flex-direction: column; gap: 4px"><div style="display: flex; justify-content: space-between"><b>CRWV</b><span class="num" style="font-size: 11px; color: #9ec5ff">+2 · 5m</span></div><div class="num" style="font-size: 18px; color: #f5a524">2.6×</div><div style="display: flex; align-items: flex-end; gap: 1px; height: 18px"><span style="width: 4px; height: 20%; background: #3a4654"></span><span style="width: 4px; height: 30%; background: #3a4654"></span><span style="width: 4px; height: 25%; background: #3a4654"></span><span style="width: 4px; height: 60%; background: #c98b1a"></span><span style="width: 4px; height: 100%; background: #f5a524"></span><span style="width: 4px; height: 80%; background: #f5a524"></span><span style="width: 4px; height: 55%; background: #c98b1a"></span><span style="width: 4px; height: 40%; background: #3a4654"></span><span style="width: 4px; height: 70%; background: #f5a524"></span><span style="width: 4px; height: 90%; background: #f5a524"></span></div><div class="num" style="font-size: 11px; color: #9aa7b4">65.40 · <span style="color: #4c9aff">+4.1%</span></div></div>
+      <div style="border: 1px solid #2a3340; border-radius: 6px; background: #171d25; padding: 8px; display: flex; flex-direction: column; gap: 4px"><div style="display: flex; justify-content: space-between"><b>NVDA</b><span class="num" style="font-size: 11px; color: #9ec5ff">+1 · 1m</span></div><div class="num" style="font-size: 18px; color: #f5a524">2.1×</div><div style="display: flex; align-items: flex-end; gap: 1px; height: 18px"><span style="width: 4px; height: 40%; background: #3a4654"></span><span style="width: 4px; height: 35%; background: #3a4654"></span><span style="width: 4px; height: 70%; background: #c98b1a"></span><span style="width: 4px; height: 50%; background: #3a4654"></span><span style="width: 4px; height: 90%; background: #f5a524"></span><span style="width: 4px; height: 60%; background: #c98b1a"></span><span style="width: 4px; height: 30%; background: #3a4654"></span><span style="width: 4px; height: 45%; background: #3a4654"></span><span style="width: 4px; height: 65%; background: #c98b1a"></span><span style="width: 4px; height: 50%; background: #3a4654"></span></div><div class="num" style="font-size: 11px; color: #9aa7b4">215.80 · <span style="color: #4c9aff">+1.9%</span></div></div>
+      <div style="border: 1px solid #2a3340; border-radius: 6px; background: #171d25; padding: 8px; display: flex; flex-direction: column; gap: 4px"><div style="display: flex; justify-content: space-between"><b>AMZN</b><span class="num" style="font-size: 11px; color: #9ec5ff">+2 · 20s</span></div><div class="num" style="font-size: 18px; color: #e6edf3">1.6×</div><div style="display: flex; align-items: flex-end; gap: 1px; height: 18px"><span style="width: 4px; height: 30%; background: #3a4654"></span><span style="width: 4px; height: 40%; background: #3a4654"></span><span style="width: 4px; height: 35%; background: #3a4654"></span><span style="width: 4px; height: 50%; background: #3a4654"></span><span style="width: 4px; height: 45%; background: #3a4654"></span><span style="width: 4px; height: 60%; background: #c98b1a"></span><span style="width: 4px; height: 40%; background: #3a4654"></span><span style="width: 4px; height: 55%; background: #3a4654"></span><span style="width: 4px; height: 65%; background: #c98b1a"></span><span style="width: 4px; height: 50%; background: #3a4654"></span></div><div class="num" style="font-size: 11px; color: #9aa7b4">262.59 · <span style="color: #4c9aff">+0.1%</span></div></div>
+      <div style="border: 1px solid #2a3340; border-radius: 6px; background: #171d25; padding: 8px; display: flex; flex-direction: column; gap: 4px"><div style="display: flex; justify-content: space-between"><b>SPCX</b><span class="num" style="font-size: 11px; color: #9aa7b4">0 · —</span></div><div class="num" style="font-size: 18px; color: #e6edf3">1.5×</div><div style="display: flex; align-items: flex-end; gap: 1px; height: 18px"><span style="width: 4px; height: 50%; background: #3a4654"></span><span style="width: 4px; height: 30%; background: #3a4654"></span><span style="width: 4px; height: 40%; background: #3a4654"></span><span style="width: 4px; height: 35%; background: #3a4654"></span><span style="width: 4px; height: 55%; background: #3a4654"></span><span style="width: 4px; height: 45%; background: #3a4654"></span><span style="width: 4px; height: 60%; background: #c98b1a"></span><span style="width: 4px; height: 40%; background: #3a4654"></span><span style="width: 4px; height: 35%; background: #3a4654"></span><span style="width: 4px; height: 50%; background: #3a4654"></span></div><div class="num" style="font-size: 11px; color: #9aa7b4">147.71 · <span style="color: #4c9aff">+0.7%</span></div></div>
+      <div style="border: 1px solid #2a3340; border-radius: 6px; background: #171d25; padding: 8px; display: flex; flex-direction: column; gap: 4px"><div style="display: flex; justify-content: space-between"><b>MU</b><span class="num" style="font-size: 11px; color: #ff7a45">−1 · 3m</span></div><div class="num" style="font-size: 18px; color: #e6edf3">1.7×</div><div style="display: flex; align-items: flex-end; gap: 1px; height: 18px"><span style="width: 4px; height: 45%; background: #3a4654"></span><span style="width: 4px; height: 50%; background: #3a4654"></span><span style="width: 4px; height: 70%; background: #c98b1a"></span><span style="width: 4px; height: 40%; background: #3a4654"></span><span style="width: 4px; height: 35%; background: #3a4654"></span><span style="width: 4px; height: 55%; background: #3a4654"></span><span style="width: 4px; height: 30%; background: #3a4654"></span><span style="width: 4px; height: 60%; background: #c98b1a"></span><span style="width: 4px; height: 45%; background: #3a4654"></span><span style="width: 4px; height: 40%; background: #3a4654"></span></div><div class="num" style="font-size: 11px; color: #9aa7b4">927.67 · <span style="color: #ff7a45">−0.6%</span></div></div>
+      <div style="border: 1px solid #2a3340; border-radius: 6px; background: #171d25; padding: 8px; display: flex; flex-direction: column; gap: 4px"><div style="display: flex; justify-content: space-between"><b>IREN</b><span class="num" style="font-size: 11px; color: #ff7a45">−2 · 1m</span></div><div class="num" style="font-size: 18px; color: #e6edf3">1.9×</div><div style="display: flex; align-items: flex-end; gap: 1px; height: 18px"><span style="width: 4px; height: 30%; background: #3a4654"></span><span style="width: 4px; height: 40%; background: #3a4654"></span><span style="width: 4px; height: 35%; background: #3a4654"></span><span style="width: 4px; height: 80%; background: #f5a524"></span><span style="width: 4px; height: 55%; background: #c98b1a"></span><span style="width: 4px; height: 45%; background: #3a4654"></span><span style="width: 4px; height: 60%; background: #c98b1a"></span><span style="width: 4px; height: 40%; background: #3a4654"></span><span style="width: 4px; height: 35%; background: #3a4654"></span><span style="width: 4px; height: 50%; background: #3a4654"></span></div><div class="num" style="font-size: 11px; color: #9aa7b4">28.03 · <span style="color: #ff7a45">−2.2%</span></div></div>
+    </div>
+    <div style="display: flex; flex-wrap: wrap; gap: 6px; font-size: 11px">
+      <span style="padding: 3px 8px; border-radius: 12px; background: #1b2430; color: #9aa7b4">Major indices <b class="num" style="color: #4c9aff">+0.23%</b> · 0.9×</span>
+      <span style="padding: 3px 8px; border-radius: 12px; background: #1b2430; color: #9aa7b4">Semiconductors <b class="num" style="color: #4c9aff">+0.22%</b> · 0.9×</span>
+      <span style="padding: 3px 8px; border-radius: 12px; background: #1b2430; color: #9aa7b4">Hyperscalers <b class="num" style="color: #ff7a45">−0.53%</b> · 0.8×</span>
+      <span style="padding: 3px 8px; border-radius: 12px; background: #1b2430; color: #9aa7b4">Neoclouds <b class="num" style="color: #ff7a45">−0.10%</b> · 1.2×</span>
+      <span style="padding: 3px 8px; border-radius: 12px; background: #1b2430; color: #9aa7b4">Memory <b class="num" style="color: #4c9aff">+0.15%</b> · 0.8×</span>
+      <span style="padding: 3px 8px; border-radius: 12px; background: #1b2430; color: #9aa7b4">Networking <b class="num" style="color: #ff7a45">−0.89%</b> · 0.9×</span>
+      <span style="padding: 3px 8px; border-radius: 12px; background: #1b2430; color: #9aa7b4">Semi equipment <b class="num" style="color: #ff7a45">−2.20%</b> · 1.1×</span>
+      <span style="padding: 3px 8px; border-radius: 12px; background: #1b2430; color: #9aa7b4">Power <b class="num" style="color: #ff7a45">−1.35%</b> · 1.1×</span>
+      <span style="padding: 3px 8px; border-radius: 12px; background: #1b2430; color: #9aa7b4">Consumer <b class="num" style="color: #ff7a45">−0.04%</b> · 1.2×</span>
+      <span style="padding: 3px 8px; border-radius: 12px; background: #1b2430; color: #9aa7b4">Enterprise <b class="num" style="color: #4c9aff">+1.08%</b> · 0.7×</span>
+      <span style="padding: 3px 8px; border-radius: 12px; background: #1b2430; color: #9aa7b4">Other <b class="num" style="color: #4c9aff">+3.10%</b> · 0.6×</span>
+      <a href="#all" style="padding: 3px 8px; font-size: 11px">show all 209 ↗</a>
+    </div>
+  </section>
+
+  <aside aria-label="Focus panel and decision ticket" style="flex: 1 1 400px; min-width: 0; display: flex; flex-direction: column; gap: 12px">
+    <div style="border: 1px solid #2a3340; border-radius: 8px; background: #171d25; padding: 12px; display: flex; flex-direction: column; gap: 8px">
+      <div style="display: flex; justify-content: space-between; align-items: baseline"><h2 style="margin: 0; font-size: 15px; font-weight: 600">CRWV · why this fired</h2><span class="num" style="font-size: 11px; color: #9aa7b4">snapshot 07:40:32 · core v1.1</span></div>
+      <table style="width: 100%; font-size: 12px">
+        <tr><td style="color: #9aa7b4">1-min rvol</td><td class="num">3.4× norm</td><td class="num" style="color: #9aa7b4">w 0.40</td><td style="color: #9aa7b4">5-min rvol</td><td class="num">2.2×</td></tr>
+        <tr><td style="color: #9aa7b4">held score</td><td class="num">+2 · 5m 10s</td><td class="num" style="color: #9aa7b4">w 0.25</td><td style="color: #9aa7b4">state</td><td>DECEL 65 s</td></tr>
+        <tr><td style="color: #9aa7b4">C/P 1m</td><td class="num">2.1 <span style="color: #f5a524">(cov 34%)</span></td><td class="num" style="color: #9aa7b4">w 0.00</td><td style="color: #9aa7b4">UW lean</td><td class="num">CALL · 11m old</td></tr>
+        <tr><td style="color: #9aa7b4">call wall</td><td class="num">70 · +7.0%</td><td class="num" style="color: #9aa7b4">diag</td><td style="color: #9aa7b4">put wall</td><td class="num">60 · −8.3%</td></tr>
+        <tr><td style="color: #9aa7b4">news</td><td colspan="4">none first-seen in 15 min · tone —</td></tr>
+      </table>
+      <div style="display: flex; gap: 12px; font-size: 12px">
+        <label style="display: flex; gap: 5px; align-items: center"><input type="checkbox" checked disabled> rvol ≥ 3×</label>
+        <label style="display: flex; gap: 5px; align-items: center"><input type="checkbox" checked disabled> held ≥ 30 s</label>
+        <label style="display: flex; gap: 5px; align-items: center"><input type="checkbox" checked disabled> not ACCEL</label>
+        <span style="margin-left: auto; padding: 2px 8px; border-radius: 4px; background: #1f2a1f; color: #7ee787; font-size: 11px">shadow +12% hit 07:46:00</span>
+      </div>
+    </div>
+
+    <form style="border: 1px solid #4c9aff; border-radius: 8px; background: #171d25; padding: 12px; display: flex; flex-direction: column; gap: 8px">
+      <div style="display: flex; justify-content: space-between; align-items: baseline"><h2 style="margin: 0; font-size: 15px; font-weight: 600">Ticket · CRWV 10/23 65 C</h2><span class="num" style="font-size: 11px; color: #9aa7b4">bid 2.18 · ask 2.20 · spread 0.9% · age 1s</span></div>
+      <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; font-size: 12px">
+        <div><div style="color: #9aa7b4">qty × ask = debit</div><div class="num">300 × 2.20 = <b>$66,000</b></div></div>
+        <div><div style="color: #9aa7b4">bracket</div><div class="num">+12% / −20% / 45 min</div></div>
+        <div><div style="color: #9aa7b4">break-even hit rate</div><div class="num">64.5% <span style="color: #9aa7b4">vs p 0.61</span></div></div>
+      </div>
+      <div style="display: flex; flex-wrap: wrap; gap: 5px; font-size: 11px">
+        <span style="padding: 2px 7px; border-radius: 4px; background: #1f2a1f; color: #7ee787">quote 1s</span>
+        <span style="padding: 2px 7px; border-radius: 4px; background: #1f2a1f; color: #7ee787">spread 0.9%</span>
+        <span style="padding: 2px 7px; border-radius: 4px; background: #1f2a1f; color: #7ee787">chase 4.1% &lt; 3%? no</span>
+        <span style="padding: 2px 7px; border-radius: 4px; background: #1f2a1f; color: #7ee787">no earnings 24h</span>
+        <span style="padding: 2px 7px; border-radius: 4px; background: #1f2a1f; color: #7ee787">no print 15m</span>
+        <span style="padding: 2px 7px; border-radius: 4px; background: #2b2416; color: #f5a524">capacity 300 of 420 max</span>
+      </div>
+      <div style="display: flex; flex-wrap: wrap; gap: 5px; align-items: center; font-size: 12px">
+        <span style="color: #9aa7b4">reason</span>
+        <span style="padding: 2px 8px; border-radius: 12px; border: 1px solid #4c9aff; color: #9ec5ff">surge</span>
+        <span style="padding: 2px 8px; border-radius: 12px; border: 1px solid #4c9aff; color: #9ec5ff">sector</span>
+        <span style="padding: 2px 8px; border-radius: 12px; border: 1px solid #2a3340; color: #9aa7b4">wall</span>
+        <span style="padding: 2px 8px; border-radius: 12px; border: 1px solid #2a3340; color: #9aa7b4">flow</span>
+        <span style="padding: 2px 8px; border-radius: 12px; border: 1px solid #2a3340; color: #9aa7b4">news</span>
+        <span style="padding: 2px 8px; border-radius: 12px; border: 1px solid #2a3340; color: #9aa7b4">gut</span>
+        <span style="margin-left: auto; color: #9aa7b4">conf</span><span style="padding: 2px 8px; border-radius: 4px; background: #14233a; color: #9ec5ff" class="num">3</span>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px">
+        <button type="button" style="padding: 10px; border-radius: 6px; border: 1px solid #4c9aff; background: #15233a; color: #9ec5ff; font-weight: 600">Call <span style="font-weight: 400; color: #9aa7b4">c</span></button>
+        <button type="button" style="padding: 10px; border-radius: 6px; border: 1px solid #2a3340; background: #1b2430; color: #e6edf3; font-weight: 600">Put <span style="font-weight: 400; color: #9aa7b4">p</span></button>
+        <button type="button" style="padding: 10px; border-radius: 6px; border: 1px solid #2a3340; background: #1b2430; color: #e6edf3">Pass <span style="color: #9aa7b4">x</span></button>
+        <button type="button" style="padding: 10px; border-radius: 6px; border: 1px solid #2a3340; background: #1b2430; color: #e6edf3">Watch <span style="color: #9aa7b4">w</span></button>
+      </div>
+      <button type="submit" style="padding: 10px; border-radius: 6px; border: 1px solid #4c9aff; background: #2458a6; color: #ffffff; font-weight: 600">Send to gateway (PAPER) · Enter</button>
+    </form>
+  </aside>
+
+  <section aria-label="Positions and decision log" style="flex: 1 1 100%; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px">
+    <div style="border: 1px solid #2a3340; border-radius: 8px; background: #171d25; padding: 12px; overflow-x: auto">
+      <div style="display: flex; justify-content: space-between; align-items: baseline"><h2 style="margin: 0 0 6px; font-size: 15px; font-weight: 600">Positions</h2><span style="font-size: 12px; color: #9aa7b4">realized today <b class="num" style="color: #7ee787">+$39,349</b> · unrealized <b class="num" style="color: #7ee787">+$6,300</b> · net of fees</span></div>
+      <table style="width: 100%; font-size: 12px">
+        <thead><tr><th>Contract</th><th>Qty</th><th>Entry</th><th>Mark</th><th>MFE / MAE</th><th>Bracket</th><th>TP order</th><th>Time stop</th><th></th></tr></thead>
+        <tbody>
+          <tr><td>CRWV 10/23 65 C</td><td class="num">300</td><td class="num">2.20</td><td class="num" style="color: #7ee787">2.41</td><td class="num">+10.9% / −1.4%</td><td><span style="padding: 1px 6px; border-radius: 4px; background: #14233a; color: #9ec5ff; font-size: 11px">TRAILING</span></td><td class="num" style="color: #9aa7b4">ord_8f21 @ 2.46</td><td class="num">38:12</td><td><button type="button" style="padding: 3px 8px; border-radius: 5px; border: 1px solid #ff7a45; background: #2a1d14; color: #ff7a45; font-size: 11px">Flatten</button></td></tr>
+        </tbody>
+      </table>
+      <div style="display: flex; justify-content: flex-end; margin-top: 8px"><button type="button" style="padding: 5px 10px; border-radius: 5px; border: 1px solid #ff7a45; background: #2a1d14; color: #ff7a45; font-size: 12px">Flatten all</button></div>
+    </div>
+    <div style="border: 1px solid #2a3340; border-radius: 8px; background: #171d25; padding: 12px; overflow-x: auto">
+      <h2 style="margin: 0 0 6px; font-size: 15px; font-weight: 600">Decision log · today</h2>
+      <table style="width: 100%; font-size: 12px">
+        <thead><tr><th>Time</th><th>Actor</th><th>Action</th><th>Contract</th><th>Reasons</th><th>Conf</th><th>Outcome</th></tr></thead>
+        <tbody>
+          <tr><td class="num">07:40:47</td><td>jeffrey</td><td style="color: #9ec5ff">CALL</td><td>CRWV 65 C ×300</td><td>surge · sector</td><td class="num">3</td><td class="num" style="color: #7ee787">+18.2% at 07:46:00</td></tr>
+          <tr><td class="num">07:39:28</td><td>jeffrey</td><td>EXIT</td><td>CRWV 65 C ×81</td><td>target</td><td class="num">—</td><td class="num" style="color: #7ee787">+$810</td></tr>
+          <tr><td class="num">07:29:09</td><td>jeffrey</td><td>EXIT</td><td>CRWV 65 C ×300</td><td>target</td><td class="num">—</td><td class="num" style="color: #7ee787">+14.3% · +$7,500</td></tr>
+          <tr><td class="num">07:24:43</td><td>jeffrey</td><td style="color: #9ec5ff">CALL</td><td>CRWV 65 C ×300</td><td>surge · re-entry</td><td class="num">2</td><td class="num" style="color: #7ee787">+14.3%</td></tr>
+          <tr><td class="num">07:21:50</td><td>jeffrey</td><td style="color: #9aa7b4">PASS</td><td>NVDA 215 C</td><td>spread</td><td class="num">—</td><td class="num" style="color: #9aa7b4">missed +4.0%</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <nav aria-label="Collapsed panels" style="flex: 1 1 100%; display: flex; flex-wrap: wrap; gap: 8px; font-size: 12px">
+    <button type="button" style="padding: 6px 12px; border-radius: 6px; border: 1px solid #2a3340; background: #171d25; color: #e6edf3">News · 203 followed · 770 today · 3 scored ≥ 2 ▸</button>
+    <button type="button" style="padding: 6px 12px; border-radius: 6px; border: 1px solid #2a3340; background: #171d25; color: #e6edf3">Momentum tape · 12 events last 2 min ▸</button>
+    <button type="button" style="padding: 6px 12px; border-radius: 6px; border: 1px solid #2a3340; background: #171d25; color: #e6edf3">Macro · Daily −2 · Tech −2 · no print in 15 min ▸</button>
+    <button type="button" style="padding: 6px 12px; border-radius: 6px; border: 1px solid #2a3340; background: #171d25; color: #9aa7b4">Alert ledger · 5 acked · 2 ignored · 1 acted ▸</button>
+  </nav>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":960}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

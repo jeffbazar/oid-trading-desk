@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>OID focus panel and decision ticket</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;600&amp;display=swap">
+<style>
+body{margin:0;background:#0f1419;color:#e6edf3;font-family:Inter,system-ui,sans-serif;font-size:13px}
+a{color:#9ec5ff}a:hover{color:#c9ddff}
+button{font:inherit;cursor:pointer}
+input{font:inherit}
+table{border-collapse:collapse}
+td,th{padding:6px 8px;border-bottom:1px solid #222b36;white-space:nowrap}
+th{font-weight:500;color:#9aa7b4;text-align:left}
+.num{font-family:"JetBrains Mono",monospace;font-variant-numeric:tabular-nums}
+</style>
+</helmet>
+<div style="min-height: 960px; background: #0f1419; color: #e6edf3; display: flex; flex-direction: column">
+<header style="display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 10px 16px; background: #171d25; border-bottom: 1px solid #2a3340">
+  <div style="font-weight: 600; font-size: 14px">CRWV</div>
+  <span class="num" style="font-size: 14px">65.40</span>
+  <span class="num" style="color: #4c9aff">+4.1%</span>
+  <span style="padding: 3px 8px; border-radius: 6px; background: #2b2416; color: #f5a524; font-size: 12px" class="num">rvol 3.4× · surge 07:40:05 ▲ day_high</span>
+  <span style="padding: 3px 8px; border-radius: 6px; background: #1b2430; color: #9aa7b4; font-size: 12px">Neoclouds / AI infra · group rvol 1.2×</span>
+  <span style="margin-left: auto; font-size: 12px; color: #9aa7b4">snapshot <b class="num" style="color: #e6edf3">07:40:32</b> · core v1.1 · lane v0.1</span>
+  <span style="padding: 3px 10px; border-radius: 6px; border: 1px solid #4c9aff; color: #4c9aff; font-weight: 600; font-size: 12px">{{modeLabel}}</span>
+</header>
+
+<div style="display: flex; flex-wrap: wrap; gap: 16px; padding: 16px; flex: 1">
+
+  <section aria-label="Why this fired" style="flex: 1 1 520px; min-width: 0; display: flex; flex-direction: column; gap: 12px">
+    <div style="border: 1px solid #2a3340; border-radius: 8px; background: #171d25; padding: 14px; display: flex; flex-direction: column; gap: 10px">
+      <h2 style="margin: 0; font-size: 15px; font-weight: 600">Why this fired</h2>
+      <table style="width: 100%; font-size: 12px">
+        <thead><tr><th>Input</th><th>Value</th><th>Weight</th><th>Contribution</th><th>Age</th></tr></thead>
+        <tbody>
+          <tr><td>1-min rvol vs same-minute norm</td><td class="num" style="color: #f5a524">3.4×</td><td class="num">0.40</td><td class="num">+1.36</td><td class="num">2s</td></tr>
+          <tr><td>5-min rvol</td><td class="num">2.2×</td><td class="num">0.15</td><td class="num">+0.33</td><td class="num">2s</td></tr>
+          <tr><td>held score</td><td class="num">+2 for 5m 10s</td><td class="num">0.25</td><td class="num">+0.50</td><td class="num">5s</td></tr>
+          <tr><td>momentum state</td><td>DECEL for 65 s</td><td class="num">0.10</td><td class="num">+0.10</td><td class="num">5s</td></tr>
+          <tr><td>distance to day high</td><td class="num">0.2 ATR</td><td class="num">0.10</td><td class="num">+0.10</td><td class="num">2s</td></tr>
+          <tr><td>C/P 1 min (aggressor)</td><td class="num">2.1 <span style="color: #f5a524">coverage 34%</span></td><td class="num">0.00</td><td class="num" style="color: #9aa7b4">excluded</td><td class="num">15s</td></tr>
+          <tr><td>UW lean 5 min</td><td>CALL</td><td class="num">diag</td><td class="num" style="color: #9aa7b4">—</td><td class="num" style="color: #f5a524">11m</td></tr>
+          <tr><td>walls (FlashAlpha)</td><td class="num">C 70 +7.0% · P 60 −8.3% · flip 62.4</td><td class="num">diag</td><td class="num" style="color: #9aa7b4">—</td><td class="num">4m</td></tr>
+          <tr><td>news first-seen ≤ 15 min</td><td>none</td><td class="num">diag</td><td class="num" style="color: #9aa7b4">—</td><td class="num">—</td></tr>
+        </tbody>
+      </table>
+      <div style="display: flex; flex-wrap: wrap; gap: 14px; font-size: 12px; align-items: center">
+        <label style="display: flex; gap: 6px; align-items: center"><input type="checkbox" checked disabled> rvol ≥ 3×</label>
+        <label style="display: flex; gap: 6px; align-items: center"><input type="checkbox" checked disabled> held ≥ 30 s</label>
+        <label style="display: flex; gap: 6px; align-items: center"><input type="checkbox" checked disabled> not ACCEL</label>
+        <label style="display: flex; gap: 6px; align-items: center"><input type="checkbox" disabled> filing in 3 min</label>
+        <span style="margin-left: auto; padding: 3px 8px; border-radius: 4px; background: #1f2a1f; color: #7ee787; font-size: 11px">shadow bracket: +12% would hit at 07:46:00</span>
+      </div>
+    </div>
+
+    <div style="border: 1px solid #2a3340; border-radius: 8px; background: #171d25; padding: 14px; display: flex; flex-direction: column; gap: 8px">
+      <div style="display: flex; justify-content: space-between; align-items: baseline"><h2 style="margin: 0; font-size: 15px; font-weight: 600">Last 5 minutes · 5-second bars</h2><span style="font-size: 11px; color: #9aa7b4">volume amber when ≥ 3× norm · price line blue</span></div>
+      <div style="position: relative; height: 120px; border-bottom: 1px solid #2a3340; display: flex; align-items: flex-end; gap: 2px">
+        <span style="flex: 1; height: 18%; background: #3a4654"></span><span style="flex: 1; height: 22%; background: #3a4654"></span><span style="flex: 1; height: 15%; background: #3a4654"></span><span style="flex: 1; height: 25%; background: #3a4654"></span><span style="flex: 1; height: 20%; background: #3a4654"></span><span style="flex: 1; height: 30%; background: #3a4654"></span><span style="flex: 1; height: 24%; background: #3a4654"></span><span style="flex: 1; height: 19%; background: #3a4654"></span><span style="flex: 1; height: 28%; background: #3a4654"></span><span style="flex: 1; height: 35%; background: #3a4654"></span><span style="flex: 1; height: 26%; background: #3a4654"></span><span style="flex: 1; height: 31%; background: #3a4654"></span><span style="flex: 1; height: 22%; background: #3a4654"></span><span style="flex: 1; height: 40%; background: #3a4654"></span><span style="flex: 1; height: 33%; background: #3a4654"></span><span style="flex: 1; height: 29%; background: #3a4654"></span><span style="flex: 1; height: 45%; background: #c98b1a"></span><span style="flex: 1; height: 38%; background: #3a4654"></span><span style="flex: 1; height: 55%; background: #c98b1a"></span><span style="flex: 1; height: 42%; background: #3a4654"></span><span style="flex: 1; height: 50%; background: #c98b1a"></span><span style="flex: 1; height: 36%; background: #3a4654"></span><span style="flex: 1; height: 48%; background: #c98b1a"></span><span style="flex: 1; height: 62%; background: #c98b1a"></span><span style="flex: 1; height: 58%; background: #c98b1a"></span><span style="flex: 1; height: 44%; background: #3a4654"></span><span style="flex: 1; height: 66%; background: #c98b1a"></span><span style="flex: 1; height: 72%; background: #f5a524"></span><span style="flex: 1; height: 60%; background: #c98b1a"></span><span style="flex: 1; height: 54%; background: #c98b1a"></span><span style="flex: 1; height: 78%; background: #f5a524"></span><span style="flex: 1; height: 70%; background: #f5a524"></span><span style="flex: 1; height: 64%; background: #c98b1a"></span><span style="flex: 1; height: 85%; background: #f5a524"></span><span style="flex: 1; height: 92%; background: #f5a524"></span><span style="flex: 1; height: 80%; background: #f5a524"></span><span style="flex: 1; height: 74%; background: #f5a524"></span><span style="flex: 1; height: 100%; background: #f5a524"></span><span style="flex: 1; height: 88%; background: #f5a524"></span><span style="flex: 1; height: 95%; background: #f5a524"></span>
+        <div style="position: absolute; left: 0; right: 0; top: 56%; height: 2px; background: #4c9aff; opacity: 0.9"></div>
+        <div style="position: absolute; left: 62%; right: 0; top: 30%; height: 2px; background: #4c9aff; opacity: 0.9"></div>
+        <div style="position: absolute; left: 62%; top: 30%; width: 2px; height: 26%; background: #4c9aff; opacity: 0.9"></div>
+      </div>
+      <div style="display: flex; justify-content: space-between; font-size: 11px; color: #9aa7b4" class="num"><span>07:35:30</span><span>07:38:00</span><span>07:40:30 ← surge</span></div>
+    </div>
+  </section>
+
+  <section aria-label="Decision ticket" style="flex: 1 1 440px; min-width: 0">
+    <form style="border: 1px solid #4c9aff; border-radius: 8px; background: #171d25; padding: 14px; display: flex; flex-direction: column; gap: 12px">
+      <div style="display: flex; justify-content: space-between; align-items: baseline"><h2 style="margin: 0; font-size: 15px; font-weight: 600">Decision ticket</h2><span style="font-size: 11px; color: #9aa7b4">writes one <span class="num">decisions</span> row keyed to the snapshot</span></div>
+
+      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; font-size: 12px">
+        <div style="border: 1px solid #2a3340; border-radius: 6px; padding: 8px"><div style="color: #9aa7b4">contract (nearest weekly, nearest 0.50 Δ)</div><div class="num" style="font-size: 14px">CRWV 10/23 65 C · 3 DTE</div><div class="num" style="color: #9aa7b4">bid 2.18 · ask 2.20 · spread 0.9% · OI 18,420 · ask size 412 · age 1s</div></div>
+        <div style="border: 1px solid #2a3340; border-radius: 6px; padding: 8px"><div style="color: #9aa7b4">capacity (ask size, participation)</div><div class="num" style="font-size: 14px">max 420 contracts</div><div class="num" style="color: #9aa7b4">min(½ ask size, 5% session volume)</div></div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; font-size: 12px">
+        <label style="display: flex; flex-direction: column; gap: 4px; color: #9aa7b4">qty<input type="number" value="{{qty}}" onChange="{{setQty}}" style="padding: 6px; border-radius: 5px; border: 1px solid #2a3340; background: #0f1419; color: #e6edf3; font-family: 'JetBrains Mono', monospace"></label>
+        <label style="display: flex; flex-direction: column; gap: 4px; color: #9aa7b4">target %<input type="number" value="{{tp}}" onChange="{{setTp}}" style="padding: 6px; border-radius: 5px; border: 1px solid #2a3340; background: #0f1419; color: #e6edf3; font-family: 'JetBrains Mono', monospace"></label>
+        <label style="display: flex; flex-direction: column; gap: 4px; color: #9aa7b4">stop %<input type="number" value="{{sl}}" onChange="{{setSl}}" style="padding: 6px; border-radius: 5px; border: 1px solid #2a3340; background: #0f1419; color: #e6edf3; font-family: 'JetBrains Mono', monospace"></label>
+        <label style="display: flex; flex-direction: column; gap: 4px; color: #9aa7b4">time stop min<input type="number" value="{{ts}}" onChange="{{setTs}}" style="padding: 6px; border-radius: 5px; border: 1px solid #2a3340; background: #0f1419; color: #e6edf3; font-family: 'JetBrains Mono', monospace"></label>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; font-size: 12px">
+        <div><div style="color: #9aa7b4">debit at ask</div><div class="num" style="font-size: 16px">{{debit}}</div></div>
+        <div><div style="color: #9aa7b4">break-even hit rate (fees in)</div><div class="num" style="font-size: 16px">{{breakeven}}</div></div>
+        <div><div style="color: #9aa7b4">calibrated p (surge + held)</div><div class="num" style="font-size: 16px">0.61 <span style="font-size: 11px; color: #9aa7b4">n 40 · wide</span></div></div>
+      </div>
+
+      <div style="display: flex; flex-wrap: wrap; gap: 5px; font-size: 11px">
+        <span style="padding: 2px 7px; border-radius: 4px; background: #1f2a1f; color: #7ee787">quote age 1s ≤ 5s</span>
+        <span style="padding: 2px 7px; border-radius: 4px; background: #1f2a1f; color: #7ee787">spread 0.9% ≤ 5%</span>
+        <span style="padding: 2px 7px; border-radius: 4px; background: #2b2416; color: #f5a524">chase: day +4.1% ≥ 3% (owner override logged)</span>
+        <span style="padding: 2px 7px; border-radius: 4px; background: #1f2a1f; color: #7ee787">no earnings 24h</span>
+        <span style="padding: 2px 7px; border-radius: 4px; background: #1f2a1f; color: #7ee787">no macro print 15m</span>
+        <span style="padding: 2px 7px; border-radius: 4px; background: #1f2a1f; color: #7ee787">seats 1 of 2 · group 1 of 2</span>
+        <span style="padding: 2px 7px; border-radius: 4px; background: #1f2a1f; color: #7ee787">session 07:41 inside window</span>
+      </div>
+
+      <div style="display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: 12px">
+        <span style="color: #9aa7b4">reason chips</span>
+        <sc-for list="{{reasons}}" as="r" hint-placeholder-count="6">
+          <button type="button" onClick="{{r.pick}}" style="{{r.style}}">{{r.name}}</button>
+        </sc-for>
+      </div>
+
+      <div style="display: flex; gap: 6px; align-items: center; font-size: 12px">
+        <span style="color: #9aa7b4">confidence</span>
+        <sc-for list="{{confs}}" as="c" hint-placeholder-count="3">
+          <button type="button" onClick="{{c.pick}}" style="{{c.style}}" class="num">{{c.n}}</button>
+        </sc-for>
+        <label style="margin-left: auto; display: flex; gap: 6px; align-items: center; color: #9aa7b4">note<input type="text" maxlength="140" placeholder="140 chars" style="padding: 6px; border-radius: 5px; border: 1px solid #2a3340; background: #0f1419; color: #e6edf3; width: 180px"></label>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px">
+        <sc-for list="{{actions}}" as="a" hint-placeholder-count="4">
+          <button type="button" onClick="{{a.pick}}" style="{{a.style}}">{{a.label}} <span style="font-weight: 400; color: #9aa7b4">{{a.key}}</span></button>
+        </sc-for>
+      </div>
+
+      <div style="border: 1px solid #2a3340; border-radius: 6px; padding: 8px; font-size: 12px; color: #9aa7b4; background: #0f1419">
+        <div style="color: #e6edf3; margin-bottom: 4px">Row to write</div>
+        <div class="num" style="white-space: pre-line">{{summary}}</div>
+      </div>
+
+      <div style="display: flex; gap: 8px; align-items: center">
+        <button type="button" onClick="{{toggleMode}}" style="padding: 8px 10px; border-radius: 6px; border: 1px solid #2a3340; background: #1b2430; color: #e6edf3; font-size: 12px">mode: {{modeLabel}} ⇄</button>
+        <button type="submit" style="flex: 1; padding: 10px; border-radius: 6px; border: 1px solid #4c9aff; background: #2458a6; color: #ffffff; font-weight: 600">{{submitLabel}} · Enter</button>
+        <button type="button" style="padding: 10px 12px; border-radius: 6px; border: 1px solid #2a3340; background: #1b2430; color: #e6edf3">Cancel · Esc</button>
+      </div>
+      <div style="font-size: 11px; color: #9aa7b4">Keyboard: j / k move between tiles · c call · p put · x pass · w watch · Enter submit · Esc cancel. Pass and Watch are required for any name dismissed from the Now lane. Exits require a tag; administrative closes are their own category.</div>
+    </form>
+  </section>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":960}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { action: 'CALL', conf: 3, reasons: { surge: true, sector: true, wall: false, flow: false, news: false, gut: false }, qty: 300, tp: 12, sl: 20, ts: 45, mode: 'paper' };
+  }
+  renderVals() {
+    const s = this.state;
+    const ask = 2.20;
+    const debitNum = Math.round(s.qty * ask * 100);
+    const debit = '$' + debitNum.toLocaleString('en-US');
+    const fee = 0.65 * 2 * s.qty;
+    const feePct = debitNum > 0 ? (fee / debitNum) * 100 : 0;
+    const be = s.tp + s.sl > 0 ? (s.sl + feePct) / (s.tp + s.sl) * 100 : 0;
+    const breakeven = be.toFixed(1) + '%';
+    const on = 'padding: 2px 10px; border-radius: 12px; border: 1px solid #4c9aff; background: #15233a; color: #9ec5ff; font-size: 12px';
+    const off = 'padding: 2px 10px; border-radius: 12px; border: 1px solid #2a3340; background: #1b2430; color: #9aa7b4; font-size: 12px';
+    const reasons = ['surge', 'wall', 'flow', 'news', 'sector', 'gut'].map((name) => ({
+      name,
+      style: s.reasons[name] ? on : off,
+      pick: () => this.setState({ reasons: Object.assign({}, s.reasons, { [name]: !s.reasons[name] }) }),
+    }));
+    const confs = [1, 2, 3].map((n) => ({
+      n,
+      style: (s.conf === n ? 'padding: 2px 10px; border-radius: 4px; border: 1px solid #4c9aff; background: #15233a; color: #9ec5ff' : 'padding: 2px 10px; border-radius: 4px; border: 1px solid #2a3340; background: #1b2430; color: #9aa7b4'),
+      pick: () => this.setState({ conf: n }),
+    }));
+    const actions = [
+      { id: 'CALL', label: 'Call', key: 'c', color: '#4c9aff', tint: '#15233a', ink: '#9ec5ff' },
+      { id: 'PUT', label: 'Put', key: 'p', color: '#ff7a45', tint: '#2a1d14', ink: '#ff9a6e' },
+      { id: 'PASS', label: 'Pass', key: 'x', color: '#9aa7b4', tint: '#1b2430', ink: '#e6edf3' },
+      { id: 'WATCH', label: 'Watch', key: 'w', color: '#9aa7b4', tint: '#1b2430', ink: '#e6edf3' },
+    ].map((a) => ({
+      label: a.label,
+      key: a.key,
+      style: s.action === a.id
+        ? 'padding: 12px; border-radius: 6px; border: 2px solid ' + a.color + '; background: ' + a.tint + '; color: ' + a.ink + '; font-weight: 600'
+        : 'padding: 12px; border-radius: 6px; border: 1px solid #2a3340; background: #1b2430; color: #e6edf3',
+      pick: () => this.setState({ action: a.id }),
+    }));
+    const picked = Object.keys(s.reasons).filter((k) => s.reasons[k]).join(', ') || 'none';
+    const modeLabel = s.mode === 'paper' ? 'PAPER · Stage 1' : 'LOG ONLY · Stage 0';
+    const submitLabel = s.mode === 'paper' ? 'Send to gateway (PAPER)' : 'Log decision';
+    const summary = 'decision_at 07:41:12 PT · actor jeffrey · action ' + s.action + '\nCRWV 10/23 65 C · snapshot 07:40:32 · score +2 held 310 s · rvol 3.4×\nqty ' + s.qty + ' at ask 2.20 · debit ' + debit + ' · bracket +' + s.tp + '% / −' + s.sl + '% / ' + s.ts + ' min\nreasons ' + picked + ' · confidence ' + s.conf + ' · override chase=true';
+    return {
+      qty: s.qty, tp: s.tp, sl: s.sl, ts: s.ts,
+      debit, breakeven, reasons, confs, actions, summary, modeLabel, submitLabel,
+      setQty: (e) => this.setState({ qty: Number(e.target.value) || 0 }),
+      setTp: (e) => this.setState({ tp: Number(e.target.value) || 0 }),
+      setSl: (e) => this.setState({ sl: Number(e.target.value) || 0 }),
+      setTs: (e) => this.setState({ ts: Number(e.target.value) || 0 }),
+      toggleMode: () => this.setState({ mode: s.mode === 'paper' ? 'log' : 'paper' }),
+    };
+  }
+}
+</script>
+</body>
+</html>
