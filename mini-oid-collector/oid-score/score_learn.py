@@ -526,7 +526,8 @@ def registry_page():
             for lf in leaves(cv.get("x") or {}, f"comps.{c}.x."):
                 if lf not in reg_paths and not lf.endswith(("vwap", ".vix", "vix_ref", "vix_ref_kind", "vix_stale", "tide_stale", ".cov")):
                     unreg.add(lf)
-    comps_cfg = sorted(cfg["components"])
+    comps_cfg = sorted(k for k, v in cfg["components"].items() if v.get("enabled", True))
+    comps_off = sorted(k for k, v in cfg["components"].items() if not v.get("enabled", True))
     comps_reg = sorted({f["id"][:-2] for f in reg["features"] if f["id"].endswith("_c") and f["status"] == "in_score"})
     srcs = {s["id"]: s for s in reg["sources"]}
     L_ = [f"# 33 · Feature registry ({reg['registry_version']})", "",
@@ -536,7 +537,8 @@ def registry_page():
           "Nightly (1:40 PM PT, `com.oid.desk.score-labels`) the JSONL is compacted to Parquet and `score_labels` attaches what happened next at 15 s, 30 s, 1 m, 2 m, 5 m, 15 m and 30 m. "
           "Saturday 11:00 AM PT (`com.oid.desk.score-model-weekly`) writes the weekly model scorecard.", "",
           "## Code check", "",
-          f"- Components in score-config.json: {', '.join(comps_cfg)}. In the registry: {', '.join(comps_reg)}. {'Match.' if comps_cfg == comps_reg else '**MISMATCH**'}",
+          f"- Components switched on in score-config.json: {', '.join(comps_cfg)}. In the registry (in_score): {', '.join(comps_reg)}. {'Match.' if comps_cfg == comps_reg else '**MISMATCH**'}",
+          f"- In score-config.json but switched off: {', '.join(comps_off) or 'none'} (registered as shadow: news -> news_net_60m / news_n_60m).",
           f"- Registry paths with no value in the latest replay change rows (expected for inputs that were missing that day): {', '.join(unresolved) or 'none'}.",
           f"- Raw inputs in change rows that are not registered: {', '.join(sorted(unreg)) or 'none'}.", "",
           "## Sources", "", "| id | source | method | cadence | status | where | note |", "|---|---|---|---|---|---|---|"]

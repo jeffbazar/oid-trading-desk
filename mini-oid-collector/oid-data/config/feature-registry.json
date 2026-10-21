@@ -630,6 +630,54 @@
    "added": "2026-10-21"
   },
   {
+   "id": "flow_uw_which",
+   "path": "comps.flow.x.which",
+   "type": "text",
+   "status": "in_score",
+   "source": "uw",
+   "used_by": [
+    "core",
+    "full"
+   ],
+   "age": "age_flow",
+   "unit": "text",
+   "desc": "Which UW lean window fed the fallback (5m / 15m).",
+   "in_light_rows": false,
+   "added": "2026-10-21"
+  },
+  {
+   "id": "flow_uw_net5_m",
+   "path": "comps.flow.x.net5_m",
+   "type": "float",
+   "status": "in_score",
+   "source": "uw",
+   "used_by": [
+    "core",
+    "full"
+   ],
+   "age": "age_flow",
+   "unit": "$M",
+   "desc": "UW 5-min net premium, $M (fallback rows).",
+   "in_light_rows": false,
+   "added": "2026-10-21"
+  },
+  {
+   "id": "flow_uw_net15_m",
+   "path": "comps.flow.x.net15_m",
+   "type": "float",
+   "status": "in_score",
+   "source": "uw",
+   "used_by": [
+    "core",
+    "full"
+   ],
+   "age": "age_flow",
+   "unit": "$M",
+   "desc": "UW 15-min net premium, $M (fallback rows).",
+   "in_light_rows": false,
+   "added": "2026-10-21"
+  },
+  {
    "id": "flow_src",
    "path": "comps.flow.f.src",
    "type": "text",
@@ -1396,7 +1444,7 @@
    ],
    "age": "age_news",
    "unit": "sum tone",
-   "desc": "Sum of headline/post tone for this ticker over the last 60 min (news-sentiment JSONL, X posts at their weight).",
+   "desc": "Sum of headline/post tone for this ticker over the last 60 min (~/oid-desk/state/news/sentiment-YYYYMMDD.jsonl; headlines -2..+2, X posts x0.5). Same input as the score-config 'news' component, which is OFF (do not enable without Jeffrey's OK).",
    "in_light_rows": false,
    "added": "2026-10-21"
   },

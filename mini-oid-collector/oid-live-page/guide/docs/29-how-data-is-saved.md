@@ -1887,6 +1887,33 @@ There is no live row yet (first session is 10/21). This row was written by the r
 ```
 
 
+## score_features and score_labels (added 10/21, score learning steps 2-3) <!-- LEARN-1021 -->
+
+| Table | Written by | When | Where | Kept |
+|---|---|---|---|---|
+| `score_features` | `score_daemon.py` (core), `score_wide.py` (light, full) through `score_features.py` | every **15 s** per ticker while the score runs (background thread, never slows the score) | JSONL `~/oid-data/archive/score_features/date=YYYY-MM-DD/part-score-<profile>-<n>.jsonl`; Parquet `archive/parquet/score_features/date=…/score_features-…-live.parquet` (and `-replay.parquet` for backfills) | JSONL 90 days (integrity check deletes only once Parquet has every row), Parquet forever |
+| `score_labels` | `score_learn.py nightly` (`com.oid.desk.score-labels`, weekdays 1:40 PM PT) | once a day after the close | Parquet only: `archive/parquet/score_labels/date=…/score_labels-…-label.parquet` | forever |
+
+**score_features columns** come from the registry ([33 · Feature registry](33-feature-registry.md)): one column per input value, its age column (`age_bars`, `age_walls`, `age_flow`, `age_vix`, `age_tide`, `age_tape`, `age_mom`, `age_news`, `age_cs`), the score that pass produced (`score`, `raw`, `coverage`, `n_stale`, `n_missing`, `px`, `atr`), plus `snap_id` (key: profile, ticker, 15 s slot, mode), `profile`, `symbol`, `slot_t`, `t`, `settings_version`, `registry_version`, `mode` (live / replay), `row_kind` (full / lite), `sector_id`, `sector`. Light rows are **lite** (score, its three inputs, ages; no context or shadow columns). JSONL rows leave out null values to save space; Parquet has every column.
+
+**score_labels columns:** `label_id` (key), `kind` (snap = a 15 s snapshot, change = a score change), `profile`, `mode`, `symbol`, `t`, `settings_version`, `score`, `prev_score`, `raw`, `px`, `atr`, `cw`, `pw`, `bar_src` (5s / 1m), and for each horizon **15 s, 30 s, 1 m, 2 m, 5 m, 15 m, 30 m** (`h15_…` to `h1800_…`): `ret_bp`, `dmove_bp` (move in the score's direction), `mfe_bp`, `mae_bp`, the same three in ATRs, `hit` (moved the score's way; score 0 → null), `tc` / `tp` (call / put wall touched), `n` (bars used) and `full` (window inside regular hours and at least 80% of bars present). Labels only read bars that end after `t`; sector names without 5 s bars use 1-minute bars, so their 15 s / 30 s labels are null.
+
+**Sizes measured 10/20 (replay backfill, 61 core + 144 light names):** score_features JSONL 136 MB core + 219 MB light; Parquet 11.8 MB for both. score_labels Parquet 25.7 MB (318,148 snapshots + 28,184 score changes). With the full sector score added live, expect about **600 MB/day JSONL** (rolling 90 days ≈ 55 GB; the mini has 410 GB free) and about **60 MB/day Parquet** kept.
+
+**Real score_features row** (wide_full, FORCE_OPEN test after hours 10/20, IEF; nulls left out):
+
+```json
+{"snap_id":"wide_full|IEF|1792551270|live","profile":"wide_full","symbol":"IEF","date":"2026-10-20","slot_t":1792551270,"t":1792551273.155,"settings_version":"widefull-v1.0-20261021","registry_version":"fr-v1-20261021","mode":"live","row_kind":"full","sector_id":"w-macro-commodity-intl-etf","sector":"Macro/commodity/intl ETFs","score":0,"raw":-0.064,"coverage":0.29,"n_stale":2,"n_missing":3,"px":90.23,"atr":0.5071,"flip_c":0.0,"flip_q":0.0,"walls_c":0.0,"walls_q":0.0,"volume_c":-0.1561,"volume_q":0.5,"flow_c":0.0,"flow_q":0.0,"trend_c":-0.4815,"trend_q":0.5,"market_c":0.4632,"market_q":0.667,"vol_updn":-0.3902,"vol_rvol15":0.3534,"trend_vwap_atr":-0.1231,"trend_ret_atr":-0.0296,"mkt_spy_vwap_atr":0.0004,"mkt_spy_ret_atr":0.0779,"mkt_qqq_vwap_atr":-0.0397,"mkt_qqq_ret_atr":-0.0056,"mkt_vix_chg_pct":-6.128,"mkt_tide_delta":13064868.0,"mkt_part_tape":0.085,"mkt_part_vix":0.841,"age_bars":24873,"age_vix":103,"age_tide":25173,"ctx_day_rvol":0.69,"ctx_chg_pct":0.17,"news_n_60m":0,"schema_version":"v1","event_ts_ns":1792551273155452928,"ingest_ts_ns":1792551273246704000,"writer":"score-wide_full"}
+```
+
+**Real score_labels row** (core replay 10/20, AMD +1 → +2 at 8:48:16 AM PT; 5 m and 30 m shown, other horizons have the same fields):
+
+```json
+{"label_id":"change|core|AMD|1792511296.7|replay","kind":"change","profile":"core","mode":"replay","symbol":"AMD","t_pt":"2026-10-20 08:48:16 AM PT","settings_version":"v1.1-20261020","score":2,"prev_score":1,"raw":1.562,"px":540.75,"atr":26.7784,"cw":600.0,"pw":540.0,"bar_src":"5s","h300_ret_bp":-3.05,"h300_dmove_bp":-3.05,"h300_mfe_bp":12.94,"h300_mae_bp":-12.02,"h300_hit":false,"h300_tp":false,"h300_n":55,"h300_full":true,"h1800_ret_bp":-1.1,"h1800_mfe_bp":65.83,"h1800_mae_bp":-12.02,"h1800_hit":false,"h1800_n":344,"h1800_full":true}
+```
+
+Also new: `~/oid-data/score/experiments.jsonl` (one row per study or replay test: question, settings versions, days, method, result, verdict, files) and `~/oid-data/chart-scenarios/status-live.json` (Chart Bot primary statuses from the mini's 30-minute bars, display only).
+
 ## Host health log (added 10/20)
 
 Files: `~/oid-data/host/host-YYYYMMDD.jsonl` (one line per sample, appended; dated in PT) and `~/oid-desk/desk/cache/host-health.json` (latest sample only, rewritten each time, plus `written_by` and `file`). Written by `oid_desk/host_monitor.py`. Summary: `python -m oid_desk.host_monitor summary YYYYMMDD`.

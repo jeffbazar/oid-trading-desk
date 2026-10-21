@@ -125,11 +125,15 @@
  },
  {
   "file": "31-score-learning-plan.md",
-  "title": "31 · Score learning plan (planned)"
+  "title": "31 · Score learning plan (steps 1–4 built)"
  },
  {
   "file": "32-research-tab.md",
   "title": "32 · Research tab (studies run so far)"
+ },
+ {
+  "file": "33-feature-registry.md",
+  "title": "33 · Feature registry (every score input, its age and status)"
  },
  {
   "file": "glossary.md",

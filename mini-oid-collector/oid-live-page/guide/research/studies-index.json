@@ -1,6 +1,6 @@
 {
  "schema": "oid-studies-index/1",
- "updated_pt": "2026-10-20 PT",
+ "updated_pt": "2026-10-20 PT (LEARN-1021)",
  "note": "Append a study by adding one object (newest first is not required; the page sorts by date). status: planned | promising | mixed | adopted | not-supported | insufficient | ongoing | rejected. Use only real numbers from the study file.",
  "research_bot": "https://swift-dune-cs3e.here.now/#research",
  "studies": [
@@ -8,11 +8,11 @@
    "id": "score-learning-plan",
    "date": "2026-10-20",
    "title": "Score learning plan (feature registry → labels → shadow models)",
-   "status": "planned",
+   "status": "built",
    "question": "How do we archive every input and its result so the scores can be retrained and get better as data sources are added?",
    "method": "Inspection of the score change/episode logs, oid_archive tables, replay and scorecard code, C/P, walls, momentum and news archives on the mini.",
    "result": "Plan only. Every score change already stores its inputs and context; missing are a fixed 15 s feature table, a label table (15 s to 30 min best/worst move, direction hit, wall touch), an experiment log and drop-one replays. Models go hand weights → logistic regression → small trees, walk-forward by day, shadow first, promoted only after beating the current score on 10+ days. Steps 1–4 need nothing paid.",
-   "verdict": "Planned (not built)",
+   "verdict": "Steps 1–4 built 10/20 evening (feature registry, 15 s score_features, nightly score_labels, experiments log + drop-one/add-one replays). Steps 5–8 (shadow challengers, promotion) not built.",
    "file": "files/score-learning-plan-20261020.md"
   },
   {
@@ -196,6 +196,39 @@
    "result": "The gaps were mostly under-used UW features, not a missing vendor.",
    "verdict": "Stay UW-only; do not add Quant Data.",
    "file": "files/vendor-bakeoff-uw-vs-quantdata-20260917.md"
+  },
+  {
+   "id": "labels-backfill-20261019-20",
+   "date": "2026-10-20",
+   "title": "First score_labels: how often the score's direction was right (10/19–10/20 replays)",
+   "status": "done",
+   "question": "With every 15 s snapshot labelled, how often did each score size point the right way 1, 5 and 15 minutes later?",
+   "method": "score_learn.py labels on the 10/19 and 10/20 replay snapshots (core 61 names on 5 s closes; light 144 sector names on 1-min closes). Weekly scorecard 2026-W43.",
+   "result": "Core: |S|=2 right 53.5% at 5 m and 55.7% at 15 m (14,703 snapshots); |S|=1 47.9% at 5 m. Light: |S|=3 right 59.2% at 5 m and 64.8% at 15 m (20,130 snapshots); |S|=1–2 about 45–46%. Calibration: core +2.0 raw 58.0% at 5 m, −2.5 raw 33.0%.",
+   "verdict": "Replay days only (10/19 core uses the 15-min backfill rows). Live labels start 10/21; needs 10+ days.",
+   "file": "files/scorecard-model-2026-W43.md"
+  },
+  {
+   "id": "abl-core-20261020-drop-flow",
+   "date": "2026-10-20",
+   "title": "Drop-one test: core score without C/P flow (10/20)",
+   "status": "done",
+   "question": "Does the core score do better without the options C/P input?",
+   "method": "score_replay_changes.py 10/20 (5 s steps) baseline vs --drop flow; every change to a non-zero score checked 1 m and 5 m later on 5 s closes.",
+   "result": "Score changes 8,108 → 5,578. ±2 changes right after 5 m: 50.3% → 55.8% (1,552 → 1,034 changes). ±3: 54.3% → 42.9% (46 → 14). All non-zero: 47.6% → 49.2%.",
+   "verdict": "One day only: logged, no settings change. Repeat over 10+ live days.",
+   "file": "files/score-learning-plan-20261020.md"
+  },
+  {
+   "id": "abl-core-20261020-add-news",
+   "date": "2026-10-20",
+   "title": "Add-one test: core score plus news tone (10/20)",
+   "status": "done",
+   "question": "Does adding the 60-min news tone (the score-config 'news' rule, currently OFF) help the core score?",
+   "method": "score_replay_changes.py 10/20 --add news (c = net 60-min tone / 4, X posts ×0.5, weight 0.5, only when the ticker had news) vs baseline.",
+   "result": "Little change: ±2 right after 5 m 50.4% vs 50.3%; all non-zero 46.9% vs 47.6%; 243 fewer changes.",
+   "verdict": "No evidence for news yet; stays OFF (needs Jeffrey's OK anyway).",
+   "file": "files/score-learning-plan-20261020.md"
   }
  ]
 }

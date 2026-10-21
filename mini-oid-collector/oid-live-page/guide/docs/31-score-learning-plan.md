@@ -1,9 +1,18 @@
-# 31 · Score learning plan (planned, not built)
+# 31 · Score learning plan (steps 1–4 built 10/21)
 [← Index](README.md)
 
 > Written Tue 10/20/2026, 6:55 PM PT. Also on the [Research tab](32-research-tab.md) as the 'planned' entry, and in the desk repo at `research/score-learning-plan-20261020.md`.
 
-**Status: planned. Nothing here is built yet beyond this page.** Research and paper only. Nothing new is paid for. The raw scores stay on screen at all times.
+**Status (10/20 evening, LEARN-1021): steps 1–4 are built and running; steps 5–8 (shadow challengers, retraining, promotion) are not.**
+
+| Step | What is live | Job / command |
+|---|---|---|
+| 1 Feature registry | `~/oid-data/config/feature-registry.json` (fr-v1-20261021, 93 entries, 13 sources) and the generated page [33 · Feature registry](33-feature-registry.md) with a code check | `score_learn.py registry-page` |
+| 2 score_features | every 15 s per ticker from the core, light and full scorers (background thread); backfilled 10/19 and 10/20 from replays (core + light) | `com.oid.desk.score`, `com.oid.desk.score-wide`, `com.oid.desk.score-widefull` |
+| 3 score_labels | nightly outcomes at 15 s–30 min for every snapshot and every score change; backfilled 10/19–10/20; weekly model scorecard | `com.oid.desk.score-labels` (weekdays 1:40 PM PT), `com.oid.desk.score-model-weekly` (Sat 11:00 AM PT) |
+| 4 Experiments | `~/oid-data/score/experiments.jsonl` (17 earlier studies seeded + 2 replay tests); replays take `--drop`, `--weight`, `--add news`, `--features`; `score_learn.py experiment ablate` runs baseline vs variant and logs the comparison | see [29](29-how-data-is-saved.md) |
+
+First replay tests (10/20, core, one day only, so log only): **dropping C/P flow** cut score changes 8,108 → 5,578 and moved the 5-min hit rate of ±2 changes 50.3% → 55.8% (±3: 54.3% → 42.9%, n=14). **Adding news** (the score-config rule that is OFF) changed little: ±2 50.4% vs 50.3%, any 46.9% vs 47.6%. Ten or more days are needed before any settings change. Original plan below. Research and paper only. Nothing new is paid for. The raw scores stay on screen at all times.
 
 ## What we already have (checked on the mini, 10/20 evening)
 - **Every score change is already a feature snapshot.** From 10/21, each row in `~/oid-data/score/changes-YYYYMMDD.jsonl` (and `changes-wide-*`) stores the score, raw value, coverage, the settings version, all six inputs (`comps`: each input's c, q, w and raw measures) and the context at that moment (`ctx`: C/P 15 s/1 m, flow lean, rvol, surge, walls and wall room, momentum state, 60 s/120 s tape, market). `episodes-*` stores each hold with its gain, peak (best move) and trough (worst move).

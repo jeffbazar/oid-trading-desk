@@ -144,6 +144,27 @@ Reply (arrays are parallel to `bars`): `bars[i] = [t, o, h, l, c, v, session p|r
 
 ![Sector watch after the close: rvol cells colored by day rvol](img/sector-watch-rvol.png)
 
+
+## Chart Bot scenario lines (added 10/21, shadow only) <!-- LEARN-1021 -->
+
+![AMD chart with Chart Bot's primary scenario: trigger line, T1 and invalidation edge markers](img/chart-scenario.png)
+
+Chart Bot's daily scenario (method **CB-SCN-V1**) is drawn on the price lane for the 37 names it covers. Only the **primary** scenario is drawn:
+
+| Line | Color / style | Meaning |
+|---|---|---|
+| **CB trigger** (label shows the scenario and its status) | purple, thin dashed, axis label | the level that starts the scenario (close-above / close-below, or touch for pullback / failed-rally) |
+| **CB T1** | blue, thin dashed | first target |
+| **CB invalidation** | grey, thin dashed | the closing stop |
+| **CB range high / low** (RANGE_CHOP only) | purple, thin dashed | the range that should hold |
+
+- The lines **never stretch the price scale**, not even with **Fit walls** on. A level outside the view shows as an **edge marker** at the top or bottom, like the walls (example above: `▲ CB invalidation 553.99 (+0.3%)`, `▼ CB T1 496.75 (−10.1%)`).
+- The footer line **Chart Bot:** shows the label, the calibrated score, the status, where the status came from and when, and Chart Bot's run time.
+- **Status** comes from the mini's 30-minute status job (`com.oid.desk.chart-scn-status`, `~/oid-data/chart-scenarios/status-live.json`) when its prediction id matches the synced file, else from Chart Bot's own `latest.json`. Values: active, triggered, target_hit, target2_hit, void, expired, held.
+- **Where the file comes from:** Chart Bot writes `chart-bot/scenarios/latest.json` on the box (daily run plus 3 status refreshes). The box desk-state push (`quotes/mirror_poller.py`, the same path that already sends paper trades and configs) copies it to the mini at `~/oid-desk/desk/chart-bot/scenarios/latest.json` within about a minute of each change.
+- **Calibration warning:** primaries' calibrated score runs hot (about **44% estimated vs 36% realized**). Read it as a ranking, not a probability. Soft colour only: it never elevates a name on its own and is not in any score.
+- Names Chart Bot doesn't cover show "Chart Bot: no scenario for this ticker" in the footer and no lines.
+
 ## Known limits
 
 - **15 s history:** core from 10/19; Sector watch only from 10/20 after hours (full sessions from 10/21).
@@ -151,4 +172,5 @@ Reply (arrays are parallel to `bars`): `bars[i] = [t, o, h, l, c, v, session p|r
 - **Sector watch 1m before 10/20** is regular hours only (bar store); no pre/post.
 - **Score history:** 10/19 is a 15-minute grid, 10/20 is the 5 s replay; the live change log starts 10/21. Daily charts have only those days of score.
 - **C/P history:** core from 10/19; Sector watch from 10/21.
+- **Chart Bot lines** show today's primary only (no history of earlier scenarios on the chart); statuses update every 30 min in market hours.
 - **Walls before 10/20** come only from the walls the score saw (none before 10/19).

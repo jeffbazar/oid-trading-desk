@@ -433,7 +433,8 @@ def ablate(cfg_like, drop=None, weights=None):
 
 def add_one(row, cfg_like, name, news, sym, date, t, weight=0.5, combine=None):
     """Add-one test for a shadow input (only 'news' today): injects a component into a scored row and re-combines.
-    news: c = tanh(sum tone 60 min / 2), q = 1; only present when the ticker had scored items in the last 60 min
+    news: same rule as the (OFF) score-config "news" component: c = clamp(net 60-min tone / net_scale 4, -1, 1), X posts
+    at x0.5 (their logged weight), weight 0.5; q = 1; only present when the ticker had scored items in the last 60 min
     (so it never dilutes names without news). Returns the row (mutated)."""
     import math
     if name != "news":
@@ -441,10 +442,13 @@ def add_one(row, cfg_like, name, news, sym, date, t, weight=0.5, combine=None):
     net, n, age = news.get(sym, date, t)
     if not n:
         return row
+    spec = dict((cfg_like.get("components") or {}).get("news") or {})   # score-config "news" (OFF): c = clamp(net / net_scale)
+    scale = float(spec.get("net_scale", 4.0))
+    w = float(weight if weight is not None else spec.get("weight", 0.5))
     comps = row["comps"]
-    comps["news"] = {"x": {"net_60m": net, "n_60m": n}, "f": {"age_s": age}, "c": round(math.tanh(net / 2.0), 4), "q": 1.0, "w": weight}
+    comps["news"] = {"x": {"net_60m": net, "n_60m": n}, "f": {"age_s": age}, "c": round(max(-1.0, min(1.0, net / scale)), 4), "q": 1.0, "w": w}
     c2 = dict(cfg_like)
-    c2["components"] = dict(cfg_like["components"], news={"enabled": True, "weight": weight})
+    c2["components"] = dict(cfg_like["components"], news=dict(spec, enabled=True, weight=w))
     raw, score, cov = combine(comps, c2)
     row["raw"], row["score"], row["coverage"] = raw, score, cov
     return row

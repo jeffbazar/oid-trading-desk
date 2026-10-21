@@ -82,9 +82,10 @@ flowchart LR
 | 27 | [Timers](27-timers.md) | — | How often every metric updates |
 | 28 | [Hal exit watcher](28-hal-exit-watch.md) | background job | Fast stop and target alerts |
 | 29 | [How data is saved](29-how-data-is-saved.md) | — | Every archived file, its columns and a real row |
-| 30 | [Stock chart](30-chart.md) | Chart button, click a ticker | Candles, volume, score lanes, momentum, C/P, walls |
-| 31 | [Score learning plan](31-score-learning-plan.md) | plan | How the scores will learn from logged results (planned) |
+| 30 | [Stock chart](30-chart.md) | Chart button, click a ticker | Candles, volume, score lanes, momentum, C/P, walls, Chart Bot scenario lines |
+| 31 | [Score learning plan](31-score-learning-plan.md) | plan | How the scores learn from logged results (steps 1–4 built 10/21: 15 s features, nightly labels, experiments) |
 | 32 | [Research tab](32-research-tab.md) | Research button | Every study so far, from `studies-index.json` |
+| 33 | [Feature registry](33-feature-registry.md) | generated | Every score input, its age column, live / context / shadow status; Chart Bot scenarios as a shadow source |
 | ★ | [Signal walkthroughs](18-walkthroughs.md) | — | Call-lean surge vs put-lean surge vs conflict, with examples |
 | ? | [Glossary](glossary.md) | — | Short definitions |
 

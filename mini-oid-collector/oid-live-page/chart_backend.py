@@ -766,8 +766,46 @@ def build(req):
         "sources": {"bars": sorted(srcs), "score": score_used, "cp": cp_used, "walls": wsrc,
                     "mom": mom_used if tier == "core" else ["momentum engine covers core names only"]},
         "notes": notes, "gen_ms": round((time.time() - t_start) * 1000, 1),
+        "scn": scn_for(sym),  # CHARTSCN
     }
     return data
+
+
+SCN_FILE = HOME / "oid-desk/desk/chart-bot/scenarios/latest.json"   # CHARTSCN: box -> mini desk-state push
+SCN_LIVE = HOME / "oid-data/chart-scenarios/status-live.json"        # CHARTSCN: mini 30-min status job
+_SCN = {}
+
+
+def _jcache(p):
+    try:
+        m = p.stat().st_mtime
+    except OSError:
+        return None
+    c = _SCN.get(str(p))
+    if not c or c[0] != m:
+        try:
+            c = _SCN[str(p)] = (m, json.loads(p.read_text()))
+        except Exception:
+            return None
+    return c[1]
+
+
+def scn_for(sym):
+    """CHARTSCN: Chart Bot CB-SCN-V1 primary for sym (shadow / display only) -> levels + status, else None."""
+    doc = _jcache(SCN_FILE)
+    v = ((doc or {}).get("tickers") or {}).get(sym)
+    p = (v or {}).get("primary")
+    if not p:
+        return None
+    st, sa, ssrc = p.get("status"), p.get("status_asof"), "chart-bot latest.json"
+    lv = ((_jcache(SCN_LIVE) or {}).get("tickers") or {}).get(sym) or {}
+    if lv.get("prediction_id") == p.get("prediction_id") and lv.get("status"):
+        st, sa, ssrc = lv["status"], lv.get("status_asof") or sa, "mini 30m status job"
+    return {"label": p.get("label"), "dir": p.get("direction"), "score": p.get("calibrated_score"),
+            "trig": p.get("trigger_price"), "t1": p.get("target_1"), "t2": p.get("target_2"), "inv": p.get("invalidation"),
+            "rlo": p.get("range_low"), "rhi": p.get("range_high"), "rule": p.get("trigger_rule"), "status": st,
+            "status_asof": sa, "status_src": ssrc, "run": doc.get("run_ts_pt"), "asof": doc.get("asof_bar_date"),
+            "pid": p.get("prediction_id")}
 
 
 def main():
