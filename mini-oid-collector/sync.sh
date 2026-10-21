@@ -90,6 +90,7 @@ R "$H/oid-desk/news"       oid-desk/news
 R "$H/oid-desk/launchd"    oid-desk/launchd
 R "$H/oid-desk/overrides"  oid-desk/overrides
 R "$H/oid-desk/flags"      oid-desk/flags
+R "$H/oid-desk/chart-bot"  oid-desk/chart-bot   # CBSTATUS 10/21: Chart Bot canonical status code (copied from the box)
 # --- oid-desk/desk: dashboard + quote pollers + scripts (code/config only, no market data)
 D="$H/oid-desk/desk"
 F oid-desk/desk                       "$D/Makefile"

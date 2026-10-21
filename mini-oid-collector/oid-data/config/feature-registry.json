@@ -114,7 +114,7 @@
    "cadence": "daily + 3 refreshes",
    "status": "shadow",
    "note": "Primaries' calibrated_score runs hot (44% est vs 36% realized). Soft colour only; never elevates a name alone.",
-   "where": "box chart-bot/scenarios/latest.json -> mini ~/oid-desk/desk/chart-bot/scenarios/latest.json (desk-state push)"
+   "where": "box chart-bot/scenarios/latest.json -> mini ~/oid-desk/desk/chart-bot/scenarios/latest.json (desk-state push); live status: ~/oid-data/chart-scenarios/status-live.json from com.oid.desk.chart-scn-status (chart_scn_live.py -> Chart Bot's canonical run_scenarios.py --status-only in ~/oid-desk/chart-bot/, primaries + alternates)"
   }
  ],
  "features": [
@@ -1609,7 +1609,52 @@
    ],
    "age": "age_cs",
    "unit": "text",
-   "desc": "Primary status: active, triggered, target_hit, target2_hit, void, expired, held. From latest.json, overridden by the mini 30-min status job (status-live.json) when the prediction_id matches.",
+   "desc": "Primary status: active, triggered, target_hit, target2_hit, void, expired, held. From latest.json, overridden by the mini 30-min status job (status-live.json, Chart Bot's own scenario_status.py on mini 30m bars) when the prediction_id matches.",
+   "in_light_rows": false,
+   "added": "2026-10-21"
+  },
+  {
+   "id": "cs_alt1_label",
+   "path": "@cs.alt1_label",
+   "type": "text",
+   "status": "shadow",
+   "source": "chart_scenario",
+   "used_by": [
+    "shadow"
+   ],
+   "age": "age_cs",
+   "unit": "label",
+   "desc": "Chart Bot's rank-2 scenario (first alternate) label. From status-live.json when its primary prediction_id matches latest.json (added 10/21 with the canonical status code).",
+   "in_light_rows": false,
+   "added": "2026-10-21"
+  },
+  {
+   "id": "cs_alt1_status",
+   "path": "@cs.alt1_status",
+   "type": "text",
+   "status": "shadow",
+   "source": "chart_scenario",
+   "used_by": [
+    "shadow"
+   ],
+   "age": "age_cs",
+   "unit": "text",
+   "desc": "First alternate's status (same values as cs_status), from the mini 30-min status job.",
+   "in_light_rows": false,
+   "added": "2026-10-21"
+  },
+  {
+   "id": "cs_alt_n_live",
+   "path": "@cs.alt_n_live",
+   "type": "int",
+   "status": "shadow",
+   "source": "chart_scenario",
+   "used_by": [
+    "shadow"
+   ],
+   "age": "age_cs",
+   "unit": "count",
+   "desc": "How many alternates (up to 3) are triggered, target_hit or target2_hit right now.",
    "in_light_rows": false,
    "added": "2026-10-21"
   },

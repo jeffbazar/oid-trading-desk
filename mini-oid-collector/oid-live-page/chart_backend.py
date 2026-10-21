@@ -799,13 +799,17 @@ def scn_for(sym):
         return None
     st, sa, ssrc = p.get("status"), p.get("status_asof"), "chart-bot latest.json"
     lv = ((_jcache(SCN_LIVE) or {}).get("tickers") or {}).get(sym) or {}
+    alts = [{"label": a.get("label"), "status": a.get("status"), "score": a.get("calibrated_score")}
+            for a in ((v or {}).get("alternates") or [])]  # CBSTATUS 10/21
     if lv.get("prediction_id") == p.get("prediction_id") and lv.get("status"):
         st, sa, ssrc = lv["status"], lv.get("status_asof") or sa, "mini 30m status job"
+        alts = [{"label": a.get("label"), "status": a.get("status"), "score": a.get("calibrated_score")}
+                for a in (lv.get("alternates") or [])] or alts
     return {"label": p.get("label"), "dir": p.get("direction"), "score": p.get("calibrated_score"),
             "trig": p.get("trigger_price"), "t1": p.get("target_1"), "t2": p.get("target_2"), "inv": p.get("invalidation"),
             "rlo": p.get("range_low"), "rhi": p.get("range_high"), "rule": p.get("trigger_rule"), "status": st,
             "status_asof": sa, "status_src": ssrc, "run": doc.get("run_ts_pt"), "asof": doc.get("asof_bar_date"),
-            "pid": p.get("prediction_id")}
+            "pid": p.get("prediction_id"), "alts": alts}
 
 
 def main():

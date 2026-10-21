@@ -2,7 +2,7 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0"><dict>
   <key>Label</key><string>com.oid.desk.chart-scn-status</string>
-  <key>ProgramArguments</key><array><string>/usr/bin/python3</string><string>/Users/jake/oid-score/chart_scn_status.py</string></array>
+  <key>ProgramArguments</key><array><string>/usr/bin/python3</string><string>/Users/jake/oid-score/chart_scn_live.py</string></array>
   <key>WorkingDirectory</key><string>/Users/jake/oid-score</string>
   <key>EnvironmentVariables</key><dict><key>PYTHONUNBUFFERED</key><string>1</string><key>PYTHONDONTWRITEBYTECODE</key><string>1</string></dict>
   <key>StartCalendarInterval</key><array>

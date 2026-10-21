@@ -230,7 +230,7 @@ class Scenarios:
         self.m = m
 
     def _status(self, now):
-        """Mini 30m status job (chart_scn_status.py) -> {SYM: {prediction_id, status, status_asof}}; newer than the file."""
+        """Mini 30m status job (chart_scn_live.py -> Chart Bot scenario_status.py) -> {SYM: {prediction_id, status, ..., alternates}}."""
         if now - getattr(self, "schk", 0) < 30:
             return getattr(self, "st", {})
         self.schk = now
@@ -260,12 +260,18 @@ class Scenarios:
             return round((lv - px) / atr, 4) if (lv is not None and px and atr) else None
         st = p.get("status") or p.get("trigger_status")
         lv = self._status(now).get(sym) or {}
+        alt1_l = alt1_s = alt_n = None
         if lv.get("prediction_id") and lv.get("prediction_id") == p.get("prediction_id") and lv.get("status"):
             st = lv["status"]
+            alts = lv.get("alternates") or []  # CBSTATUS 10/21: alternates carry status from the canonical code
+            if alts:
+                alt1_l, alt1_s = alts[0].get("label"), alts[0].get("status")
+                alt_n = sum(1 for a in alts if a.get("status") in ("triggered", "target_hit", "target2_hit"))
         return {"pid": p.get("prediction_id"), "rlo_atr": da(_f(p, "range_low")), "rhi_atr": da(_f(p, "range_high")),
                 "label": lab, "dir": LABEL_DIR.get(lab), "score": sc, "trig_atr": da(trig), "inv_atr": da(inv),
                 "t1_atr": da(t1), "status": st, "age_s": round(now - self.t_file, 1) if self.t_file else None,
-                "trigger": trig, "invalidation": inv, "t1": t1}
+                "trigger": trig, "invalidation": inv, "t1": t1,
+                "alt1_label": alt1_l, "alt1_status": alt1_s, "alt_n_live": alt_n}
 
 
 # ------------------------------------------------------------------ flatten one pass
