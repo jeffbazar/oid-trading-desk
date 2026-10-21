@@ -83,7 +83,47 @@ Higher-low and lower-high rates are high partly because entry is the trigger bar
 
 - **Chart:** markers show the label and interval with an ▲ / ▼ arrow at the bar where the pattern was detected. Toggle 1m / 5m / 30m markers in the tag (default 5m + 30m). The **Patterns tag** (top left) lists active patterns: direction, interval, state and **raw prob with source and n**. Click one to draw its **dashed trigger (orange), target (green) and invalidation (dark red)** lines. They are price lines, so they never stretch the price scale; off-screen levels show as edge markers. The footer shows the detection count and its source (live or replay).
 - **Table:** a **Patterns** column right after the score columns shows the top active pattern (highest prob): `▲ DB 30m 54%` and `+n` more. Hover for state, levels, prob source and n. The column sorts by prob. A dimmed value means the file is a replay, not live.
-- `/patterns.json` (live page server) serves the top active pattern per ticker from `live.json`.
+- `/patterns.json` (live page server) serves the top active pattern per ticker from `live.json`, plus (10/21) `act` = every unexpired directional detection with its hit rate, n, R:R, breakeven and minutes left, and `tally` = today's per-ticker counts (below).
+- **Heatmap (10/21 3 PM): pattern badges lead, scores sit in the background.** See the next section and [4 · Tile anatomy](04-tile-anatomy.md).
+
+## Heatmap pattern badges, Best now strip and daily tally (10/21)
+
+Display only. Nothing here feeds a score, the detector, an alert or a trade.
+
+![Best now strip and pattern badges](img/heatmap-patterns.png)
+
+- **Badge** (one per tile, under the price row): the best active pattern, e.g. **`▲ HL 68% · n=349 · R:R 0.6 · L 1m`**. `+2` = more active patterns (hover for them, each with its n).
+  - **Hit rate and n:** the latest `scorecard-<D>.json` → `by_mode.live[pattern|interval|direction]` when its live **n ≥ 20** (**L**). n is the *corrected* count: setups whose target sat on the wrong side of entry are removed (RRFIX below). Otherwise the backtest base rate from `base-rates.json` with its n (**BT**, dashed border). Backtest rates were built with the old grader, so they still include wrong-side "hits" and have no R:R; a BT badge never lights a tile.
+  - **early:** any rate with **n < 20** is dimmed and labelled *early*.
+  - **R:R** = median |target − entry| ÷ |entry − invalidation| for that key (live labels). **Breakeven = 1 ÷ (1 + R:R)**: at R:R 0.6 the pattern must hit about 62% just to break even.
+  - **Expiry:** detection time + horizon (30 bars on 1m, 24 on 5m, 26 on 30m, gaps to the session end), counted in regular-hours minutes, so overnight the clock pauses. The badge also drops when price is already through the target, or when the target is on the wrong side of the trigger. Triggered detections are timed from detection, so the badge can expire a little before the detector's own horizon.
+  - **Filter:** patterns under 35% are hidden unless they agree in direction with a ≥ 50% pattern on the same tile; 35–50% badges are faded.
+- **Tile emphasis** (outline, not the background, which stays rvol heat): **bright** (2.5–3.5 px, colored by direction) = a live-graded pattern whose hit rate **beats its breakeven**; thicker when it beats it by ≥ 5 points. **Thin** = live ≥ 50% but not above breakeven. **Faded tile** = no live-graded pattern ≥ 50% (hover restores it). Surge pulse, sort, grouping and click-to-chart are unchanged.
+- **Today's tally** (line under the badge): e.g. **`3 HL 1m today · 2 hit · 1 open`** for the badge's pattern on that ticker; hover for every pattern on that ticker. Source: today's live archive (`part-patterns-live-*.jsonl`, read incrementally every 20 s), triggered detections only, wrong-side targets not counted. Outcome = the nightly grader's label when there is one (target_hit = hit, invalidated = miss, expired), else the detector's own state so far (completed = hit, failed = miss, expired, anything else = **open**). Hit counts match the scorecard (10/21: HL 1m 236 hits, LH 1m 223).
+- **Scores in the background:** the raw −3…+3 score stays on every tile (never smoothed), now small and grey; it no longer colors anything. The Table's score columns are unchanged.
+- **stretched · fade risk:** score is ±3 *and* the price already moved ≥ 2% vs the prior close in that direction (the page has no ATR field; % change is the move measure). Reason: on 10/21 the score alone was right 40% at ~30 s holds.
+- **Best now** (top of the heatmap): up to 5 tiles with an active pattern ≥ 50%, ranked live-graded first, then beats-breakeven, then hit rate, n and recency. Each shows direction, pattern, interval, rate, n, R:R, beats/below breakeven, today's tally for that pattern, and room to the next wall (call wall for ▲, put wall for ▼, from the FlashAlpha walls on the page). Click opens the chart. Refreshes with the page.
+- **Sort → Pattern edge** orders tiles by the best badge's rate (beats-breakeven first).
+
+## Grader fix (10/21 3:05 PM PT, RRFIX)
+
+A read-only audit found that when price gapped past the trigger, the measured-move target could sit on the wrong side of entry (entry = the trigger bar's close), so the detection counted as an instant hit. Example: NBIS 1m higher low at 6:31 AM: trigger 171.85, target 172.64, entry 177.375.
+
+- `patterns.grade()` now returns **`rejected_wrong_side`** (final, excluded from every rate) when the target is at or beyond entry the wrong way, or the entry is already beyond invalidation. Each key reports `n_rejected_wrong_side`.
+- Every graded detection now carries **`rr`** and a secondary **1:1 grade** (`outcome_1r`: target = entry ± the stop distance, same bars and invalidation rule). Keys get `med_rr`, `breakeven`, `n_1r`, `hit_1r`, `rate_1r`; the scorecard table has the new columns.
+- Reruns no longer duplicate `experiments.jsonl` rows: the pattern and lead-lag scorecard rows are replaced by id (`exp_upsert`).
+- Detection rules, `DETECTOR_VERSION` and the backtest base rates are unchanged (the backtest was not rerun).
+
+10/21 live, before → after:
+
+| Key | Old rate (n) | Corrected rate (n) | Rejected | Median R:R | Breakeven | 1:1 rate |
+|---|---|---|---|---|---|---|
+| higher low 1m ▲ | 71.0% (389) | **67.6% (349)** | 40 | 0.62 | 61.7% | 47.9% |
+| lower high 1m ▼ | 61.1% (414) | **58.1% (384)** | 30 | 0.64 | 60.9% | 34.4% |
+| double bottom 1m ▲ | 55.0% (291) | 52.4% (275) | 16 | 0.64 | 61.0% | 31.3% |
+| lower high 5m ▼ | 69.0% (84) | 65.3% (75) | 9 | 0.61 | 62.0% | 46.7% |
+
+Only the 1m higher low clears its breakeven; the 1m lower high is below it. Both fail at 1:1. One day of live data.
 
 ## In score_features (shadow fields)
 

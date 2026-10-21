@@ -1,13 +1,17 @@
 # 4 · Heatmap tile anatomy
 [← Index](README.md)
 
+> Changed **Wed 10/21/2026, 3:20 PM PT**: chart patterns now lead the tile. A **Best now** strip sits at the top of the heatmap; each tile has a **pattern badge** (hit rate · n · R:R), today's **pattern tally**, an **outline** when a live-graded pattern beats its breakeven, and the −3…+3 score moved to the background (small grey). See [34 · Pattern detector](34-pattern-detector.md#heatmap-pattern-badges-best-now-strip-and-daily-tally-1021).
+>
 > Changed **Tue 10/20/2026, 7:45 PM PT**: the Heatmap now also shows the **144 sector names** as tiles, one section per sector (16), after the core groups. Same tile, same colors and pulse; differences are listed under [Sector-name tiles](#sector-name-tiles). **Click any group bar to fold it** (remembered on that device). Clicking a tile opens its [chart](30-chart.md).
 
 ![Tile anatomy](img/tile-anatomy.png)
 
 | # | Field | Page |
 |---|---|---|
-| 1 | Ticker (+ **VS** tag if a vol_surge fired in the last 5 min), then the score badge: **Direction (core)** ±n on core tiles; **F±n** (Full) and **L±n** (Light) on sector tiles | [11](11-hot-vs.md), [24](24-direction-score.md) |
+| 1 | Ticker (+ **VS** tag if a vol_surge fired in the last 5 min), then the score badge: **Direction (core)** ±n on core tiles; **F±n** (Full) and **L±n** (Light) on sector tiles. Since 10/21 the score is **small and grey** (raw value, background only) | [11](11-hot-vs.md), [24](24-direction-score.md) |
+| 1b | **Pattern badge** (10/21) under the price row: best active chart pattern, e.g. `▲ HL 68% · n=349 · R:R 0.6 · L 1m`, `+n` more; *early* = n < 20 (dimmed); **stretched · fade risk** when the score is ±3 after a ≥ 2% move that way. Line under it: today's tally for that pattern, e.g. `3 HL 1m today · 2 hit · 1 open` | [34](34-pattern-detector.md) |
+| 1c | **Tile outline** (10/21): bright = live pattern that beats its breakeven 1/(1+R:R); thin = live ≥ 50%; faded tile = no live pattern ≥ 50% | [34](34-pattern-detector.md) |
 | 2 | % change vs yesterday's close, with ▲/▼ | [5](05-price-change.md) |
 | 3 | Volume bars: last 30 one-minute bars plus the current minute (blue) | [7](07-volume-bars.md) |
 | 4 | Chip row, in order: **15s C/P** and **1m C/P** live aggressor chips (with ▲/▼ momentum and coverage %), then the UW **C/P** day volume ratio | [21](21-live-aggressor-chips.md), [8](08-cp-chip.md) |
@@ -16,7 +20,7 @@
 | 7 | Last price (market closed: close, marked "cl") | [5](05-price-change.md) |
 | 8 | 15m lean chip (*italic* = slow UW data): last 15 min net call−put premium, followed by the **5m chip** (last ~5 min, small grey number = data age) | [9](09-lean-chip.md), [20](20-lean5-chip.md) |
 | 9 | 10s pace: last 10 s of volume, scaled to a minute, vs normal | [10](10-volume-pace.md) |
-| 10 | Tile background = rvol heat. Red pulsing border = hot. | [6](06-rvol-heat.md), [11](11-hot-vs.md) |
+| 10 | Tile background = rvol heat. Red pulsing border = hot. (Pattern emphasis uses the outline, so both show at once.) | [6](06-rvol-heat.md), [11](11-hot-vs.md) |
 | 11 | **Right-edge scale**: FlashAlpha call wall (green), put wall (red), gamma flip (amber, hollow = low-confidence) and spot (black tick), sized by OI + today's volume. Hover or tap it for prices. | [23](23-wall-marks.md) |
 
 Clicking a tile opens its [chart](30-chart.md) (tapping the right-edge scale opens the wall tooltip instead; clicking a source tile such as VIX switches to the [Table view](13-table.md)).

@@ -28,6 +28,27 @@ import pattern_io as IO  # noqa: E402
 EXP = Path.home() / "oid-data/score/experiments.jsonl"
 
 
+def exp_upsert(row):
+    """RRFIX 10/21: one experiments.jsonl row per id. A rerun replaces the earlier row for the same id (atomic rewrite)
+    instead of appending a duplicate; rows with other ids are kept byte-for-byte."""
+    keep = []
+    if EXP.exists():
+        for ln in EXP.read_text().splitlines():
+            if not ln.strip():
+                continue
+            try:
+                if json.loads(ln).get("id") == row["id"]:
+                    continue
+            except Exception:
+                pass
+            keep.append(ln)
+    keep.append(json.dumps(row))
+    EXP.parent.mkdir(parents=True, exist_ok=True)
+    tmp = EXP.with_name("." + EXP.name + ".tmp")
+    tmp.write_text("\n".join(keep) + "\n")
+    tmp.replace(EXP)
+
+
 def triggered_of(recs):
     """records -> {det_id: (first record, triggered record or None, last record)}"""
     by = {}
@@ -194,7 +215,7 @@ def grade(a):
     for p in sorted((IO.ARCH / "pattern_labels").glob("date=*/part-pattern-grader-1.jsonl")):
         for ln in p.read_text().splitlines():
             x = json.loads(ln)
-            if x.get("mode") == "live" and x.get("final") and x.get("outcome") in ("target_hit", "invalidated", "expired"):
+            if x.get("mode") == "live" and x.get("final") and x.get("outcome") in ("target_hit", "invalidated", "expired", "rejected_wrong_side"):
                 live_g.append(({"pattern": x["pattern"], "interval": x["interval"], "direction": x["direction"],
                                 "vol_confirm": None}, x))
     doc = IO.rates() or {}
@@ -209,25 +230,32 @@ def grade(a):
     (IO.PDIR / f"scorecard-{D}.json").write_text(json.dumps(card, indent=1))
     md = [f"# Pattern scorecard {D} (shadow, {PT.DETECTOR_VERSION})", "",
           f"Graded {IO.pt_str(time.time())}. Days: {', '.join(days)}. Triggered detections only; hit = target touched before "
-          "a 1-min close beyond invalidation, within the horizon. Backtest rates are in base-rates.json.", ""]
+          "a 1-min close beyond invalidation, within the horizon. RRFIX 10/21: setups whose target sits on the wrong side of entry "
+          "(gap past the trigger) or whose entry is already beyond invalidation are rejected and excluded. med R:R = median "
+          "|target-entry| / |entry-invalidation|; breakeven = 1/(1+R:R); 1:1 rate = same bars with target = entry +/- stop "
+          "distance. Backtest rates are in base-rates.json (not regraded tonight).", ""]
     bt = doc.get("backtest") or {}
     for m, ag in rep.items():
-        md += [f"## {m}", "", "| pattern | iv | dir | n | hit | live/replay rate | backtest rate (n) | med min to hit |",
-               "|---|---|---|---|---|---|---|---|"]
+        md += [f"## {m}", "", "| pattern | iv | dir | n | hit | live/replay rate | med R:R | breakeven | 1:1 rate (n) | rejected wrong side | backtest rate (n) | med min to hit |",
+               "|---|---|---|---|---|---|---|---|---|---|---|---|"]
         for k, v in sorted(ag.items(), key=lambda kv: -kv[1]["n"]):
             b = bt.get(k) or {}
             md.append(f"| {v['pattern']} | {v['interval']} | {v['direction']:+d} | {v['n']} | {v['target_hit']} | "
-                      f"{v['rate']:.1%} | {(b.get('rate') or 0):.1%} ({b.get('n', 0)}) | {v['med_min_to_hit']} |")
+                      f"{v['rate']:.1%} | {v.get('med_rr') if v.get('med_rr') is not None else '—'} | "
+                      f"{(format(v['breakeven'], '.1%') if v.get('breakeven') is not None else '—')} | "
+                      f"{(format(v['rate_1r'], '.1%') if v.get('rate_1r') is not None else '—')} ({v.get('n_1r', 0)}) | "
+                      f"{v.get('n_rejected_wrong_side', 0)} | {(b.get('rate') or 0):.1%} ({b.get('n', 0)}) | {v['med_min_to_hit']} |")
         md.append("")
     (IO.PDIR / f"scorecard-{D}.md").write_text("\n".join(md))
     row = {"id": f"pattern-scorecard-{D}", "kind": "pattern_scorecard", "date": D, "created_pt": IO.pt_str(time.time()),
            "detector_version": PT.DETECTOR_VERSION, "shadow_only": True,
            "summary": {m: {"n": sum(v["n"] for v in ag.values()), "hit": sum(v["target_hit"] for v in ag.values())}
                        for m, ag in rep.items()},
-           "live_rates": {k: {"n": v["n"], "rate": v["rate"]} for k, v in doc["live"].items()},
+           "live_rates": {k: {"n": v["n"], "rate": v["rate"], "med_rr": v.get("med_rr"), "rate_1r": v.get("rate_1r"),
+                              "n_1r": v.get("n_1r")} for k, v in doc["live"].items()},
+           "grader": "rrfix-20261021: wrong-side targets rejected; 1:1 secondary grade",
            "files": [str(IO.PDIR / f"scorecard-{D}.md")]}
-    with open(EXP, "a") as fh:
-        fh.write(json.dumps(row) + "\n")
+    exp_upsert(row)
     IO.log(f"graded {len(days)} days in {time.time() - t0:.1f} s: " +
            ", ".join(f"{m} n={row['summary'][m]['n']} hit={row['summary'][m]['hit']}" for m in row["summary"]) +
            f"; live keys {len(doc['live'])}")

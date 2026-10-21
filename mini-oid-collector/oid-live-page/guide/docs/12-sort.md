@@ -11,6 +11,7 @@ Sits at the top-left of the heatmap. Your choice is remembered on that device.
 | **% change** | Biggest gainers first | Leaders and laggards |
 | **Last price** | Highest price first | Rarely needed |
 | **Surges first** | Hot (pulsing) names first, then A→Z | Busy-tape days |
+| **Pattern edge (hit rate)** *(10/21)* | Best active pattern badge: beats-breakeven first, then hit rate | See where the proven patterns are ([34](34-pattern-detector.md)) |
 
 Names with no data sort to the end. Ties fall back to A→Z.
 

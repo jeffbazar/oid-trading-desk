@@ -2079,6 +2079,173 @@ class ChartBackend:
 CHART = ChartBackend()
 
 
+
+# ---- PATTERN BADGES (2026-10-21 3 PM, display only): hit rates + expiry for the heatmap pattern badges ----
+# Rates: latest ~/oid-data/patterns/scorecard-*.json by_mode.live[pattern|iv|dir] when live n >= 20 (graded with the
+# RRFIX grader: wrong-side targets rejected, med R:R, breakeven, 1:1 rate); else base-rates.json "backtest" (labelled BT).
+# Expiry: detection ts0 + horizon (30 bars on 1m, 24 on 5m, 26 on 30m, gap = rest of session), counted in regular-hours
+# minutes so the clock stops overnight. Never touches the detector, a score or a trade.
+PAT_DIR = HOME / "oid-data/patterns"
+PAT_MIN_LIVE_N = 20
+PAT_IV_MIN = {"1m": 1, "5m": 5, "30m": 30}
+PAT_HZ_BARS = {"1m": 30, "5m": 24, "30m": 26}
+try:
+    import importlib.util as _ilu  # read-only: horizon constants only; loaded by path so sys.path is untouched
+    _spec = _ilu.spec_from_file_location("_oid_patterns_ro", str(HOME / "oid-score/patterns.py"))
+    _PTMOD = _ilu.module_from_spec(_spec)
+    _spec.loader.exec_module(_PTMOD)
+    PAT_HZ_BARS = {k: v["hz"] for k, v in _PTMOD.CFG.items()}
+except Exception:
+    pass
+_PAT_RC = {"key": None, "doc": None}
+
+
+def _pat_rates():
+    try:
+        cards = sorted(PAT_DIR.glob("scorecard-20*.json"))
+        sc = cards[-1] if cards else None
+        br = PAT_DIR / "base-rates.json"
+        key = (str(sc), sc.stat().st_mtime if sc else 0, br.stat().st_mtime if br.exists() else 0)
+        if _PAT_RC["key"] == key:
+            return _PAT_RC["doc"]
+        card = json.loads(sc.read_text()) if sc else {}
+        bt = (json.loads(br.read_text()).get("backtest") or {}) if br.exists() else {}
+        doc = {"live": ((card.get("by_mode") or {}).get("live") or {}), "bt": bt, "card": sc.name if sc else None,
+               "graded_pt": card.get("graded_pt"), "days": card.get("days_graded")}
+        _PAT_RC.update(key=key, doc=doc)
+        return doc
+    except Exception as e:
+        log(f"pattern rates: {type(e).__name__}: {e}")
+        return {"live": {}, "bt": {}, "card": None}
+
+
+def _rth_min(t0, t1):
+    """Regular-hours minutes (6:30 AM-1:00 PM PT, Mon-Fri; holidays not removed) between epoch t0 and t1."""
+    if t1 <= t0:
+        return 0.0
+    d = datetime.fromtimestamp(t0, PT).date()
+    end = datetime.fromtimestamp(t1, PT).date()
+    tot = 0.0
+    while d <= end:
+        if d.weekday() < 5:
+            o = datetime(d.year, d.month, d.day, 6, 30, tzinfo=PT).timestamp()
+            c = datetime(d.year, d.month, d.day, 13, 0, tzinfo=PT).timestamp()
+            tot += max(0.0, min(t1, c) - max(t0, o)) / 60
+        d += timedelta(days=1)
+    return tot
+
+
+def _pat_enrich(a, R, now):
+    if not a.get("dir") or a.get("state") not in ("confirmed", "triggered"):
+        return None
+    iv, d = a.get("iv"), a["dir"]
+    trig, tgt = a.get("trig"), a.get("tgt")
+    if trig is not None and tgt is not None and (tgt - trig) * d <= 0:
+        return None  # target on the wrong side of the trigger: never badge it (RRFIX)
+    k = f"{a['pattern']}|{iv}|{d:+d}"
+    lv, bt = R["live"].get(k) or {}, R["bt"].get(k) or {}
+    if (lv.get("n") or 0) >= PAT_MIN_LIVE_N:
+        src, rate, n = "live", lv.get("rate"), lv.get("n")
+        rr, be, r1, n1 = lv.get("med_rr"), lv.get("breakeven"), lv.get("rate_1r"), lv.get("n_1r")
+    elif bt.get("n"):
+        src, rate, n = "backtest", bt.get("rate"), bt.get("n")
+        rr, be, r1, n1 = bt.get("med_rr"), bt.get("breakeven"), bt.get("rate_1r"), bt.get("n_1r")
+    else:
+        return None
+    if rate is None:
+        return None
+    hz_bars = 77 if a["pattern"] in ("gap_up", "gap_down") else PAT_HZ_BARS.get(iv, 30)
+    hz_min = hz_bars * PAT_IV_MIN.get(iv, 1)
+    ts0 = a.get("ts0") or 0
+    left = round(hz_min - _rth_min(ts0, now), 1)
+    if left <= 0:
+        return None
+    return {"id": a.get("id"), "p": a["pattern"], "iv": iv, "dir": d, "state": a.get("state"), "trig": trig, "tgt": tgt,
+            "inv": a.get("inv"), "rate": rate, "n": n, "src": src, "n_live": lv.get("n"), "rate_live": lv.get("rate"),
+            "rr": rr, "be": be, "r1": r1, "n1": n1, "left_min": left, "hz_min": hz_min, "ts0": ts0,
+            "t0_pt": datetime.fromtimestamp(ts0, PT).strftime("%-I:%M %p") if ts0 else None}
+
+
+
+# PATTERN TALLY (10/21 3:15 PM, display only): today's live shadow detections per ticker and pattern with their outcomes so
+# far. Reads the detector archive incrementally (new lines only). Outcome = the nightly grader label when one exists
+# (target_hit / invalidated / expired), else the detector's own last state (completed = hit, failed = miss, expired,
+# anything else = open). Triggered detections only; a trigger whose target sits on the wrong side of entry is not counted
+# (same rule as the grader's RRFIX).
+PAT_ARCH = HOME / "oid-data/archive"
+_PT_TALLY = {"date": None, "files": {}, "dets": {}, "labels_key": None, "labels": {}, "t": 0, "out": None}
+
+
+def _pat_tally():
+    T = _PT_TALLY
+    now = time.time()
+    if T["out"] is not None and now - T["t"] < 20:
+        return T["out"]
+    try:
+        days = sorted(p.name[5:] for p in (PAT_ARCH / "patterns").glob("date=*") if any(p.glob("part-patterns-live-*.jsonl")))
+        if not days:
+            return None
+        D = days[-1]
+        if T["date"] != D:
+            T.update(date=D, files={}, dets={}, labels_key=None, labels={})
+        for f in sorted((PAT_ARCH / "patterns" / f"date={D}").glob("part-patterns-live-*.jsonl")):
+            off = T["files"].get(f.name, 0)
+            sz = f.stat().st_size
+            if sz <= off:
+                continue
+            with open(f, "rb") as fh:
+                fh.seek(off)
+                chunk = fh.read(sz - off)
+            cut = chunk.rfind(b"\n") + 1  # only whole lines
+            T["files"][f.name] = off + cut
+            for ln in chunk[:cut].splitlines():
+                try:
+                    r = json.loads(ln)
+                except Exception:
+                    continue
+                if not r.get("direction") or r.get("mode") != "live":
+                    continue
+                dd = T["dets"].get(r["det_id"])
+                if r["state"] == "triggered" and dd is None:
+                    kl = r.get("key_levels") or {}
+                    tg, px = kl.get("target"), r.get("px")
+                    bad = tg is None or px is None or (tg - px) * r["direction"] <= 0
+                    dd = T["dets"][r["det_id"]] = {"sym": r["ticker"], "p": r["pattern"], "iv": r["interval"],
+                                                   "dir": r["direction"], "bad": bad, "st": "triggered"}
+                elif dd is not None:
+                    dd["st"] = r["state"]
+        lf = PAT_ARCH / "pattern_labels" / f"date={D}" / "part-pattern-grader-1.jsonl"
+        lk = (lf.stat().st_mtime, lf.stat().st_size) if lf.exists() else None
+        if lk != T["labels_key"]:
+            T["labels_key"], T["labels"] = lk, {}
+            if lf.exists():
+                for ln in lf.read_text().splitlines():
+                    try:
+                        x = json.loads(ln)
+                    except Exception:
+                        continue
+                    if x.get("mode") == "live":
+                        T["labels"][x["det_id"]] = x.get("outcome")
+        MAP = {"target_hit": "hit", "invalidated": "miss", "expired": "exp", "completed": "hit", "failed": "miss"}
+        by = {}
+        for did, dd in T["dets"].items():
+            lab = T["labels"].get(did)
+            if dd["bad"] or lab == "rejected_wrong_side":
+                continue
+            o = MAP.get(lab) or MAP.get(dd["st"]) or "open"
+            k = f"{dd['p']}|{dd['iv']}|{dd['dir']:+d}"
+            a = by.setdefault(dd["sym"], {}).setdefault(k, {"k": k, "p": dd["p"], "iv": dd["iv"], "dir": dd["dir"], "n": 0,
+                                                            "hit": 0, "miss": 0, "exp": 0, "open": 0})
+            a["n"] += 1
+            a[o] += 1
+        out = {"date": D, "labelled": lk is not None,
+               "by_sym": {s_: sorted(v.values(), key=lambda a: (-a["n"], a["k"])) for s_, v in by.items()}}
+        T.update(out=out, t=now)
+        return out
+    except Exception as e:
+        log(f"pattern tally: {type(e).__name__}: {e}")
+        return T["out"]
+
 def chart_cur_walls(sym):
     """Latest wall level the page itself shows for this symbol (core: best of the 4 FA caches; Sector watch: fa-walls-wide)."""
     r = None
@@ -2304,6 +2471,20 @@ class H(BaseHTTPRequestHandler):
                 d = json.loads((Path.home() / "oid-data/patterns/live.json").read_text())
                 body = {k: d.get(k) for k in ("as_of", "as_of_pt", "mode", "detector_version", "note")}
                 body["by_sym"] = {s: {"top": v.get("top"), "n_active": v.get("n_active")} for s, v in (d.get("by_sym") or {}).items()}
+                # PATTERN BADGES (10/21 3 PM): every unexpired directional detection with its rate source, R:R and expiry
+                R, now = _pat_rates(), time.time()
+                for s_, v in (d.get("by_sym") or {}).items():
+                    act = [x for x in (_pat_enrich(a, R, now) for a in (v.get("active") or [])) if x]
+                    if act:
+                        body["by_sym"][s_]["act"] = sorted(act, key=lambda x: (-x["rate"], -(x["n"] or 0)))
+                body["rates"] = {"card": R.get("card"), "graded_pt": R.get("graded_pt"), "days": R.get("days"),
+                                 "min_live_n": PAT_MIN_LIVE_N}
+                body["age_s"] = round(now - (d.get("as_of") or 0))
+                TL = _pat_tally()  # PATTERN TALLY (10/21 3:15 PM)
+                if TL:
+                    body["tally_date"], body["tally_labelled"] = TL["date"], TL["labelled"]
+                    for s_, tl in TL["by_sym"].items():
+                        body["by_sym"].setdefault(s_, {"top": None, "n_active": 0})["tally"] = tl
                 return self._send(200, json.dumps(body), "application/json")
             except Exception:
                 return self._send(404, json.dumps({"error": "no patterns live.json yet (com.oid.desk.patterns)"}), "application/json")

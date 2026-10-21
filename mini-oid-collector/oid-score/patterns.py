@@ -26,6 +26,7 @@ Patterns (direction = what the pattern predicts: +1 up, -1 down, 0 neutral conte
 States: forming -> confirmed -> triggered -> completed (target touched) | failed (closing invalidation) | expired.
 """
 import math
+from collections import Counter
 
 DETECTOR_VERSION = "pat-v1-20261021"
 IV_MIN = {"1m": 1, "5m": 5, "30m": 30}
@@ -420,12 +421,23 @@ def grade(rec_trig, b1, start_idx=None):
     From the first 1-min bar starting at/after the trigger record's ts, for horizon.minutes market minutes:
     target touched (high/low) -> target_hit; a 1-min CLOSE beyond invalidation -> invalidated (same bar: invalidated
     first only if the close is beyond it and the target was not touched before that minute); else expired.
-    Entry = the trigger record's px (the detecting bar's close). Returns dict or None if no bars after."""
+    Entry = the trigger record's px (the detecting bar's close). Returns dict or None if no bars after.
+    RRFIX 10/21: a setup whose target is on the wrong side of entry (or at it), e.g. price gapped past the trigger and
+    past the measured-move target, is NOT graded: outcome "rejected_wrong_side" (final, excluded from every rate).
+    Same for an entry already beyond invalidation (no risk left to measure). rr = |target-entry| / |entry-invalidation|.
+    Secondary 1:1 grade (outcome_1r): target = entry +/- stop distance, same bars, same invalidation rule."""
     d = rec_trig["direction"]
     kl = rec_trig["key_levels"]
     G, I, e = kl.get("target"), kl.get("invalidation"), rec_trig.get("px")
     if not d or G is None or e is None:
         return None
+    reward = (G - e) * d
+    risk = (e - I) * d if I is not None else None
+    if reward <= 0 or (risk is not None and risk <= 0):
+        return {"outcome": "rejected_wrong_side", "final": True, "reject_reason": "target on wrong side of entry" if reward <= 0
+                else "entry beyond invalidation", "entry": e, "target": G, "invalidation": I}
+    rr = round(reward / risk, 3) if risk else None
+    G1 = (e + d * risk) if risk else None
     ts = rec_trig["ts"]
     if start_idx is None:
         lo, hi = 0, len(b1)
@@ -442,22 +454,30 @@ def grade(rec_trig, b1, start_idx=None):
         return None
     mfe = mae = 0.0
     out, t_out = "expired", None
+    o1 = "expired" if G1 is not None else None
     for b in seg:
-        fav = (b[H] - e) if d > 0 else (e - b[L])
-        adv = (e - b[L]) if d > 0 else (b[H] - e)
-        mfe, mae = max(mfe, fav), max(mae, adv)
-        if (b[H] >= G) if d > 0 else (b[L] <= G):
-            out, t_out = "target_hit", b[T] + 60
-            break
-        if I is not None and ((b[C] < I) if d > 0 else (b[C] > I)):
-            out, t_out = "invalidated", b[T] + 60
+        if out == "expired":  # MFE/MAE run to the measured-move outcome only (unchanged meaning)
+            fav = (b[H] - e) if d > 0 else (e - b[L])
+            adv = (e - b[L]) if d > 0 else (b[H] - e)
+            mfe, mae = max(mfe, fav), max(mae, adv)
+        if o1 == "expired":
+            if (b[H] >= G1) if d > 0 else (b[L] <= G1):
+                o1 = "target_hit"
+            elif (b[C] < I) if d > 0 else (b[C] > I):
+                o1 = "invalidated"
+        if out == "expired":
+            if (b[H] >= G) if d > 0 else (b[L] <= G):
+                out, t_out = "target_hit", b[T] + 60
+            elif I is not None and ((b[C] < I) if d > 0 else (b[C] > I)):
+                out, t_out = "invalidated", b[T] + 60
+        if out != "expired" and o1 != "expired":
             break
     full = len(seg) >= n or out != "expired"
     atr = rec_trig.get("atr_bar") or None
     return {"outcome": out, "final": full, "minutes_to_outcome": round((t_out - ts) / 60, 1) if t_out else None,
             "mfe_bp": round(mfe / e * 1e4, 1), "mae_bp": round(mae / e * 1e4, 1),
             "mfe_atr": round(mfe / atr, 2) if atr else None, "mae_atr": round(mae / atr, 2) if atr else None,
-            "n_1m": len(seg)}
+            "n_1m": len(seg), "rr": rr, "outcome_1r": o1 if (o1 and (full or o1 != "expired")) else None}
 
 
 def rate_key(pattern, iv, d):
@@ -467,13 +487,17 @@ def rate_key(pattern, iv, d):
 def aggregate(graded):
     """[(rec_trig, grade)] -> {key: stats}."""
     agg = {}
+    rej = Counter()
     for r, g in graded:
         if not g or not g["final"]:
             continue
         k = rate_key(r["pattern"], r["interval"], r["direction"])
+        if g.get("outcome") not in ("target_hit", "invalidated", "expired"):  # RRFIX: rejected_wrong_side etc. never count
+            rej[k] += 1
+            continue
         a = agg.setdefault(k, {"pattern": r["pattern"], "interval": r["interval"], "direction": r["direction"],
                                "n": 0, "target_hit": 0, "invalidated": 0, "expired": 0, "_tt": [], "_tr": [],
-                               "_mfe": [], "_mae": [], "_vc": [0, 0]})
+                               "_mfe": [], "_mae": [], "_vc": [0, 0], "_rr": [], "_1r": [0, 0]})
         a["n"] += 1
         a[g["outcome"]] += 1
         # GRADEFIX 10/21: label files drop None fields, so an "expired" label has no minutes_to_outcome key
@@ -482,6 +506,11 @@ def aggregate(graded):
             a["_tr"].append(mto)
             if g["outcome"] == "target_hit":
                 a["_tt"].append(mto)
+        if g.get("rr") is not None:
+            a["_rr"].append(g["rr"])
+        if g.get("outcome_1r") in ("target_hit", "invalidated", "expired"):
+            a["_1r"][0] += 1
+            a["_1r"][1] += g["outcome_1r"] == "target_hit"
         a["_mfe"].append(g["mfe_bp"])
         a["_mae"].append(g["mae_bp"])
         if r.get("vol_confirm"):
@@ -495,6 +524,15 @@ def aggregate(graded):
         vc = a.pop("_vc")
         a["n_vol_confirm"], a["rate_vol_confirm"] = vc[0], (round(vc[1] / vc[0], 4) if vc[0] else None)
         a["low_n"] = a["n"] < 20
+        rr = a.pop("_rr")  # RRFIX 10/21: payoff + secondary 1:1 grade
+        a["med_rr"] = round(med(rr), 3) if rr else None
+        a["breakeven"] = round(1 / (1 + a["med_rr"]), 4) if a["med_rr"] else None
+        o1 = a.pop("_1r")
+        a["n_1r"], a["hit_1r"] = o1[0], o1[1]
+        a["rate_1r"] = round(o1[1] / o1[0], 4) if o1[0] else None
+    for k, n in rej.items():
+        if k in agg:
+            agg[k]["n_rejected_wrong_side"] = n
     return dict(sorted(agg.items()))
 
 

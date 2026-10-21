@@ -716,8 +716,12 @@ def grade(a):
            "ll_version": LL_VERSION, "shadow_only": True, "summary": {"n": card["today_n"], "hit": card["today_hit"]},
            "live_rates": {k: {"n": v["n"], "rate": v["rate"]} for k, v in rd["live"].items()},
            "files": [str(PDIR / f"leadlag-scorecard-{D}.md")]}
-    with open(EXP, "a") as fh:
-        fh.write(json.dumps(row) + "\n")
+    try:  # RRFIX 10/21: one row per id, a rerun replaces the earlier row instead of appending a duplicate
+        from pattern_learn import exp_upsert
+        exp_upsert(row)
+    except ImportError:
+        with open(EXP, "a") as fh:
+            fh.write(json.dumps(row) + "\n")
     IO.log(f"leadlag graded {len(days)} days in {time.time() - t0:.1f} s: today n={card['today_n']} hit={card['today_hit']}; "
            f"live keys {len(rd['live'])}")
 
