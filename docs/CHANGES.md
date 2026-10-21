@@ -47,3 +47,10 @@ Implementation status for each item is recorded in `changes.json`. Verification 
 - `refresh_marks.py` unwraps a local equity-quotes file and is the only writer (`owner: rose`, TTL 120s). `support_notify_diff.py` emits soft distance lines and does not write quotes.
 - `docs_pages.py` / `rebuild.py` render Architecture and Setup with the blotter nav. Those pages are already on bold-tulip. This package does not publish and does not call Robinhood.
 - The box `.gitignore` excludes `secrets/`, `*.db` (including `supply-chain.db`), `market-data/latest/rh-quotes.json`, and `tmp/`. This PR does not add vendor `latest/` payloads, `paper-trades/trades.json`, or cutover backup trees.
+
+## 2026-10-21: Scaling strategy review
+
+- Added `docs/SCALING-STRATEGY-20261021.md`: a strategy for scaling the discretionary same-day options book with bots (staged automation with measured gates, a deterministic execution and risk layer, the option-leg label and model ladder, the archive and decision-capture plan, ranked data sources, registered setups, UI changes, and an expanded bot roster), with a 30-day and 90-day plan and the owner decisions it needs.
+- Added `docs/strategy-2026-10-21/` with the evidence trail: desk, research and UI maps, the vendor fact sheet with corrections, five lens proposals, the judge summary, the synthesis draft and the verification log.
+- Review only. No bot, schedule, feed, order authority or vendor plan was changed. Three vendor claims were corrected by the fact-check: Robinhood's agentic account supports single-leg options and its agreement authorizes agent orders; Alpaca retired the pattern-day-trader rule on 2026-06-04; FlashAlpha Basic is 250 requests a day.
+
