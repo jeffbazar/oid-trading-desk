@@ -109,6 +109,8 @@ F oid-live-page "$L"/*.py "$L"/*.sh "$L"/*.html "$L"/*.md "$L"/sectors.json "$L"
 F oid-live-page/guide "$L"/guide/index.html
 R "$L/guide/docs"   oid-live-page/guide/docs
 R "$L/guide/vendor" oid-live-page/guide/vendor
+F oid-live-page "$L"/*.js "$L"/*.css   # CHART 10/20: chart.js / chart.css
+R "$L/vendor" oid-live-page/vendor   # CHART 10/20: lightweight-charts 5.0.9 (Apache-2.0) + LICENSE
 # --- option flow (C/P chips, momentum)
 O="$H/oid-optflow"
 F oid-optflow "$O"/*.py "$O"/*.plist

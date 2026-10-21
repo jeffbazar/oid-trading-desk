@@ -1,0 +1,106 @@
+# 30 · Stock chart (click a ticker)
+
+> Added **Tue 10/20/2026, 5:45 PM PT**. Private live page on the Mac mini. All times PT (daily bars are labelled by ET trading date). Read-only research tool: **it never places orders**. Score shown **raw** (no smoothing).
+
+![NVDA 1-minute chart, 10/20, with the tooltip at 9:34 AM](img/chart-preview.png)
+
+## The workflow
+
+1. A tile blinks red (SURGE) and its score badge leans positive.
+2. **Click the ticker** — a core tile, a row in Table view, or a row in **Sector watch**. The chart opens in a panel over the page.
+3. Read how it is guiding: price candles, volume underneath, the direction score lane under that, and the C/P lane at the bottom. Call wall / put wall / flip are drawn on the price.
+4. **Esc** (or ✕, or a click outside the panel) closes it. The last ticker, interval, range and the ext-hours switch are remembered; the **Chart** button in the header reopens the last one.
+
+Deep link (handy for bookmarks): `http://127.0.0.1:8791/#chart=NVDA/1m/1D` (also `/lh` = zoom to the last hour).
+
+## What is on the chart (top to bottom, one shared time axis)
+
+| Lane | What it shows | Colors |
+|---|---|---|
+| Price | Candles (OHLC) for the interval. **Call wall, put wall, flip as step lines** that change when the wall level changed, plus dashed lines with axis labels for the **live** levels the page shows right now. | green / red candles; call wall green, put wall red, flip amber dashed. Grey candles = pre/post 15 s bars priced from VWAP only, or "no trades" bars |
+| Volume | Shares per bar | green = close ≥ open, red = close < open |
+| Score | **Raw direction score** (−3…+3) as a step line, colored by the whole-number score. Core names: the core score. Sector watch names: **light** (dashed) and **full** (solid) | +3 dark green … 0 grey … −3 dark red; grid lines at 0 and ±2 |
+| C/P | Aggressor C/P **15 s** (purple) and **1 m** (blue), log scale, line at 1.0. Only drawn when C/P history exists for the name and range | |
+
+**How lanes line up with price.** Every lane is put on the same bar grid as the candles: the value on a bar is **the last value known at that bar's close** (no look-ahead). The tooltip also shows the **range of scores inside the bar** and how many score changes happened in it, so nothing is hidden when several changes fall in one bar. Example: NVDA +1 → +2 at 7:00:01 AM (Field Guide page 29) shows on the 7:00 one-minute bar as "+2, range in bar +1…+2, 1 change".
+
+The score and C/P are only drawn in **regular hours** (that's the only time they are computed). Pre/post bars show no score.
+
+## Controls
+
+| Control | What it does |
+|---|---|
+| **15s 1m 5m 15m 1h 1d** | Bar interval |
+| **1D 1W 1M 3M YTD 1Y** | Range, counted back from the latest stored session. If the machine doesn't have that much history, the chart shows what it has and says so in the footer (e.g. "15s data on this machine starts 2026-10-19") |
+| ext hrs | Include pre-market (4:00–6:30 AM) and after-hours (1:00–5:00 PM) bars |
+| Mouse wheel | Zoom in/out around the cursor |
+| Drag | Pan |
+| **Shift + drag**, or **⬚ Box zoom** then drag | Zoom to the dragged time span |
+| **Last hour** | Zoom to the last 60 minutes (e.g. the current hour on the day chart) |
+| **Reset** | Show the whole range again |
+| Crosshair tooltip | Time (PT), O/H/L/C, volume, score (whole number, raw, since when, range inside the bar), light/full for Sector watch, C/P 15 s and 1 m with print counts, call wall / put wall / flip at that bar |
+
+## Live updating
+
+While the chart is open and the range includes today, it asks the mini every **5 s** for the bars from the last bar on (`since=`), replaces the last bar and appends new ones. The header line (last price, % change, rvol, SURGE, score badge, C/P) comes straight from the page's own 1-second stream, so it matches the tiles exactly. The live wall lines are redrawn whenever the page's wall levels refresh (core every ~10 min; Sector watch on surge).
+
+## Data sources per interval
+
+| Interval | Past days | Today | History on the mini (10/20) |
+|---|---|---|---|
+| 15s | `archive/parquet/volume_5s` (5 s buckets, 3 → 1) | `archive/volume_5s/date=…/part-oid-quote-N.jsonl` (live) | **core since 10/19**; **Sector watch since 10/20 3:08 PM PT** (after hours only; first full session 10/21) |
+| 1m | `archive/parquet/bars_1m` (final REST copy wins over the live copy) | `archive/bars_1m/…jsonl` (live websocket bars + 2:00 / 5:15 PM final copies) | core since **2025-10-20** (1 year incl. pre/post); Sector watch since **2026-09-15** (bar store, regular hours only) + archive from 10/20 |
+| 5m / 15m / 1h | `archive/parquet/bars_5m`, `bars_15m`, `bars_1h` | rolled up from today's 1m here (session-bounded, 1h anchored 9:30 ET, same rule as the archive) | as 1m |
+| 1d | `archive/parquet/bars_1d` (Alpaca daily) | rolled up from today's regular-hours 1m | core since 2025-10-20; Sector watch since 2026-09-15 (rolled up from regular-hours 1m) |
+| Score (core) | `~/oid-data/score/changes-YYYYMMDD.jsonl` (live) → `replay-YYYYMMDD/changes-…` (5 s replay) → `scores-YYYYMMDD.jsonl` / `backfill-scores-…` (15-min grid) | live `changes-YYYYMMDD.jsonl` from 10/21 | 10/19 = 15-min backfill grid; 10/20 = 5 s replay; live change log from Wed 10/21 |
+| Score (Sector watch) | `changes-wide-…` (light), `changes-widefull-…` (full), else the `replay-…-wide` files | live files | light from 10/20 (replay); full from 10/21 |
+| C/P | `~/oid-optflow/data/cp-history/YYYY-MM-DD.jsonl(.gz)` | same file, read incrementally | core since 10/19; Sector watch `cp-history-wide` starts 10/21 |
+| Walls | see below | | |
+
+Change rows only carry the raw score at the moment the whole-number score changes, so between changes the lane holds the last raw value (the badge in the header is the live raw value).
+
+## Wall history (levels that move over time)
+
+The price lane draws the call wall, put wall and flip **as they were at each bar**, not just today's levels. Sources, merged by the time each level was computed (`as_of`):
+
+1. **`~/oid-data/walls-history/walls-YYYYMMDD.jsonl`** — new 10/20: the live page appends one row every time a wall level it shows changes (checked every 30 s; core = best of fa-walls-pulse / fa-focus-levels / fa-levels / fa-flow-levels, Sector watch = fa-walls-wide). Row: `sym, tier, as_of (epoch s), as_of_pt, cw, pw, gf, gf_status, src, rec_t`.
+2. **Walls inside the score rows** (`ctx.walls` / `comps.walls` + `comps.flip`, `as_of = t − age_s`) — this is what gives history for 10/19 and 10/20, before the recorder existed.
+3. **The live level** the page shows right now.
+
+Same rule as the tiles: a level older than **4 days** is not drawn.
+
+## Endpoints (read-only, loopback / tailnet only)
+
+| Route | What |
+|---|---|
+| `/chart.json?sym=NVDA&iv=1m&range=1D&ext=1[&since=<epoch s>]` | Bars + score + C/P + walls for the chart. `iv` = 15s 1m 5m 15m 1h 1d; `range` = 1D 1W 1M 3M YTD 1Y; `ext=0` = regular hours only; `since` = only bars from that bar on (live polling). gzip when the browser asks |
+| `/chart.js`, `/chart.css` | The chart panel code |
+| `/vendor/lightweight-charts.standalone.production.js` | TradingView Lightweight Charts 5.0.9 (Apache-2.0), served from the mini — no CDN |
+
+Reply (arrays are parallel to `bars`): `bars[i] = [t, o, h, l, c, v, session p|r|a, flag]` (flag 0 = live/aggregated, 1 = final, 2 = priced from 5 s VWAP, 3 = no trades, 4 = rolled up here); `score.core|light|full[i] = [score, raw, max in bar, min in bar, changes in bar, since t]`; `cp[i] = [cp15, cp60, prints15, prints60]`; `walls[i] = [cw, pw, gf]`; plus `wall_events`, `avail` (first stored date per interval), `sources`, `notes`, `k`, `gen_ms`.
+
+**Server-side downsampling.** At most **4,000 bars** per chart. If a range has more (e.g. 1m over 1Y), the mini merges k bars into one (proper OHLC, never across days) and the footer says "1 bar = k × 1m".
+
+## How it runs (CPU stays low)
+
+- `chart_backend.py` is one child process of the live page (oid-desk venv Python + duckdb, `nice 10`, duckdb limited to 2 threads / 256 MB). It starts on the first chart request and **exits after 15 idle minutes**.
+- Past days are cached 10 min, today's bars 3 s; score and C/P files are read once and then only the new bytes.
+- Measured 10/20 after hours (gzip size, warm): NVDA 15s/1D 3,836 bars 65 KB in 42 ms (cold 0.6 s); 1m/1D 20 KB 12 ms; 5m/1W 18 KB; 15m/1M 26 KB; 1h/3M 22 KB; 1d/1Y 6 KB. OXY 1m/1D 8 KB. A live 5 s poll is 1–8 KB.
+- `/healthz` shows `chart.requests`, `chart.avg_ms`, `chart.err`. The host monitor (`~/oid-data/host/`) logs the backend like any other process.
+
+## Sector watch rvol coloring (changed 10/20)
+
+**Before:** Sector watch rows only turned pink when 1-min rvol was ≥3× (SURGE flag) and yellow on a ≥3% move. There was no graded color for 1.5× / 2×, and nothing pulsed — unlike the core tiles.
+
+**Now:** the rvol cell uses **the same colors and thresholds as the core tiles** (grey under 1.5×, pale yellow ≥1.5×, amber ≥2×, red ≥3×; after the close it colors by day volume vs norm, like the tiles), and SURGE rows (≥3× in regular hours) **pulse red** the way a hot tile does. Click any row to open its chart.
+
+![Sector watch after the close: rvol cells colored by day rvol](img/sector-watch-rvol.png)
+
+## Known limits
+
+- **15 s history:** core from 10/19; Sector watch only from 10/20 after hours (full sessions from 10/21).
+- **Pre/post 15 s bars** have no open/high/low/close in the 5 s archive (only VWAP), so they are flat grey candles at the VWAP.
+- **Sector watch 1m before 10/20** is regular hours only (bar store); no pre/post.
+- **Score history:** 10/19 is a 15-minute grid, 10/20 is the 5 s replay; the live change log starts 10/21. Daily charts have only those days of score.
+- **C/P history:** core from 10/19; Sector watch from 10/21.
+- **Walls before 10/20** come only from the walls the score saw (none before 10/19).

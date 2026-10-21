@@ -35,6 +35,7 @@ Sizes are bytes on disk for one full trading day (measured 10/19–10/20; Sector
 | Score badge | `latest.json` (every 60 s) | `latest-wide.json`, `latest-widefull.json` (every 5 s) | overwritten | `as_of` (epoch s), `as_of_pt` | overwritten (changes files are the archive) | < 100 KB |
 | Old fixed-window grading | `outcomes-YYYYMMDD.jsonl` | not produced | every 15 min | `t` | kept | 3.9 MB |
 | Daily scorecard | `scorecard-YYYYMMDD.json/.md` | `scorecard-wide-YYYYMMDD.json/.md`, `scorecard-widefull-YYYYMMDD.json/.md` (**new**) | 1:10 PM PT weekdays | `generated_pt` | kept | < 200 KB |
+| Wall history (**new 10/20**) | `~/oid-data/walls-history/walls-YYYYMMDD.jsonl` | same file (`tier: wide`) | one row each time a wall level shown on the page changes (checked every 30 s) | `as_of` (epoch s, when FlashAlpha computed the level), `as_of_pt`, `rec_t` | kept | < 100 KB |
 | Live page state | not saved (in memory, `127.0.0.1:8791/state.json`) | not saved | — | — | — | — |
 
 **Retention change (10/20):** the Sector watch archive used to delete its raw files after **21 days**. It now follows the core rule: raw JSONL is kept 90 days and deleted only after the Saturday check (`com.oid.archive.wide-weekly`, 10:15 AM) confirms the Parquet copy holds every row; Parquet is kept. At ≈ 0.5 GB a day for the Sector watch and 411 GB free, the disk has room for years.

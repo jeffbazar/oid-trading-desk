@@ -26,3 +26,11 @@ marks, and vol_surge events. Separate launchd job `com.oid.desk.livepage`; stdli
 
 ## Direction score badge (2026-10-19)
 - Tile badge −3…+3 next to the symbol = composite direction score from `com.oid.desk.score` (~/oid-score), read from `~/oid-data/score/latest.json` into `row.score`. Hover = components (c·q·w), timestamp, config_version. Dashed/faded = not a fresh live reading. Research/log only. Field Guide page 24.
+
+## Stock chart (2026-10-20)
+Click a core tile, a Table row or a Sector watch row (or the header **Chart** button) to open a chart panel: candles + volume,
+raw direction score lane (core; light + full for Sector watch), C/P 15s / 1m lane, call wall / put wall / flip history.
+Files: `chart.js`, `chart.css`, `chart_backend.py` (child process, oid-desk venv duckdb, nice 10, exits after 15 idle min),
+`vendor/lightweight-charts.standalone.production.js` (TradingView Lightweight Charts 5.0.9, Apache-2.0, LICENSE alongside).
+Endpoint: `/chart.json?sym=&iv=15s|1m|5m|15m|1h|1d&range=1D|1W|1M|3M|YTD|1Y&ext=0|1&since=`. Wall history recorder writes
+`~/oid-data/walls-history/walls-YYYYMMDD.jsonl`. Field Guide page 30. Backups: `*.bak-20261020-chart`.

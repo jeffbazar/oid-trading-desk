@@ -11,6 +11,11 @@ result to one HTML page over Server-Sent Events.
   writes    nothing except its own log; never touches the collector, the trigger engine or Robinhood
 
 Routes: /  (page)   /stream  (SSE)   /state.json  (current state)   /healthz   /wide-sectors.json
+CHART (2026-10-20): /chart.json?sym=&iv=15s|1m|5m|15m|1h|1d&range=1D|1W|1M|3M|YTD|1Y&ext=0|1&since=<epoch s>  (read-only
+bars + score + C/P + wall history for the click-to-open chart; built by the chart_backend.py child process, oid-desk venv
+duckdb, nice 10, cached), /vendor/lightweight-charts.standalone.production.js (TradingView Lightweight Charts 5.0.9,
+Apache-2.0, served locally, no CDN). Wall history recorder: appends each new FlashAlpha wall level the page sees to
+~/oid-data/walls-history/walls-YYYYMMDD.jsonl (the only file this service writes besides its log).
 
 WIDE / Sector watch (2026-10-20): a separate, collapsible section below the core tiles for the 144 sector names in
 wide-sectors.json. Data = collector /v1/live-volume?tier=wide (SIP trades + 1-min bars only, no quotes), read every
@@ -29,6 +34,9 @@ import sys
 import threading
 import time
 import urllib.request
+import gzip
+import select
+import subprocess
 from datetime import datetime, timedelta, timezone
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -1820,6 +1828,176 @@ def _spark_key(full):
     return tuple((r["sym"], len(r["spark"]), r["spark"][-1][2] if r["spark"] else None) for r in full["rows"])
 
 
+# ---------------------------------------------------------------- CHART (2026-10-20)
+CHART_PY = Path(os.environ.get("OID_CHART_PY", str(HOME / "oid-desk/venv/bin/python3")))   # needs duckdb
+CHART_BACKEND = HERE / "chart_backend.py"
+CHART_LOG = HERE / "logs/chart-backend.log"
+CHART_TIMEOUT_S = 25.0
+CHART_IVS = ("15s", "1m", "5m", "15m", "1h", "1d")
+CHART_RANGES = ("1D", "1W", "1M", "3M", "YTD", "1Y")
+VENDOR_DIR = HERE / "vendor"
+VENDOR_FILES = {"lightweight-charts.standalone.production.js": "application/javascript; charset=utf-8",
+                "LICENSE-lightweight-charts.txt": "text/plain; charset=utf-8"}
+WALL_HIST_DIR = Path(os.environ.get("OID_LIVEPAGE_WALL_HIST", str(HOME / "oid-data/walls-history")))
+WALL_HIST_EVERY_S = 30
+
+
+class ChartBackend:
+    """One long-lived child (chart_backend.py, duckdb) answering one JSON line per request. Serialised by a lock."""
+
+    def __init__(self):
+        self.p, self.lock, self.seq, self.err = None, threading.Lock(), 0, None
+        self.n, self.ms_sum, self.started = 0, 0.0, None
+
+    def _spawn(self):
+        CHART_LOG.parent.mkdir(parents=True, exist_ok=True)
+        logf = open(CHART_LOG, "a")
+        self.p = subprocess.Popen([str(CHART_PY), str(CHART_BACKEND)], stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+                                  stderr=logf, cwd=str(HERE), preexec_fn=lambda: os.nice(10), close_fds=True)
+        logf.close()
+        self.started = time.time()
+        log(f"chart backend started pid {self.p.pid}")
+
+    def _kill(self):
+        try:
+            if self.p:
+                self.p.kill()
+                self.p.wait(timeout=2)
+        except Exception:
+            pass
+        self.p = None
+
+    def ask(self, req, _retry=True):
+        rep = self._ask(req)
+        if not rep.get("ok") and _retry and rep.get("_dead"):
+            return self._ask(req)   # the child had exited (idle exit / crash): one retry on a fresh child
+        return rep
+
+    def _ask(self, req):
+        with self.lock:
+            if self.p is None or self.p.poll() is not None:
+                self._spawn()
+            self.seq += 1
+            req = dict(req, id=self.seq)
+            t0 = time.time()
+            try:
+                self.p.stdin.write((json.dumps(req) + "\n").encode("utf-8"))
+                self.p.stdin.flush()
+                fd = self.p.stdout
+                r, _, _ = select.select([fd], [], [], CHART_TIMEOUT_S)
+                if not r:
+                    raise TimeoutError("chart backend timeout")
+                line = fd.readline()
+                if not line:
+                    raise RuntimeError("chart backend exited")
+                rep = json.loads(line)
+                if rep.get("id") != self.seq:
+                    raise RuntimeError("chart backend out of sync")
+            except Exception as e:
+                dead = self.p is not None and self.p.poll() is not None
+                self.err = str(e)[:120]
+                log(f"chart backend error: {self.err}; restarting")
+                self._kill()
+                return {"ok": False, "error": self.err, "_dead": dead or isinstance(e, (BrokenPipeError, RuntimeError))}
+            self.n += 1
+            self.ms_sum += (time.time() - t0) * 1000
+            return rep
+
+
+CHART = ChartBackend()
+
+
+def chart_cur_walls(sym):
+    """Latest wall level the page itself shows for this symbol (core: best of the 4 FA caches; Sector watch: fa-walls-wide)."""
+    r = None
+    try:
+        if WALLS is not None:
+            r = WALLS.by.get(sym)
+        if r is None:
+            r = _wall_rec("fa-walls-wide", sym, (WIDE.walls or {}).get(sym))
+    except Exception:
+        r = None
+    if not r:
+        return None
+    return {"t": r.get("t"), "cw": r.get("cw"), "pw": r.get("pw"), "gf": r.get("gf"), "src": r.get("src")}
+
+
+class WallHistory:
+    """Append-only log of every new wall level the page sees (FlashAlpha levels only change every 10-40 min).
+    ~/oid-data/walls-history/walls-YYYYMMDD.jsonl (ET date of the record time). Read back by chart_backend.py."""
+
+    def __init__(self):
+        self.last = {}
+        try:
+            for p in sorted(WALL_HIST_DIR.glob("walls-*.jsonl"))[-5:]:
+                for line in p.read_text().splitlines():
+                    try:
+                        d = json.loads(line)
+                        self.last[d["sym"]] = (d.get("as_of"), d.get("cw"), d.get("pw"), d.get("gf"))
+                    except Exception:
+                        pass
+        except Exception:
+            pass
+
+    def tick(self, now):
+        recs = []
+        try:
+            if WALLS is not None:
+                WALLS.refresh(now)
+                for sym, r in list(WALLS.by.items()):
+                    recs.append(("core", sym, r))
+            for sym, v in list((WIDE.walls or {}).items()):
+                r = _wall_rec("fa-walls-wide", sym, v)
+                if r:
+                    recs.append(("wide", sym, r))
+        except Exception as e:
+            log(f"wall history read: {e}")
+            return
+        out = []
+        for tier, sym, r in recs:
+            key = (round(r["t"], 1), r.get("cw"), r.get("pw"), r.get("gf"))
+            if self.last.get(sym) == key:
+                continue
+            self.last[sym] = key
+            out.append({"sym": sym, "tier": tier, "as_of": key[0], "as_of_pt": pt_str(r["t"]), "cw": r.get("cw"), "pw": r.get("pw"),
+                        "gf": r.get("gf"), "gf_status": r.get("gf_status"), "src": r.get("src"), "rec_t": round(now, 1)})
+        if not out:
+            return
+        try:
+            WALL_HIST_DIR.mkdir(parents=True, exist_ok=True)
+            p = WALL_HIST_DIR / f"walls-{datetime.fromtimestamp(now, ET).strftime('%Y%m%d')}.jsonl"
+            with open(p, "a") as fh:
+                for d in out:
+                    fh.write(json.dumps(d, separators=(",", ":")) + "\n")
+        except Exception as e:
+            log(f"wall history write: {e}")
+
+    def loop(self):
+        time.sleep(5)
+        while True:
+            self.tick(time.time())
+            time.sleep(WALL_HIST_EVERY_S)
+
+
+def chart_query(qs):
+    from urllib.parse import parse_qs
+    q = {k: v[0] for k, v in parse_qs(qs or "").items() if v}
+    sym = (q.get("sym") or "").upper()
+    iv, rng = q.get("iv") or "1m", q.get("range") or "1D"
+    if not SYM_RE.match(sym) or iv not in CHART_IVS or rng not in CHART_RANGES:
+        return 400, {"error": "bad sym / iv / range"}
+    req = {"sym": sym, "iv": iv, "range": rng, "ext": 0 if q.get("ext") == "0" else 1, "cur_walls": chart_cur_walls(sym)}
+    if q.get("since"):
+        try:
+            req["since"] = float(q["since"])
+        except ValueError:
+            return 400, {"error": "bad since"}
+    rep = CHART.ask(req)
+    if not rep.get("ok"):
+        return 502 if "timeout" not in str(rep.get("error")) else 504, {"error": rep.get("error")}
+    return 200, rep["data"]
+
+
 class H(BaseHTTPRequestHandler):
     server_version = "oid-livepage/1.0"
 
@@ -1834,6 +2012,21 @@ class H(BaseHTTPRequestHandler):
         self.send_header("Cache-Control", "no-store")
         self.send_header("X-Content-Type-Options", "nosniff")
         self.send_header("Referrer-Policy", "no-referrer")
+        self.end_headers()
+        self.wfile.write(b)
+
+    def _send_json_gz(self, code, obj):
+        b = json.dumps(obj, separators=(",", ":")).encode("utf-8")
+        gz = "gzip" in (self.headers.get("Accept-Encoding") or "") and len(b) > 2048
+        if gz:
+            b = gzip.compress(b, 5)
+        self.send_response(code)
+        self.send_header("Content-Type", "application/json")
+        self.send_header("Content-Length", str(len(b)))
+        self.send_header("Cache-Control", "no-store")
+        self.send_header("X-Content-Type-Options", "nosniff")
+        if gz:
+            self.send_header("Content-Encoding", "gzip")
         self.end_headers()
         self.wfile.write(b)
 
@@ -1877,7 +2070,8 @@ class H(BaseHTTPRequestHandler):
             with LOCK:
                 f = S["full"]
                 body = {"ok": f is not None and S["err"] is None, "as_of_pt": f and f["as_of_pt"], "rows": f and len(f["rows"]),
-                        "err": S["err"], "clients": S["clients"], "uptime_s": round(time.time() - S["started"])}
+                        "err": S["err"], "clients": S["clients"], "uptime_s": round(time.time() - S["started"]),
+                        "chart": {"requests": CHART.n, "avg_ms": round(CHART.ms_sum / CHART.n, 1) if CHART.n else None, "err": CHART.err}}
             return self._send(200, json.dumps(body), "application/json")
         if path == "/state.json":
             with LOCK:
@@ -1892,6 +2086,22 @@ class H(BaseHTTPRequestHandler):
             body = {k: d.get(k) for k in ("as_of_pt", "as_of", "source", "sentiment", "status", "today", "today_followed",
                                            "items", "market", "x_top", "followed")}
             return self._send(200, json.dumps(body), "application/json")
+        if path in ("/chart.js", "/chart.css"):  # CHART: page-side chart code (static, read-only)
+            try:
+                return self._send(200, (HERE / path[1:]).read_bytes(), "application/javascript; charset=utf-8" if path.endswith(".js") else "text/css; charset=utf-8")
+            except OSError:
+                return self._send(404, "not found", "text/plain")
+        if path == "/chart.json":  # CHART: read-only bars + score + C/P + wall history
+            code, body = chart_query(self.path.split("?", 1)[1] if "?" in self.path else "")
+            return self._send_json_gz(code, body)
+        if path.startswith("/vendor/"):  # CHART: locally vendored chart library (no CDN)
+            name = path[len("/vendor/"):]
+            if name not in VENDOR_FILES:
+                return self._send(404, "not found", "text/plain")
+            try:
+                return self._send(200, (VENDOR_DIR / name).read_bytes(), VENDOR_FILES[name])
+            except OSError:
+                return self._send(404, "not found", "text/plain")
         if path == "/walls.json":  # read-only copy of data/fa-walls-pulse.json (com.oid.desk.fa-walls) for the box fa-levels merge
             try:
                 return self._send(200, WALL_FILES[0][1].read_bytes(), "application/json")
@@ -1973,6 +2183,7 @@ def main():
     WALLS.refresh(time.time())
     threading.Thread(target=WALLS.loop, args=(WALL_STATE,), daemon=True).start()  # WALLS weights (Alpaca, read-only)
     threading.Thread(target=poll_loop, daemon=True).start()
+    threading.Thread(target=WallHistory().loop, daemon=True).start()  # CHART: wall history recorder
     srv = ThreadingHTTPServer((HOST, PORT), H)
     srv.daemon_threads = True
     log(f"live page on http://{HOST}:{PORT}/ (loopback only)")
