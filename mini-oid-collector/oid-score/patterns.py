@@ -476,10 +476,12 @@ def aggregate(graded):
                                "_mfe": [], "_mae": [], "_vc": [0, 0]})
         a["n"] += 1
         a[g["outcome"]] += 1
-        if g["minutes_to_outcome"] is not None:
-            a["_tr"].append(g["minutes_to_outcome"])
+        # GRADEFIX 10/21: label files drop None fields, so an "expired" label has no minutes_to_outcome key
+        mto = g.get("minutes_to_outcome")
+        if mto is not None:
+            a["_tr"].append(mto)
             if g["outcome"] == "target_hit":
-                a["_tt"].append(g["minutes_to_outcome"])
+                a["_tt"].append(mto)
         a["_mfe"].append(g["mfe_bp"])
         a["_mae"].append(g["mae_bp"])
         if r.get("vol_confirm"):
