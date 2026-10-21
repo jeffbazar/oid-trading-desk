@@ -64,10 +64,19 @@ def backtest(a):
     t0 = time.time()
     uni = IO.universe()
     graded, counts, sessions = [], Counter(), set()
+    prev_doc = IO.rates() or {}
+    prev_bt = {k: {"rate": v.get("rate"), "n": v.get("n"), "target_hit": v.get("target_hit")}
+               for k, v in (prev_doc.get("backtest") or {}).items()}
+    dump_path = IO.PDIR / "backtest-grades.jsonl"
+    dump = open(dump_path.with_name(".backtest-grades.jsonl.tmp"), "w")
     for j, (sym, tier, store) in enumerate(uni):
         b1 = IO.hist_1m(sym, store)
         if not b1:
             continue
+        if a.before:  # BTREGRADE 10/21: fixed window so the backtest never overlaps the live-graded days
+            b1 = [b for b in b1 if b[6] < a.before]
+            if not b1:
+                continue
         ss = sorted({b[6] for b in b1})
         sessions |= set(ss)
         if len(ss) <= a.min_sessions:
@@ -85,11 +94,25 @@ def backtest(a):
             counts[(first["pattern"], first["interval"], first["direction"], "detected")] += 1
             if trg and trg["direction"]:
                 counts[(first["pattern"], first["interval"], first["direction"], "triggered")] += 1
-                graded.append((trg, PT.grade(trg, b1)))
+                g = PT.grade(trg, b1)
+                graded.append((trg, g))
+                if dump is not None and g:  # BTREGRADE: per-setup grades (data dir, never synced) for the options-cost study
+                    dump.write(json.dumps({"ticker": sym, "tier": tier, "pattern": trg["pattern"], "interval": trg["interval"],
+                                           "direction": trg["direction"], "ts": trg["ts"], "px": trg.get("px"),
+                                           "key_levels": trg.get("key_levels"), "atr_bar": trg.get("atr_bar"),
+                                           "rvol": trg.get("rvol"), "conf": trg.get("confidence_raw"), **g},
+                                          separators=(",", ":")) + "\n")
         if j % 25 == 0:
             IO.log(f"backtest {j + 1}/{len(uni)} {sym}: {len(graded)} graded so far ({time.time() - t0:.0f} s)")
+    dump.close()
+    dump_path.with_name(".backtest-grades.jsonl.tmp").replace(dump_path)
     agg = PT.aggregate(graded)
     for k, v in agg.items():
+        if k in prev_bt and not prev_doc.get("backtest_grader", "").startswith("rrfix"):
+            v["rate_pre_rrfix"], v["n_pre_rrfix"] = prev_bt[k]["rate"], prev_bt[k]["n"]
+        elif k in prev_bt and (prev_doc.get("backtest") or {}).get(k, {}).get("rate_pre_rrfix") is not None:
+            v["rate_pre_rrfix"] = prev_doc["backtest"][k]["rate_pre_rrfix"]
+            v["n_pre_rrfix"] = prev_doc["backtest"][k].get("n_pre_rrfix")
         v["n_detected"] = counts.get((v["pattern"], v["interval"], v["direction"], "detected"), 0)
         v["n_triggered"] = counts.get((v["pattern"], v["interval"], v["direction"], "triggered"), 0)
     doc = IO.rates() or {}
@@ -99,12 +122,23 @@ def backtest(a):
                       "the trigger bar's close: target touched first = hit; a 1-min close beyond invalidation = invalidated; "
                       "else expired at the horizon. rate = target_hit / n (n = final grades). In-sample for every replayed day.",
                backtest_sessions=[min(sessions), max(sessions)] if sessions else None, backtest_tickers=len(uni),
-               backtest=agg)
+               backtest=agg, backtest_grader="rrfix-20261021: wrong-side targets / entry beyond invalidation rejected "
+               "(n_rejected_wrong_side, excluded from n); med_rr, breakeven = 1/(1+med_rr); 1:1 secondary grade (rate_1r, n_1r)",
+               backtest_before=a.before, backtest_regraded_pt=IO.pt_str(time.time()))
     doc.setdefault("live", {})
     IO.PDIR.mkdir(parents=True, exist_ok=True)
     IO.RATES.write_text(json.dumps(doc, indent=1))
     IO.log(f"base rates: {len(agg)} keys from {len(graded)} graded detections, {len(uni)} tickers, "
            f"{doc['backtest_sessions']} in {time.time() - t0:.0f} s -> {IO.RATES}")
+    exp_upsert({"id": f"pattern-backtest-regrade-{time.strftime('%Y%m%d')}", "kind": "pattern_backtest_regrade",
+                "created_pt": IO.pt_str(time.time()), "detector_version": PT.DETECTOR_VERSION, "shadow_only": True,
+                "grader": "rrfix-20261021 (same PT.grade/PT.aggregate as the nightly live grader)",
+                "sessions": doc["backtest_sessions"], "before": a.before, "tickers": len(uni), "graded": len(graded),
+                "rates": {k: {"n": v["n"], "rate": v["rate"], "rate_pre_rrfix": v.get("rate_pre_rrfix"),
+                              "n_pre_rrfix": v.get("n_pre_rrfix"), "med_rr": v.get("med_rr"), "breakeven": v.get("breakeven"),
+                              "rate_1r": v.get("rate_1r"), "n_1r": v.get("n_1r"),
+                              "n_rejected_wrong_side": v.get("n_rejected_wrong_side", 0)} for k, v in agg.items()},
+                "files": [str(IO.RATES), str(dump_path)]})
     top = sorted(agg.values(), key=lambda v: -v["n"])[:12]
     for v in top:
         print(f"  {v['pattern']:<20} {v['interval']:>3} {v['direction']:+d}  n={v['n']:<5} hit {v['rate']:.1%}  "
@@ -271,6 +305,7 @@ def main():
     sp = ap.add_subparsers(dest="cmd", required=True)
     b = sp.add_parser("backtest")
     b.add_argument("--min-sessions", type=int, default=2)
+    b.add_argument("--before", default=None, help="only sessions before this date (YYYY-MM-DD)")
     r = sp.add_parser("replay")
     r.add_argument("--date", required=True)
     r.add_argument("--live-json", action="store_true")

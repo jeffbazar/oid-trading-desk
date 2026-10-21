@@ -60,24 +60,24 @@ Real record (10/20 replay):
 ## Probabilities and grading
 
 - **What a hit means:** a triggered detection is graded on **1-min bars** from the trigger bar's close. **target_hit** = target touched first; **invalidated** = a 1-min close beyond invalidation; **expired** = neither within the horizon (market minutes). Also recorded: minutes to outcome (wall clock), MFE/MAE in bp and in bar-ATR. Untriggered detections are labelled `not_triggered`; range is labelled `context`.
-- **Base rates** (`~/oid-data/patterns/base-rates.json`): built from every stored 1-min session (9/15–10/20; the first 2 sessions per ticker are warm-up) of all 205 tickers. That gives 140,308 graded detections over 42 pattern × interval × direction keys, each with n, hits, median minutes to hit, median MFE/MAE and the vol-confirmed hit rate. The smallest key has n = 128, so no key is under 20 yet. **These rates are in-sample for every replayed day.**
+- **Base rates** (`~/oid-data/patterns/base-rates.json`): built from every stored 1-min session before 10/21 (`--before 2026-10-21`; 9/16–10/20 after the history window rolled; the first 2 sessions per ticker are warm-up) of all 205 tickers. **Regraded 10/21 3:25 PM PT with the RRFIX grader** (BTREGRADE below): 134,583 triggered detections graded, wrong-side setups rejected per key, over 42 pattern × interval × direction keys. Each key has n, hits, `rate`, `n_rejected_wrong_side`, `med_rr`, `breakeven`, `rate_1r` / `n_1r`, median minutes to hit, median MFE/MAE, and `rate_pre_rrfix` / `n_pre_rrfix` (the old numbers). The smallest key has n = 117. **These rates are in-sample for every replayed day.**
 - **prob_est** = the backtest rate for the pattern + interval + direction (`prob_source: "backtest"`, with n). Once the live grader has **n ≥ 20** final live labels for a key, it switches to the live rate (`prob_source: "live"`), and both stay in the record and the UI. It is conditional on the trigger; raw, not smoothed.
 - **Nightly:** labels go to `archive/pattern_labels/date=D/part-pattern-grader-1.jsonl` (rewritten each night, because 30m horizons span days). Live rates → `base-rates.json` "live". Scorecard → `~/oid-data/patterns/scorecard-<D>.{md,json}`. One `pattern_scorecard` row → `~/oid-data/score/experiments.jsonl`.
 
-Backtest highlights (hit rate, n):
+Backtest highlights after the regrade (hit rate, n; wrong-side setups removed):
 
 | Pattern | 1m | 5m | 30m |
 |---|---|---|---|
-| breakout | 38.1% (11,548) | 31.1% (5,980); vol-confirmed 40.0% (1,540) | 48.2% (1,195) |
-| breakdown | 37.3% (14,258) | 29.5% (7,303) | 53.6% (1,476) |
-| double top / bottom | 53.2% / 53.9% | 54.2% / 55.0% | 62.5% (256) / 54.1% (220) |
-| higher low / lower high | 64.2% / 64.9% | 59.8% / 54.4% | 67.3% (498) / 78.7% (503) |
-| H&S / inverse | 37.4% / 36.4% | 44.7% / 38.4% | 45.3% (128) / 45.0% (140) |
-| vwap reclaim / loss | 44.9% / 46.9% | 48.8% / 48.0% | — |
-| bull / bear flag | 22.5% / 18.5% | 17.6% / 16.4% | 36.2% / 45.3% |
-| gap fill (5m) | — | gap up 66.6% (602) · gap down 55.6% (500) | — |
+| breakout | 37.9% (10,945) | 31.1% (5,658) | 44.5% (1,061) |
+| breakdown | 37.4% (13,820) | 29.6% (7,054) | 50.2% (1,340) |
+| double top / bottom | 51.5% / 52.2% | 49.5% / 50.5% | 57.5% (221) / 45.5% (178) |
+| higher low / lower high | 60.9% (8,116) / 62.0% (8,304) | 56.1% / 51.0% | 58.6% (382) / 70.5% (335) |
+| H&S / inverse | 36.5% / 34.9% | 40.0% / 34.6% | 41.0% (117) / 38.0% (121) |
+| vwap reclaim / loss | 44.0% / 46.3% | 48.1% / 47.8% | — |
+| bull / bear flag | 21.6% / 18.9% | 18.4% / 16.6% | 33.8% / 40.3% |
+| gap fill (5m) | — | gap up 65.3% (450) · gap down 50.0% (424) | — |
 
-Higher-low and lower-high rates are high partly because entry is the trigger bar's close, which is already past the trigger and so closer to the target than to the invalidation.
+A hit rate means little without the payoff: compare it with the key's breakeven 1/(1+R:R) (BTREGRADE table below). Higher-low and lower-high rates are high partly because entry is the trigger bar's close, which is already past the trigger and so closer to the target than to the invalidation (median R:R 0.64).
 
 ## On the live page
 
@@ -93,7 +93,7 @@ Display only. Nothing here feeds a score, the detector, an alert or a trade.
 ![Best now strip and pattern badges](img/heatmap-patterns.png)
 
 - **Badge** (one per tile, under the price row): the best active pattern, e.g. **`▲ HL 68% · n=349 · R:R 0.6 · L 1m`**. `+2` = more active patterns (hover for them, each with its n).
-  - **Hit rate and n:** the latest `scorecard-<D>.json` → `by_mode.live[pattern|interval|direction]` when its live **n ≥ 20** (**L**). n is the *corrected* count: setups whose target sat on the wrong side of entry are removed (RRFIX below). Otherwise the backtest base rate from `base-rates.json` with its n (**BT**, dashed border). Backtest rates were built with the old grader, so they still include wrong-side "hits" and have no R:R; a BT badge never lights a tile.
+  - **Hit rate and n:** the latest `scorecard-<D>.json` → `by_mode.live[pattern|interval|direction]` when its live **n ≥ 20** (**L**). n is the *corrected* count: setups whose target sat on the wrong side of entry are removed (RRFIX below). Otherwise the backtest base rate from `base-rates.json` with its n and R:R (**BT**, dashed border), e.g. `▼ LH 70% · n=335 · R:R 0.5 · BT 30m` (was `LH 79% BT 30m` before the 10/21 regrade). Backtest rates now use the same grader as live (wrong-side setups removed, R:R, breakeven, 1:1). A BT badge **never lights a tile**, even when it beats its breakeven.
   - **early:** any rate with **n < 20** is dimmed and labelled *early*.
   - **R:R** = median |target − entry| ÷ |entry − invalidation| for that key (live labels). **Breakeven = 1 ÷ (1 + R:R)**: at R:R 0.6 the pattern must hit about 62% just to break even.
   - **Expiry:** detection time + horizon (30 bars on 1m, 24 on 5m, 26 on 30m, gaps to the session end), counted in regular-hours minutes, so overnight the clock pauses. The badge also drops when price is already through the target, or when the target is on the wrong side of the trigger. Triggered detections are timed from detection, so the badge can expire a little before the detector's own horizon.
@@ -112,7 +112,7 @@ A read-only audit found that when price gapped past the trigger, the measured-mo
 - `patterns.grade()` now returns **`rejected_wrong_side`** (final, excluded from every rate) when the target is at or beyond entry the wrong way, or the entry is already beyond invalidation. Each key reports `n_rejected_wrong_side`.
 - Every graded detection now carries **`rr`** and a secondary **1:1 grade** (`outcome_1r`: target = entry ± the stop distance, same bars and invalidation rule). Keys get `med_rr`, `breakeven`, `n_1r`, `hit_1r`, `rate_1r`; the scorecard table has the new columns.
 - Reruns no longer duplicate `experiments.jsonl` rows: the pattern and lead-lag scorecard rows are replaced by id (`exp_upsert`).
-- Detection rules, `DETECTOR_VERSION` and the backtest base rates are unchanged (the backtest was not rerun).
+- Detection rules and `DETECTOR_VERSION` are unchanged. The backtest base rates were regraded the same evening (next section).
 
 10/21 live, before → after:
 
@@ -124,6 +124,78 @@ A read-only audit found that when price gapped past the trigger, the measured-mo
 | lower high 5m ▼ | 69.0% (84) | 65.3% (75) | 9 | 0.61 | 62.0% | 46.7% |
 
 Only the 1m higher low clears its breakeven; the 1m lower high is below it. Both fail at 1:1. One day of live data.
+
+## Backtest regrade (10/21 3:25 PM PT, BTREGRADE)
+
+`pattern_learn.py backtest --before 2026-10-21` reran every stored session through the unchanged engines and graded each trigger with the same `PT.grade` / `PT.aggregate` as the nightly live grader. Backups: `*.bak-20261021-btregrade` (base-rates.json, experiments.jsonl, pattern_learn.py, index.html, livepage.py, this page).
+
+- `backtest()` now takes `--before` (keeps the backtest off the live-graded days), writes per-setup grades to `~/oid-data/patterns/backtest-grades.jsonl` (data dir, never synced), keeps the old numbers per key as `rate_pre_rrfix` / `n_pre_rrfix`, and upserts one `pattern_backtest_regrade` row in `experiments.jsonl` (by id, so reruns replace it). A duplicate `pattern-scorecard-2026-10-20` row was removed (23 → 22 rows before the new row; no duplicate ids now).
+- Old n is larger than new n + rejected for some keys because the 1-min history window rolled (9/15 dropped off).
+
+| Key | Old rate (n) | New rate (n) | Rejected | Median R:R | Breakeven | New − BE | 1:1 rate |
+|---|---|---|---|---|---|---|---|
+| higher low 1m ▲ | 64.2% (9,218) | **60.9% (8,116)** | 744 | 0.635 | 61.2% | −0.3 | 40.2% |
+| lower high 1m ▼ | 64.9% (9,491) | **62.0% (8,304)** | 765 | 0.635 | 61.2% | +0.8 | 41.6% |
+| double bottom 1m ▲ | 53.9% (6,562) | 52.2% (6,049) | 235 | 0.657 | 60.4% | −8.2 | 31.8% |
+| double top 1m ▼ | 53.2% (6,658) | 51.5% (6,148) | 256 | 0.662 | 60.2% | −8.6 | 29.9% |
+| breakout 1m ▲ | 38.1% (11,548) | 37.9% (10,945) | 48 | 1.879 | 34.7% | +3.1 | 52.4% |
+| breakdown 1m ▼ | 37.3% (14,258) | 37.4% (13,820) | 36 | 1.865 | 34.9% | +2.5 | 53.0% |
+| higher low 5m ▲ | 59.8% (1,826) | 56.1% (1,612) | 152 | 0.68 | 59.5% | −3.4 | 37.3% |
+| lower high 5m ▼ | 54.4% (1,760) | 51.0% (1,540) | 140 | 0.684 | 59.4% | −8.3 | 34.7% |
+| higher low 30m ▲ | 67.3% (498) | 58.6% (382) | 106 | 0.578 | 63.4% | −4.7 | 38.0% |
+| lower high 30m ▼ | 78.7% (503) | 70.5% (335) | 156 | 0.543 | 64.8% | +5.6 | 47.8% |
+| breakdown 30m ▼ | 53.6% (1,476) | 50.2% (1,340) | 87 | 1.312 | 43.3% | +7.0 | 52.0% |
+| failed breakout 30m ▼ | 54.2% (561) | 51.2% (498) | 41 | 1.474 | 40.4% | +10.8 | 54.8% |
+| bear flag 30m ▼ | 45.3% (413) | 40.3% (372) | 32 | 2.073 | 32.5% | +7.8 | 54.8% |
+| gap up fill 5m ▼ | 66.6% (602) | 65.3% (450) | 54 | 0.511 | 66.2% | −0.9 | 46.2% |
+
+Full 42-key table: `base-rates.json` → `backtest` (or the `pattern-backtest-regrade-20261021` experiments row). Backtest edges over breakeven are **before spread** and in-sample.
+
+## Options-cost check: 1m higher low / lower high (10/21)
+
+Question: does the move pay for an ATM weekly option? Script `/tmp/optcost.py` on the mini (research only); results `~/oid-data/patterns/optcost-20261021.json`, per-setup rows `optcost-setups-20261021.jsonl` (data dir, not synced).
+
+- **Sample:** 17,153 graded setups: backtest 9/16–10/20 (HL 8,116, LH 8,304) + live 10/21 (HL 349, LH 384). Wrong-side setups excluded.
+- **Best move** = max favorable excursion in the 30 one-minute bars after entry (no stop applied), bp of the stock.
+- **Option model (assumption, stated):** buy the ATM weekly at entry, 0.5 delta, gamma from the ticker's IV (T = 2 days), exit at the grader's outcome (target / first close beyond the stop / bar 30). Cost = **one full bid-ask spread** (buy ask, sell bid) + **theta × minutes held**, theta = |daily theta| / 390 per RTH minute. Spread, theta, IV and premium come from **real Alpaca OPRA snapshots** (`opt-cost-snap-20261021.json`): the ATM 10/23 call (for ▲) / put (for ▼) per ticker, last NBBO at the 1:00 PM PT close on 10/21 (193 of 205 tickers had a two-sided quote; the rest use the median). One snapshot stands in for every historical day, so open-of-day spreads (wider) are understated.
+- **Median ATM weekly costs:** spread 25.8 bp of the stock (calls) / 30.3 bp (puts) = 17–19% of the option mid; theta ~0.08–0.12 bp of the stock per minute; premium ~1.6–1.7% of the stock. Liquid names are far tighter (SPY 0.4 bp, NVDA 0.5 bp, AMD 6.3 bp, AAOI 78 bp).
+
+Upside distribution (best move in 30 bars, bp):
+
+| Set | n | hit | p50 | p75 | p90 | ≥30 bp | ≥50 bp | ≥100 bp |
+|---|---|---|---|---|---|---|---|---|
+| HL 1m, all | 8,465 | 61.2% | 24.5 | 52.7 | 104.1 | 43.6% | 26.6% | 10.6% |
+| LH 1m, all | 8,688 | 61.8% | 26.3 | 57.4 | 107.6 | 45.6% | 29.1% | 11.4% |
+| HL 1m, live 10/21 | 349 | 67.6% | 24.6 | 54.8 | 92.2 | 44.4% | 27.8% | 9.2% |
+| LH 1m, live 10/21 | 384 | 58.1% | 23.2 | 51.4 | 80.8 | 41.7% | 25.5% | 6.5% |
+
+Estimated option P&L per trade (bp of the stock, after spread + theta): HL mean −44.1 / median −27.1 (−27% of premium, 10.5% of trades positive); LH mean −47.6 / median −30.4. Even exiting at the best bar with hindsight averages −17 bp. **Verdict: as a standalone options trade, neither pattern covers cost.** The edge is ~+1 to +4 bp of the stock before spread; the median ATM weekly spread alone is ~26–30 bp.
+
+Gate 2 (HL + LH pooled, alone and in pairs; `covered` = setups where the filter's data exist, `cov. base` = gate-1 P&L on those same setups):
+
+| Rank | Filter | n | covered | hit | best p50 | best p75 | opt P&L mean (bp) | median | cov. base | flag |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 1 | b + e | 113 | 226 | 71.7% | 36.0 | 70.0 | −0.97 | +1.25 | −5.53 | |
+| 2 | b + d | 143 | 223 | 71.3% | 30.2 | 62.8 | −2.08 | −0.37 | −5.08 | |
+| 3 | b C/P agrees | 158 | 226 | 70.9% | 29.4 | 61.3 | −2.50 | −0.58 | −5.53 | |
+| 4 | a + b | 55 | 100 | 70.9% | 30.9 | 61.7 | −4.33 | −0.54 | −7.29 | |
+| 5 | b + c | 12 | 226 | 66.7% | 22.5 | 50.9 | −6.61 | −1.44 | −5.53 | n<30 |
+| 6 | d′ score agrees | 246 | 645 | 60.6% | 29.1 | 72.6 | −23.21 | −16.66 | — | |
+| 7 | a + d | 213 | 252 | 64.8% | 30.3 | 55.3 | −32.02 | −24.88 | −31.72 | |
+| 8 | a + e | 153 | 254 | 68.0% | 34.3 | 62.0 | −32.71 | −24.88 | −31.67 | |
+| 9 | a wall room ≥ 50 bp | 236 | 254 | 63.1% | 29.2 | 53.4 | −32.84 | −25.20 | −31.67 | |
+| 10 | gate 1 only | 17,153 | 17,153 | 61.5% | 25.4 | 55.0 | −45.90 | −28.94 | — | |
+| 11 | d 5m + 15m trend agrees | 15,542 | 16,895 | 61.1% | 25.2 | 54.5 | −46.14 | −29.02 | −45.93 | |
+| 12 | e ex first 5 min & 9–11 | 11,844 | 17,153 | 61.5% | 28.4 | 61.4 | −46.87 | −29.06 | −45.90 | |
+| 13 | d + e | 10,723 | 16,895 | 61.2% | 28.3 | 61.0 | −47.08 | −29.06 | −45.93 | |
+| 14 | a + c | 30 | 254 | 60.0% | 20.8 | 39.7 | −47.11 | −38.39 | −31.67 | |
+| 15 | c rvol ≥ 2× | 2,324 | 17,153 | 64.8% | 27.5 | 60.4 | −58.74 | −32.38 | −45.90 | |
+| 16 | c + d | 2,217 | 16,895 | 64.6% | 27.6 | 60.4 | −58.99 | −32.54 | −45.93 | |
+| 17 | c + e | 1,594 | 17,153 | 64.4% | 29.9 | 67.4 | −62.14 | −32.53 | −45.90 | |
+
+- **Filter definitions:** (a) FlashAlpha call wall (▲) / put wall (▼) ≥ 50 bp beyond entry, latest `walls-history` row ≤ 3 h old (10/20–10/21 only). (b) aggressor C/P at the trigger, 1-min (else 15 s) from `cp-history`: > 1.10 for ▲, < 0.91 for ▼ (10/19–10/21, core names only). (c) break-bar volume ≥ 2× the mean of the prior 20 one-minute bars (the engine's rvol, not the page's same-minute rvol). (d) 5-min and 15-min close-to-close both in the pattern's direction; d′ = core score sign agrees (score_features, 10/19–10/21). (e) drop 6:30–6:35 and 9:00–11:00 PT.
+- **Read:** no filter or pair has a positive mean option P&L. The C/P filter (b) helps most, from −5.5 to −2.5 bp on the same covered setups, with hit rate 70.9% (n = 158); b + e is about breakeven (mean −1.0, median +1.3, n = 113, HL alone −0.2 / +2.2, n = 80). These sets are core names only (median spread ~5.6 bp), which is most of the improvement over gate 1. rvol ≥ 2× raises the hit rate but picks names with wider spreads and longer holds, so P&L gets worse. By ticker (n ≥ 30, 201 tickers) **none** is positive; the best are SPY −0.2, NVDA −0.5, SPCX −0.6, ORCL −1.1 bp (n 84–94).
+- **Use:** timing aid for a trade already wanted in a liquid name (SPY/QQQ/NVDA-class spreads), not an options trade by itself. 10/19–10/21 filters (a, b, d′) rest on 3 days. Re-check Friday with more live days.
 
 ## In score_features (shadow fields)
 

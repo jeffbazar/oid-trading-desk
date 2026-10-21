@@ -484,7 +484,7 @@ function patPaint(el,r){el.classList.remove('pe0','pe1','pe2','pe3');if(!PAT||!P
  el.classList.add('pe'+lv);if(p)el.style.setProperty('--pc',p.dir>0?'#1a7f37':'#cf222e');}
 function pct(v){return v==null?'—':Math.round(v*100)+'%';}
 function patTip(p,n){const nm=PNM[p.p]||p.p.replace(/_/g,' ');
- const src=p.src==='live'?`live hit rate ${(p.rate*100).toFixed(1)}% over n=${p.n} graded live detections`:`BACKTEST base rate ${(p.rate*100).toFixed(1)}% (n=${p.n}); live n=${p.n_live??0} < ${PAT.rates?PAT.rates.min_live_n:20}${p.rate_live!=null?' (live so far '+(p.rate_live*100).toFixed(0)+'%)':''} · backtest rates were graded before the wrong-side-target fix and have no R:R`;
+ const src=p.src==='live'?`live hit rate ${(p.rate*100).toFixed(1)}% over n=${p.n} graded live detections`:`BACKTEST base rate ${(p.rate*100).toFixed(1)}% (n=${p.n}); live n=${p.n_live??0} < ${PAT.rates?PAT.rates.min_live_n:20}${p.rate_live!=null?' (live so far '+(p.rate_live*100).toFixed(0)+'%)':''} · backtest regraded 10/21 with the live grader rules (wrong-side targets rejected, R:R, breakeven, 1:1); BT never lights a tile`;
  return `${early(p)?'EARLY (n<20, low sample) · ':''}${p.dir>0?'▲ up':'▼ down'}: ${nm} ${p.iv} · ${p.state}${p.t0_pt?' since '+p.t0_pt+' PT':''} · ${src}`+
   ` · median R:R ${p.rr??'—'}${p.be!=null?' → breakeven '+(p.be*100).toFixed(0)+'% → '+(patEdge(p)?'BEATS breakeven':'does NOT beat breakeven'):''}`+
   `${p.r1!=null?' · 1:1 grade (target = stop distance) '+(p.r1*100).toFixed(0)+'% (n='+p.n1+')':''}`+
