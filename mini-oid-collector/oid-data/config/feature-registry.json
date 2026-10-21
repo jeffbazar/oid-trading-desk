@@ -1,6 +1,6 @@
 {
  "registry_version": "fr-v1-20261021",
- "updated_pt": "2026-10-20 PT",
+ "updated_pt": "2026-10-21 PT",
  "doc": "One row per score input. Weights are not logged per row (they are fixed by settings_version in score-config.json). Null values are omitted from JSONL rows; Parquet has every column. status: output | in_score | context | shadow | age. path is a dotted path into the score change row (comps.*, ctx.*); @news.* and @cs.* are filled by the snapshotter. Each feature names the age column that tells how old its value was. Shadow features are logged, never used by a live score until a promotion test passes.",
  "snapshot": {
   "every_s": 15,
@@ -124,6 +124,15 @@
    "status": "shadow",
    "note": "Primaries' calibrated_score runs hot (44% est vs 36% realized). Soft colour only; never elevates a name alone.",
    "where": "box chart-bot/scenarios/latest.json -> mini ~/oid-desk/desk/chart-bot/scenarios/latest.json (desk-state push); live status: ~/oid-data/chart-scenarios/status-live.json from com.oid.desk.chart-scn-status (chart_scn_live.py -> Chart Bot's canonical run_scenarios.py --status-only in ~/oid-desk/chart-bot/, primaries + alternates)"
+  },
+  {
+   "id": "leadlag",
+   "name": "Lead-lag leader -> follower (shadow)",
+   "method": "ll-v1-20261021 (leadlag.py)",
+   "cadence": "each 1m bar close +25 s (reads the pattern archive)",
+   "status": "shadow",
+   "note": "Never feeds a live score, an alert or a trade until Jeffrey approves. prob = out-of-sample backtest hit rate of the follower moving the predicted way over the horizon, per pattern+interval+leader direction+correlation bucket; live rate once n >= 20.",
+   "where": "~/oid-data/patterns/leadlag-live.json (com.oid.desk.leadlag); map leadlag-map.json; rates leadlag-rates.json; archive leadlag/date=*/"
   }
  ],
  "features": [
@@ -1819,6 +1828,128 @@
    "in_light_rows": false,
    "added": "2026-10-21",
    "desc": "Sector-row tick-test C/P (15 s). Not a separate column: it is ctx_cp_15s on full-profile sector rows (light rows carry no ctx). Empty until the wide C/P feed has data."
+  },
+  {
+   "id": "age_ll",
+   "path": "@ll.age_s",
+   "type": "float",
+   "status": "age",
+   "source": "leadlag",
+   "used_by": [
+    "core",
+    "full",
+    "light"
+   ],
+   "age": null,
+   "unit": "s",
+   "desc": "Seconds since the lead-lag daemon last wrote leadlag-live.json (one pass per 1-min bar close).",
+   "in_light_rows": false,
+   "added": "2026-10-21"
+  },
+  {
+   "id": "leadlag_active",
+   "path": "@ll.active",
+   "type": "int",
+   "status": "shadow",
+   "source": "leadlag",
+   "used_by": [
+    "shadow"
+   ],
+   "age": "age_ll",
+   "unit": "count",
+   "desc": "Active leader -> follower predictions for this ticker (a mapped leader fired a pattern event within the horizon). Field Guide 35.",
+   "in_light_rows": false,
+   "added": "2026-10-21"
+  },
+  {
+   "id": "leadlag_signal",
+   "path": "@ll.signal",
+   "type": "int",
+   "status": "shadow",
+   "source": "leadlag",
+   "used_by": [
+    "shadow"
+   ],
+   "age": "age_ll",
+   "unit": "-1/0/+1",
+   "desc": "Net expected direction for this ticker from its leaders' recent events (sum of predicted direction x prob over active predictions). Null when none.",
+   "in_light_rows": false,
+   "added": "2026-10-21"
+  },
+  {
+   "id": "leadlag_prob",
+   "path": "@ll.prob",
+   "type": "float",
+   "status": "shadow",
+   "source": "leadlag",
+   "used_by": [
+    "shadow"
+   ],
+   "age": "age_ll",
+   "unit": "0..1",
+   "desc": "prob_est of the top active prediction in the signal direction: raw out-of-sample backtest hit rate (follower moved the predicted way over the horizon) for pattern+interval+leader direction+bucket, or live once live n >= 20. Coin flip = 0.5.",
+   "in_light_rows": false,
+   "added": "2026-10-21"
+  },
+  {
+   "id": "leadlag_prob_n",
+   "path": "@ll.n",
+   "type": "int",
+   "status": "shadow",
+   "source": "leadlag",
+   "used_by": [
+    "shadow"
+   ],
+   "age": "age_ll",
+   "unit": "count",
+   "desc": "Sample size behind leadlag_prob.",
+   "in_light_rows": false,
+   "added": "2026-10-21"
+  },
+  {
+   "id": "leadlag_prob_src",
+   "path": "@ll.src",
+   "type": "text",
+   "status": "shadow",
+   "source": "leadlag",
+   "used_by": [
+    "shadow"
+   ],
+   "age": "age_ll",
+   "unit": "text",
+   "desc": "backtest_oos or live.",
+   "in_light_rows": false,
+   "added": "2026-10-21"
+  },
+  {
+   "id": "leadlag_leader",
+   "path": "@ll.leader",
+   "type": "text",
+   "status": "shadow",
+   "source": "leadlag",
+   "used_by": [
+    "shadow"
+   ],
+   "age": "age_ll",
+   "unit": "ticker",
+   "desc": "Leader whose event drives the top prediction.",
+   "in_light_rows": false,
+   "added": "2026-10-21"
+  },
+  {
+   "id": "leadlag_lag_min",
+   "path": "@ll.lag_min",
+   "type": "int",
+   "status": "shadow",
+   "source": "leadlag",
+   "used_by": [
+    "shadow"
+   ],
+   "age": "age_ll",
+   "unit": "min",
+   "desc": "Leader -> follower lag (1-10 min) with the strongest same-sign lagged 1-min return correlation in the map. Weak: lagged corrs are ~0.02-0.05.",
+   "in_light_rows": false,
+   "added": "2026-10-21"
   }
  ]
 }

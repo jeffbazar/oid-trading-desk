@@ -2294,6 +2294,11 @@ class H(BaseHTTPRequestHandler):
                 return self._send(200, SECTORS_FILE.read_bytes(), "application/json")
             except OSError:
                 return self._send(404, json.dumps({"error": "no sectors.json"}), "application/json")
+        if path == "/leadlag.json":  # LEADLAG (10/21): shadow leader -> follower predictions per ticker
+            try:
+                return self._send(200, (Path.home() / "oid-data/patterns/leadlag-live.json").read_bytes(), "application/json")
+            except OSError:
+                return self._send(404, json.dumps({"error": "no leadlag-live.json yet (com.oid.desk.leadlag)"}), "application/json")
         if path == "/patterns.json":  # PATTERNS (10/21): shadow pattern detector, top active pattern per ticker
             try:
                 d = json.loads((Path.home() / "oid-data/patterns/live.json").read_text())

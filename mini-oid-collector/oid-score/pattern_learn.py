@@ -231,6 +231,11 @@ def grade(a):
     IO.log(f"graded {len(days)} days in {time.time() - t0:.1f} s: " +
            ", ".join(f"{m} n={row['summary'][m]['n']} hit={row['summary'][m]['hit']}" for m in row["summary"]) +
            f"; live keys {len(doc['live'])}")
+    try:  # LEADLAG (10/21): grade the shadow leader -> follower predictions in the same nightly job
+        import leadlag
+        leadlag.grade(argparse.Namespace(days=a.days))
+    except Exception as e:
+        IO.log(f"leadlag grade failed: {type(e).__name__}: {e}")
 
 
 def main():

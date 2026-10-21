@@ -116,3 +116,6 @@ Core and full rows (not light) carry `pattern_active`, `pattern_dir`, `pattern_p
 - **Gaps:** only the 5-min engine detects gaps.
 - **Momentum:** only core names have a momentum state in the context.
 - **Bars:** sector names have no live 5 s bars, so all engines use 1-min bars.
+
+
+**Lead-lag extension (10/21):** this detector's triggered breakout, breakdown, failed-breakout, gap-fill and VWAP events also drive the shadow leader → follower predictions. See [35 · Lead-lag](35-lead-lag.md).

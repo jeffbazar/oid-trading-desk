@@ -140,6 +140,10 @@
   "title": "34 · Chart-pattern detector (shadow)"
  },
  {
+  "file": "35-lead-lag.md",
+  "title": "35 · Lead-lag: leader → follower (shadow)"
+ },
+ {
   "file": "glossary.md",
   "title": "Glossary"
  }
