@@ -7,6 +7,10 @@
 const IVS=['15s','1m','5m','15m','1h','1d'],RNG=['1D','1W','1M','3M','YTD','1Y'];
 const SCOL={'3':'#116329','2':'#2da44e','1':'#6fdd8b','0':'#8c959f','-1':'#ff8182','-2':'#fa4549','-3':'#a40e26'};
 const POLL_MS=5000;
+// Right-side padding (Robinhood style): empty bars to the right of the latest candle so it clears the price-axis labels.
+// PAD = default rightOffset in bars; fitted views (open, Reset, range buttons) use max(PAD, 8% of the bars shown) so the gap stays visible on long ranges.
+const PAD=12,PAD_FRAC=0.08;
+const padFor=n=>Math.max(PAD,Math.ceil(n*PAD_FRAC));
 let K={sym:null,iv:'1m',rng:'1D',ext:1,box:false};
 try{Object.assign(K,JSON.parse(localStorage.lvChart||'{}'));}catch(e){}
 K.box=false;
@@ -32,12 +36,12 @@ function ensureModal(){if($('chm'))return;const m=document.createElement('div');
  <div class="chh"><b id="chsym"></b><span id="chtier" class="chtag"></span><span id="chlive"></span>
   <span class="chsp"></span><span class="chbtns" id="chiv"></span><span class="chbtns" id="chrng"></span>
   <label class="chx"><input type="checkbox" id="chext"> ext hrs</label>
-  <button id="chlh" title="Zoom to the last 60 minutes">Last hour</button><button id="chbox" title="Box zoom: drag across the chart to zoom (or hold Shift and drag)">⬚ Box zoom</button><button id="chreset" title="Reset zoom (show the whole range)">Reset</button>
+  <button id="chlh" title="Zoom to the last 60 minutes">Last hour</button><button id="chbox" title="Box zoom: drag across the chart to zoom (or hold Shift and drag)">⬚ Box zoom</button><button id="chreset" title="Reset zoom (whole range, with space right of the last candle)">Reset</button>
   <button id="chclose" title="Close (Esc)">✕</button></div>
  <div class="chbody"><div id="chc"></div><div id="chsel" hidden></div><div id="chtip" hidden></div><div id="chempty" hidden></div></div>
  <div class="chf" id="chfoot"></div></div>`;document.body.appendChild(m);
  m.addEventListener('click',e=>{if(e.target===m)closeChart();});
- $('chclose').onclick=closeChart;$('chreset').onclick=()=>{if(CH)CH.timeScale().fitContent();};
+ $('chclose').onclick=closeChart;$('chreset').onclick=homeView;
  $('chlh').onclick=lastHour;$('chbox').onclick=()=>{K.box=!K.box;$('chbox').classList.toggle('on',K.box);if(CH)CH.applyOptions({handleScroll:{pressedMouseMove:!K.box}});};
  $('chext').onchange=e=>{K.ext=e.target.checked?1:0;save();load(true);};
  $('chiv').innerHTML=IVS.map(v=>`<button data-iv="${v}">${v}</button>`).join('');
@@ -73,10 +77,10 @@ function liveWalls(x){if(!S.c)return;const w=curWalls(x);const key=JSON.stringif
  const add=(px,col,t,ls)=>{if(px==null)return;LIVEPL.push(S.c.createPriceLine({price:+px,color:col,lineWidth:1,lineStyle:ls,axisLabelVisible:true,title:t}));};
  add(w.cw,'#1a7f37','call wall'+(w.st?' (stale)':''),2);add(w.pw,'#cf222e','put wall'+(w.st?' (stale)':''),2);add(w.gf,'#bf8700','flip'+(w.st?' (stale)':''),1);}
 // ---- data -> series
-function build(){const L=window.LightweightCharts;if(CH){CH.remove();CH=null;S={};}LIVEPL=[];LAST_INFO='';
+function build(keep){const L=window.LightweightCharts;if(CH){CH.remove();CH=null;S={};}LIVEPL=[];LAST_INFO='';
  const el=$('chc');CH=L.createChart(el,{autoSize:true,layout:{background:{type:'solid',color:'#ffffff'},textColor:'#1f2328',fontSize:11,panes:{separatorColor:'#d0d7de',separatorHoverColor:'#afb8c1'}},
   grid:{vertLines:{color:'#f0f2f4'},horzLines:{color:'#f0f2f4'}},crosshair:{mode:0},rightPriceScale:{borderColor:'#d0d7de'},
-  timeScale:{borderColor:'#d0d7de',timeVisible:D.iv!=='1d',secondsVisible:D.iv==='15s',rightOffset:4},
+  timeScale:{borderColor:'#d0d7de',timeVisible:D.iv!=='1d',secondsVisible:D.iv==='15s',rightOffset:PAD,fixLeftEdge:false,fixRightEdge:false,shiftVisibleRangeOnNewBar:true,lockVisibleTimeRangeOnResize:true},
   handleScroll:{mouseWheel:false,pressedMouseMove:!K.box,horzTouchDrag:true,vertTouchDrag:false},handleScale:{mouseWheel:true,pinch:true,axisPressedMouseMove:true},
   localization:{locale:'en-US'}});
  S.c=CH.addSeries(L.CandlestickSeries,{upColor:'#1a7f37',downColor:'#cf222e',borderVisible:false,wickUpColor:'#1a7f37',wickDownColor:'#cf222e',priceLineVisible:true},0);
@@ -94,7 +98,7 @@ function build(){const L=window.LightweightCharts;if(CH){CH.remove();CH=null;S={
   S.cp60=CH.addSeries(L.LineSeries,{color:'#0969da',lineWidth:2,priceLineVisible:false,lastValueVisible:true,title:'C/P 1m',priceFormat:{type:'price',precision:2,minMove:0.01}},3);
   S.cp60.priceScale().applyOptions({mode:1});S.cp60.createPriceLine({price:1,color:'#8c959f',lineWidth:1,lineStyle:2,axisLabelVisible:false,title:'1.0'});}
  const P=CH.panes();try{P[0].setStretchFactor(5);P[1].setStretchFactor(1.3);if(P[2])P[2].setStretchFactor(1.6);if(P[3])P[3].setStretchFactor(1.4);}catch(e){}
- CH.subscribeCrosshairMove(tip);setData();CH.timeScale().fitContent();liveWalls(rowOf(K.sym));setTimeout(()=>{if(window.chartAfterBuild)chartAfterBuild();},250);}
+ CH.subscribeCrosshairMove(tip);setData();if(keep)CH.timeScale().setVisibleLogicalRange(keep);else homeView();liveWalls(rowOf(K.sym));setTimeout(()=>{if(window.chartAfterBuild)chartAfterBuild();},250);}
 const cpv=x=>x==null?null:Math.max(0.05,Math.min(20,x));
 function pts(i){const b=D.bars[i],t=ct(b[0]),o={};const fl=b[7];
  o.c=fl===2||fl===3?{time:t,open:b[1],high:b[2],low:b[3],close:b[4],color:'#afb8c1',wickColor:'#afb8c1'}:{time:t,open:b[1],high:b[2],low:b[3],close:b[4]};
@@ -107,18 +111,23 @@ function setData(){IDX=new Map();const A={c:[],v:[],cw:[],pw:[],gf:[],cp15:[],cp
  S.c.setData(A.c);S.v.setData(A.v);S.cw.setData(A.cw);S.pw.setData(A.pw);S.gf.setData(A.gf);for(const k in S.sc)S.sc[k].setData(A.sc[k]);if(S.hasCp){S.cp15.setData(A.cp15);S.cp60.setData(A.cp60);}
  $('chempty').hidden=D.bars.length>0;if(!D.bars.length)$('chempty').textContent=`No ${D.iv} bars stored for ${D.sym} in this range.`;}
 function applyDelta(n){// n = reply with bars from `since` (inclusive): replace the last bar, append new ones
- const t0=n.bars.length?n.bars[0][0]:null;if(t0==null)return;let j=D.bars.length-1;while(j>=0&&D.bars[j][0]>=t0)j--;
+ const t0=n.bars.length?n.bars[0][0]:null;if(t0==null)return;
+ // live edge = the latest candle is on screen. Then new bars scroll the view by the same count (candle keeps its spot, padding kept);
+ // otherwise (panned/zoomed into history) the view is restored exactly, no snap back.
+ const ts=CH.timeScale(),vr=ts.getVisibleLogicalRange(),n0=D.bars.length,atEdge=!vr||vr.to>=n0-1.5;let j=D.bars.length-1;while(j>=0&&D.bars[j][0]>=t0)j--;
  const keep=j+1;D.bars=D.bars.slice(0,keep).concat(n.bars);D.walls=D.walls.slice(0,keep).concat(n.walls);D.cp=D.cp.slice(0,keep).concat(n.cp);
  for(const k in D.score)D.score[k]=D.score[k].slice(0,keep).concat((n.score||{})[k]||n.bars.map(()=>null));
  D.wall_events=n.wall_events;D.gen_ms=n.gen_ms;D.notes=n.notes;D.sources=n.sources;D.n_total=n.n_total;
- const hadCp=S.hasCp,nowCp=n.cp.some(x=>x&&(x[0]!=null||x[1]!=null));if(nowCp&&!hadCp){build();return;}
- for(let i=keep;i<D.bars.length;i++){const o=pts(i);IDX.set(o.c.time,i);S.c.update(o.c);S.v.update(o.v);S.cw.update(o.cw);S.pw.update(o.pw);S.gf.update(o.gf);for(const k in S.sc)S.sc[k].update(o.sc[k]);if(S.hasCp){S.cp15.update(o.cp15);S.cp60.update(o.cp60);}}}
+ const add=D.bars.length-n0,nr=vr?(atEdge?{from:vr.from+add,to:vr.to+add}:{from:vr.from,to:vr.to}):null;
+ const hadCp=S.hasCp,nowCp=n.cp.some(x=>x&&(x[0]!=null||x[1]!=null));if(nowCp&&!hadCp){build(nr);return;}
+ for(let i=keep;i<D.bars.length;i++){const o=pts(i);IDX.set(o.c.time,i);S.c.update(o.c);S.v.update(o.v);S.cw.update(o.cw);S.pw.update(o.pw);S.gf.update(o.gf);for(const k in S.sc)S.sc[k].update(o.sc[k]);if(S.hasCp){S.cp15.update(o.cp15);S.cp60.update(o.cp60);}}
+ if(nr)ts.setVisibleLogicalRange(nr);}
 function foot(ms,kb,live){const d=D;if(!d)return;const av=d.avail||{};const ivn=d.k>1?`1 bar = ${d.k} × ${d.iv}`:d.iv;
  const sc=Object.entries(d.sources.score||{}).map(([k,v])=>`${k}: ${v.length?v.join('; '):'none'}`).join(' · ');
  $('chfoot').innerHTML=`<span><b>${esc(d.sym)}</b> ${esc(ivn)} · ${esc(d.range)} = ${esc(d.from)} → ${esc(d.to)} · ${d.n_total} bars · ${esc(d.iv)} stored since <b>${esc(av[d.iv]||'?')}</b></span>`+
   (d.notes||[]).map(x=>`<span class="chnote">${esc(x)}</span>`).join('')+
   `<span>bars: ${esc((d.sources.bars||[]).join(', '))}</span><span>score: ${esc(sc)}</span><span>C/P: ${esc((d.sources.cp||[]).join(', ')||'none')}</span><span>walls: ${esc((d.sources.walls||[]).join(', ')||'none')} (${(d.wall_events||[]).length} level changes)</span>`+
-  `<span class="mut">${live?'live · ':''}server ${d.gen_ms} ms · ${ms} ms · ${kb} KB · ${new Date().toLocaleTimeString('en-US',{timeZone:'America/Los_Angeles'})} PT · drag = pan · wheel = zoom · Shift+drag or ⬚ = box zoom · Esc closes</span>`;}
+  `<span class="mut">${live?'live · ':''}server ${d.gen_ms} ms · ${ms} ms · ${kb} KB · ${new Date().toLocaleTimeString('en-US',{timeZone:'America/Los_Angeles'})} PT · drag = pan (pull the last candle toward the middle) · wheel = zoom · auto-follow only at the live edge · Shift+drag or ⬚ = box zoom · Esc closes</span>`;}
 function url(since){return `chart.json?sym=${encodeURIComponent(K.sym)}&iv=${K.iv}&range=${K.rng}&ext=${K.ext}`+(since!=null?`&since=${since}`:'');}
 function load(full){if(!OPEN||!window.LightweightCharts)return;clearTimeout(TIMER);paintCtl();const my=++REQ;const t0=performance.now();
  const since=(!full&&D&&D.bars.length)?D.bars[D.bars.length-1][0]:null;BUSY=true;
@@ -139,7 +148,9 @@ function tip(p){const el=$('chtip');if(!p||p.time==null||!D){el.hidden=true;retu
  el.innerHTML=h;el.hidden=false;const box=$('chc').getBoundingClientRect();const x=p.point.x,y=p.point.y;const tw=el.offsetWidth,th=el.offsetHeight;
  el.style.left=Math.max(4,Math.min(box.width-tw-60,x+16>box.width-tw-60?x-tw-16:x+16))+'px';el.style.top=Math.max(4,Math.min(box.height-th-4,y-th/2))+'px';}
 // ---- zoom helpers
-function lastHour(){if(!CH||!D||!D.bars.length)return;const lt=D.bars[D.bars.length-1][0];let i=D.bars.length-1;while(i>0&&D.bars[i-1][0]>=lt-3600)i--;CH.timeScale().setVisibleLogicalRange({from:i-0.5,to:D.bars.length-0.5+3});}
+function lastHour(){if(!CH||!D||!D.bars.length)return;const n=D.bars.length,lt=D.bars[n-1][0];let i=n-1;while(i>0&&D.bars[i-1][0]>=lt-3600)i--;CH.timeScale().setVisibleLogicalRange({from:i-0.5,to:n-1+padFor(n-i)});}
+// default view: whole range plus right padding (open, Reset, range / interval buttons). One time scale for all panes, so volume/score/C/P follow.
+function homeView(){if(!CH||!D)return;const n=D.bars.length;if(!n){CH.timeScale().fitContent();return;}CH.timeScale().setVisibleLogicalRange({from:-0.5,to:n-1+padFor(n)});}
 function boxZoom(){const body=document.querySelector('#chm .chbody');let x0=null;const sel=$('chsel');
  const start=e=>{if(!CH)return;if(!(K.box||e.shiftKey)||e.button!==0)return;e.stopPropagation();e.preventDefault();const r=$('chc').getBoundingClientRect();x0=e.clientX-r.left;sel.hidden=false;sel.style.left=x0+'px';sel.style.width='0px';};
  body.addEventListener('mousedown',start,true);body.addEventListener('pointerdown',e=>{if(K.box||e.shiftKey)e.stopPropagation();},true);
@@ -150,7 +161,7 @@ function boxZoom(){const body=document.querySelector('#chm .chbody');let x0=null
 let HASHOPT={};
 function fromHash(){const h=decodeURIComponent(location.hash||'');const m=h.match(/chart=([A-Za-z0-9.\-]+)((?:\/[A-Za-z0-9]+)*)/);if(!m)return;
  HASHOPT={};(m[2]||'').split('/').filter(Boolean).forEach(x=>{if(IVS.includes(x))K.iv=x;else if(RNG.includes(x))K.rng=x;else HASHOPT[x]=1;});openChart(m[1]);}
-window.chartDebug=()=>({range:CH&&CH.timeScale().getVisibleLogicalRange(),n:D&&D.bars.length,first:D&&D.bars.length&&D.bars[0][0],last:D&&D.bars.length&&D.bars[D.bars.length-1][0]});
+window.chartDebug=()=>({range:CH&&CH.timeScale().getVisibleLogicalRange(),pad:D&&CH?+(CH.timeScale().getVisibleLogicalRange().to-(D.bars.length-1)).toFixed(2):null,n:D&&D.bars.length,first:D&&D.bars.length&&D.bars[0][0],last:D&&D.bars.length&&D.bars[D.bars.length-1][0]});
 window.chartAfterBuild=function(){if(HASHOPT.lh)lastHour();if(HASHOPT.tip&&CH&&D&&D.bars.length){const i=Math.max(0,D.bars.length-1-(HASHOPT.lh?8:Math.floor(D.bars.length/3)));const b=D.bars[i];
  try{CH.setCrosshairPosition(b[4],ct(b[0]),S.c);}catch(e){}}};
 if(document.readyState==='complete')setTimeout(fromHash,300);else window.addEventListener('load',()=>setTimeout(fromHash,300));
