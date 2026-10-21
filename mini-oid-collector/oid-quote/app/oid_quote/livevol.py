@@ -38,6 +38,9 @@ log = logging.getLogger("oid_quote.livevol")
 
 VOLUME_EXCLUDE = frozenset({"Q", "M", "9"})
 PRICE_EXCLUDE = frozenset({"I", "W", "4", "5", "7", "9", "B", "C", "G", "H", "M", "N", "P", "Q", "R", "T", "U", "V", "Z"})
+# 10/21: every pre/post-market SIP print carries "T" (Form T), so the live last / ext-hours minute bars froze at the
+# overnight feed price from 1:00 AM PT until the 6:30 open. T now counts for last + minute bars; RTH hi/lo stay strict.
+PRICE_EXCLUDE_LIVE = PRICE_EXCLUDE - {"T"}
 RTH_SLOTS = 390
 KEEP_S = 330  # per-second buckets kept (>= 5 min for options + ref price lookups)
 
@@ -80,7 +83,8 @@ class SymRoll:
     def add(self, ts: float, px: float | None, size: float, conds, recv: float) -> None:
         cs = set(conds or ())
         vol_ok = not (cs & VOLUME_EXCLUDE)
-        px_ok = px is not None and not (cs & PRICE_EXCLUDE)
+        px_strict = px is not None and not (cs & PRICE_EXCLUDE)  # RTH day hi/lo
+        px_ok = px is not None and not (cs & PRICE_EXCLUDE_LIVE)  # last, per-second px, minute bars
         sec = int(ts)
         self.trades += 1
         d, slot = et_parts(ts)
@@ -114,7 +118,7 @@ class SymRoll:
         if px_ok and (self.last_t is None or ts >= self.last_t):
             self.last, self.last_t = px, ts
             self.last_recv, self.lag_s = recv, max(0.0, recv - ts)
-        if px_ok and slot >= 0:
+        if px_strict and slot >= 0:
             self.hi = px if self.hi is None else max(self.hi, px)
             self.lo = px if self.lo is None else min(self.lo, px)
         # minute bar from prints

@@ -95,7 +95,7 @@ function liveHead(){if(!OPEN)return;$('chsym').textContent=K.sym;const x=rowOf(K
   h=`<b>${f2(r.p)}</b> <span class="${r.c>0?'up':r.c<0?'dn':''}">${r.c==null?'':(r.c>0?'+':'')+(+r.c).toFixed(2)+'%'}</span> · rvol <b>${r.r!=null?(+r.r).toFixed(1)+'×':r.dr!=null?'d '+(+r.dr).toFixed(1)+'×':'—'}</b>${r.sg?' <span class="chhot">SURGE</span>':''} ${r.fs?scChip('Full ',r.fs.s,r.fs.raw):''} ${r.ls?scChip('Light ',r.ls.s,r.ls.raw):''}`+
    `${r.af15?' · C/P 15s <b>'+fcp(r.af15.cp)+'</b>':''}${r.af60?' 1m <b>'+fcp(r.af60.cp)+'</b>':''}`;}
  else $('chtier').textContent='';
- $('chlive').innerHTML=h;liveWalls(x);}
+ $('chlive').innerHTML=h;liveWalls(x);liveEdge();}
 function curWalls(x){if(!x)return null;if(x.k==='core'){const w=x.r.walls;if(!w||!w.lv)return null;return {cw:w.lv.cw&&w.lv.cw.px,pw:w.lv.pw&&w.lv.pw.px,gf:w.lv.gf&&w.lv.gf.px,lab:w.as_of_pt,st:w.stale};}
  const w=x.r.w;if(!w)return null;return {cw:w.cw,pw:w.pw,gf:w.gf,lab:w.t,st:w.st};}
 function liveWalls(x){if(!S.c)return;const w=curWalls(x);const key=JSON.stringify(w);if(key===LAST_INFO)return;LAST_INFO=key;
@@ -165,7 +165,7 @@ function patDraw(){if(!S.c||!D)return;const L=window.LightweightCharts;
   lv.forEach(([px,t,col])=>PATPL.push(S.c.createPriceLine({price:+px,color:col,lineWidth:1,lineStyle:2,axisLabelVisible:true,title:t})));}
  patTag();}
 function patFoot(){const p=D&&D.pat;if(!p)return '<span class="mut">Patterns: none in this range</span>';return `<span title="shadow chart-pattern detector ${esc(p.version||'')}; never feeds a score or a trade">Patterns: ${(p.dets||[]).length} detections (${esc(p.src||'')}${p.dates&&p.dates.length?' · '+esc(p.dates.join(', ')):''})</span>`;}
-function build(keep){const L=window.LightweightCharts;if(CH){CH.remove();CH=null;S={};}LIVEPL=[];LAST_INFO='';SCNPL=[];SCN_KEY='';PATPL=[];PAT_KEY='';S.mk=null;
+function build(keep){LIVEB=null;const L=window.LightweightCharts;if(CH){CH.remove();CH=null;S={};}LIVEPL=[];LAST_INFO='';SCNPL=[];SCN_KEY='';PATPL=[];PAT_KEY='';S.mk=null;
  const el=$('chc');CH=L.createChart(el,{autoSize:true,layout:{background:{type:'solid',color:'#ffffff'},textColor:'#1f2328',fontSize:11,panes:{separatorColor:'#d0d7de',separatorHoverColor:'#afb8c1'}},
   grid:{vertLines:{color:'#f0f2f4'},horzLines:{color:'#f0f2f4'}},crosshair:{mode:0},rightPriceScale:{borderColor:'#d0d7de'},
   timeScale:{borderColor:'#d0d7de',timeVisible:D.iv!=='1d',secondsVisible:D.iv==='15s',rightOffset:PAD,fixLeftEdge:false,fixRightEdge:false,shiftVisibleRangeOnNewBar:true,lockVisibleTimeRangeOnResize:true},
@@ -205,8 +205,22 @@ function setData(){IDX=new Map();const A={c:[],v:[],cw:[],pw:[],gf:[],cp15:[],cp
  if(S.mo)S.mo.setData(A.mo);
  S.ws.setData(wsPoints());S.c.setData(A.c);S.v.setData(A.v);S.cw.setData(A.cw);S.pw.setData(A.pw);S.gf.setData(A.gf);for(const k in S.sc)S.sc[k].setData(A.sc[k]);if(S.hasCp){S.cp15.setData(A.cp15);S.cp60.setData(A.cp60);}
  $('chempty').hidden=D.bars.length>0;if(!D.bars.length)$('chempty').textContent=`No ${D.iv} bars stored for ${D.sym} in this range.`;}
+// ---- LIVEEDGE (10/21): forming candle + last-price line tick from the live row (core: state.json last, 1 s; wide: 5 s),
+// not only when a closed 1m bar lands. Display-only: never written into D.bars; dropped before every server delta/build.
+const LIVESEC={'15s':15,'1m':60,'5m':300,'15m':900,'1h':3600};let LIVEB=null;
+function livePx(){const x=rowOf(K.sym);if(!x)return null;const p=x.k==='core'?x.r.last:x.r.p;return p==null||!isFinite(+p)?null:+p;}
+function liveDrop(){if(!LIVEB||!S.c||!D)return;const ex=LIVEB.extra;LIVEB=null;if(!ex)return;const a=[];for(let i=0;i<D.bars.length;i++)a.push(pts(i).c);S.c.setData(a);}
+function liveEdge(){try{if(!OPEN||!D||!S.c||!D.bars.length||D.to!==D.today)return;const p=livePx();if(p==null)return;
+ const sess=(typeof st!=='undefined'&&st)?st.session:null;if(!K.ext&&sess&&sess!=='RTH')return;
+ const lb=D.bars[D.bars.length-1],now=Date.now()/1000;let t,o,h,l,extra;
+ if(D.iv==='1d'){t=lb[0];o=lb[1];h=Math.max(lb[2],p);l=Math.min(lb[3],p);extra=false;}
+ else{const step=(LIVESEC[D.iv]||60)*(D.k||1);if(now<lb[0]+step){t=lb[0];o=lb[1];h=Math.max(lb[2],p);l=Math.min(lb[3],p);extra=false;}
+  else{t=lb[0]+step*Math.floor((now-lb[0])/step);if(LIVEB&&LIVEB.t===t){o=LIVEB.o;h=Math.max(LIVEB.h,p);l=Math.min(LIVEB.l,p);}else{o=LIVEB&&LIVEB.extra?LIVEB.c:lb[4];h=Math.max(o,p);l=Math.min(o,p);}extra=true;}}
+ if(LIVEB&&LIVEB.t===t){h=Math.max(h,LIVEB.h);l=Math.min(l,LIVEB.l);}
+ LIVEB={t,o,h,l,c:p,extra};S.c.update({time:ct(t),open:o,high:h,low:l,close:p});edgesSoon();}catch(e){console.warn('liveEdge',e);}}
+setInterval(liveEdge,1000);window.chartLive=()=>LIVEB;
 function applyDelta(n){// n = reply with bars from `since` (inclusive): replace the last bar, append new ones
- const t0=n.bars.length?n.bars[0][0]:null;if(t0==null)return;
+ liveDrop();const t0=n.bars.length?n.bars[0][0]:null;if(t0==null){liveEdge();return;}
  // live edge = the latest candle is on screen. Then new bars scroll the view by the same count (candle keeps its spot, padding kept);
  // otherwise (panned/zoomed into history) the view is restored exactly, no snap back.
  const ts=CH.timeScale(),vr=ts.getVisibleLogicalRange(),n0=D.bars.length,atEdge=!vr||vr.to>=n0-1.5;let j=D.bars.length-1;while(j>=0&&D.bars[j][0]>=t0)j--;
@@ -216,7 +230,7 @@ function applyDelta(n){// n = reply with bars from `since` (inclusive): replace 
  const add=D.bars.length-n0,nr=vr?(atEdge?{from:vr.from+add,to:vr.to+add}:{from:vr.from,to:vr.to}):null;
  const hadCp=S.hasCp,nowCp=n.cp.some(x=>x&&(x[0]!=null||x[1]!=null));if(nowCp&&!hadCp){build(nr);return;}
  for(let i=keep;i<D.bars.length;i++){const o=pts(i);IDX.set(o.c.time,i);S.c.update(o.c);S.v.update(o.v);S.cw.update(o.cw);S.pw.update(o.pw);S.gf.update(o.gf);for(const k in S.sc)S.sc[k].update(o.sc[k]);if(S.hasCp){S.cp15.update(o.cp15);S.cp60.update(o.cp60);}if(S.mo)S.mo.update(o.mo);}
- S.ws.setData(wsPoints());if(nr)ts.setVisibleLogicalRange(nr);patDraw();edgesSoon();}
+ S.ws.setData(wsPoints());if(nr)ts.setVisibleLogicalRange(nr);patDraw();LIVEB=null;liveEdge();edgesSoon();}
 function foot(ms,kb,live){const d=D;if(!d)return;const av=d.avail||{};const ivn=d.k>1?`1 bar = ${d.k} × ${d.iv}`:d.iv;
  const sc=Object.entries(d.sources.score||{}).map(([k,v])=>`${(window.scoreName?window.scoreName(k):({core:'Direction',light:'Light',full:'Full'})[k])}: ${v.length?v.join('; '):'none'}`).join(' · ');
  $('chfoot').innerHTML=`<span><b>${esc(d.sym)}</b> ${esc(ivn)} · ${esc(d.range)} = ${esc(d.from)} → ${esc(d.to)} · ${d.n_total} bars · ${esc(d.iv)} stored since <b>${esc(av[d.iv]||'?')}</b></span>`+
