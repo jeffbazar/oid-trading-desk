@@ -2,6 +2,8 @@
 
 > **Research only.** Built 10/20/2026. The feed job `com.oid.desk.news` runs on the Mac mini at no extra cost (Alpaca Algo Trader Plus already includes Benzinga news). It never trades and has no chat path of its own.
 
+![News panel (Tue 10/20/2026, 6:55 PM PT): Followed / All market / X posts tabs, sentiment chips, ticker chips](img/news-panel.png)
+
 ## Where the headlines come from
 
 | Source | How | Delay |

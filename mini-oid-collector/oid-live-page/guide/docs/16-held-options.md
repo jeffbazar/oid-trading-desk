@@ -1,6 +1,8 @@
 # 16 · Held option contracts: traded volume
 [← Index](README.md)
 
+> **Retired: the Held option contracts panel is no longer on the live page** (checked Tue 10/20/2026, 6:55 PM PT). This page is kept for reference only. The ladder dry run itself is listed on the [Research tab](32-research-tab.md).
+
 Volume printing on the exact option contracts we hold or are watching (OPRA prints via the mini collector).
 
 | Column | Meaning |

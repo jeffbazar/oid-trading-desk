@@ -1,15 +1,19 @@
 # 1 · Header and status pills
 [← Index](README.md)
 
-![Header](img/header.png)
+![Header, Tue 10/20/2026, 6:55 PM PT: clock, market, vol_surge mode; Heatmap / Table / Chart / Field Guide / Research](img/header.png)
 
 | Pill | Means | Colors |
 |---|---|---|
 | **updated 10:10:50 AM PT** | Time of the last data push. If it's more than 5 s behind, it adds "· Ns old". | Green = fresh. Amber = more than 10 s old or a data error (⚠). Red "reconnecting…" = browser lost the stream. |
 | **market open / closed** | Regular session (6:30 AM–1:00 PM PT). Shows "(half day)" on early-close days. | Green open, amber closed |
 | **vol_surge dry-run (test) / LIVE** | Whether the surge trigger engine is only logging (dry run) or armed live. | Amber = dry run, red = LIVE |
-| **Heatmap / Table** | Switches the main view. The page remembers your choice. | Blue = selected |
+| **Heatmap / Table** | Switches the main view. The page remembers your choice. The Table holds **every ticker** (core groups, then the 144 sector names) with the named score columns on the left ([13](13-table.md)). | Blue = selected |
+| **Chart** | Opens the stock chart for the last ticker you charted (NVDA the first time). Clicking any tile or table row also opens its chart ([30](30-chart.md)). | — |
 | **Field Guide** | Opens this guide on the live site (`/guide/`). **Dashboard** tab there brings you back. | — |
+| **Research** | Opens the live page's list of studies run so far (`/guide/research/`): date, question, method, headline result, verdict and the full file ([32](32-research-tab.md)). | — |
+
+Below the header, top to bottom: surge strip, market momentum gauge and recent flags, UW lean legend, flow lean strip, sector strip, note line, **News** panel, then the Heatmap or Table, the one-line **Sector watch** bar, and a collapsed **Logs** section (vol_surge events). See the [overview](README.md).
 
 The page is **light mode only**. Under the strips, the heatmap has a **Group by sector** checkbox, the **Sort** dropdown (default Name A→Z) and a one-paragraph legend covering tile colors, bars, the chips, the wall/flip edge marks and the source tiles.
 

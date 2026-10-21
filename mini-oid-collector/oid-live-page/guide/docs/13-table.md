@@ -1,23 +1,26 @@
 # 13 · Table view (one table for every ticker)
 [← Index](README.md)
 
+> Changed **Tue 10/20/2026, 6:55 PM PT**: **every score column now sits right after Symbol and is named by its profile and settings version**: **Direction (core v1.1)**, **Full (sector widefull-v1.0)**, **Light (light-v1.0)**. Hover a header for the full settings ID, what the score uses, and which settings version produced the values on screen. **Momentum** follows the score block (it is a state, not a −3…+3 score).
+>
 > Changed **Tue 10/20/2026, 6:30 PM PT**: the 144 **Sector watch** names are now sections of this table (one per sector, after the core groups). The separate Sector watch panel is now a one-line bar with its alerts and an **Open in Table ▸** button. The Heatmap is unchanged (core tiles).
 
-![Unified table: sector sections under the core groups](img/table-unified.png)
+![Unified table: named score columns on the left (Direction, Full, Light), then Momentum, Group and the rest; 6:53 PM PT, market closed](img/table-scorenames.png)
 
 Click a column header to sort, click again to reverse (▾/▴). With **Group by sector** on, rows sit under a group bar and your sort applies inside each group. **Click a group bar to fold or unfold it** (remembered). Click a row to open its [chart](30-chart.md). Core groups come first (`sectors.json`), then the 16 sectors (`wide-sectors.json`).
 
 ## Columns (same set for every ticker)
 
-**—** means that ticker has no data for that column. It is shown on purpose so you can see the gaps. **tt** (purple) marks a number built from the **tick-test** C/P (sector names). **F±n** is the sector names' full-profile score. Hover a column header for its definition.
+**—** means that ticker has no data for that column. It is shown on purpose so you can see the gaps. **tt** (purple) marks a number built from the **tick-test** C/P (sector names). In the **Full** column the chip reads **F±n**; in **Light** it reads **L±n**. Hover a column header for its definition.
 
 | Column | Meaning |
 |---|---|
 | Symbol | Ticker, with a red **SURGE** tag (sector rows) or amber **MOVE** tag (≥3% vs prior close, sector rows) |
-| Score | Direction score −3…+3, raw. Core names: core profile. Sector names: **F±n** = full profile ([24](24-direction-score.md)) |
-| Light | LIGHT score (trend + volume + market only). Sector names only |
+| **Direction (core v1.1)** | Direction score −3…+3, raw, **core profile**: all six inputs, options flow from the quote-rule C/P. Core names only (— on sector rows). Settings `v1.1-20261020`. The badge's hover says which settings produced the value on screen (10/20 values: `v1-20261019`; the math is the same, v1.1 only added the change log) ([24](24-direction-score.md)) |
+| **Full (sector widefull-v1.0)** | Direction score −3…+3, raw, **sector full profile** (`wide_full`, settings `widefull-v1.0-20261021`): the same six inputs; options flow = tick-test C/P at half quality; flip and walls only for names pulled after a surge. Sector names only. Chip **F±n** ([24 §0, §9](24-direction-score.md)) |
+| **Light (light-v1.0)** | Direction score −3…+3, raw, **light profile** (settings `light-v1.0-20261021`): trend + volume + market only. Sector names only. Chip **L±n** |
+| Momentum | ACCEL / RESUME / DECEL / quiet chip with ¼ and $1 distances ([25](25-momentum.md)). A state from the momentum engine (`momentum@0.1-shadow`), not a score. Core names only |
 | Group | Core group or sector |
-| Momentum | ACCEL / RESUME / DECEL / quiet chip with ¼ and $1 distances ([25](25-momentum.md)). Core names only |
 | Last, Chg % | Latest trade (or last-session close when the market is shut), % vs prior close |
 | 1-min vol | Shares in the last 60 s |
 | 1-min rvol | LIGHT < 0.7×, INLINE 0.7–1.5×, HEAVY 1.5–3×, **SURGE ≥ 3×**. Same labels and thresholds for every ticker |
@@ -39,10 +42,11 @@ Ticker sets: **core** = 65 rows (61 streamed stocks/ETFs plus 4 extended rows su
 
 | Column | Core | Sector | Same method? |
 |---|---|---|---|
-| Score | yes (61) | yes, **full profile F±n** (regular hours; — after hours) | **Differs:** sector full profile uses the tick-test C/P at half weight, and flip/walls only for names pulled on a surge |
-| Light | **missing** (no light profile runs on core) | yes (regular hours) | sector only |
-| Group | yes | yes | core groups vs sector list |
+| Direction (core v1.1) | yes (61) | **—** (by design: sector names use Full / Light) | core only |
+| Full (sector widefull-v1.0) | **—** (by design) | yes, chip F±n (regular hours; — after hours) | **Differs from core:** tick-test C/P at half quality, flip/walls only for names pulled on a surge |
+| Light (light-v1.0) | **—** (no light profile runs on core) | yes, chip L±n (regular hours) | sector only |
 | Momentum | yes (57 names the engine tracks) | **missing** (engine is core only) | core only |
+| Group | yes | yes | core groups vs sector list |
 | Last, Chg % | yes | yes | same |
 | 1-min vol | yes | **missing** (sector feed sends rvol, not the share count) | core only |
 | 1-min rvol | yes | yes (regular hours) | same labels and thresholds; sector norms come from the sector bar store |

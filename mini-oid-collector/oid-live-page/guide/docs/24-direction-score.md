@@ -1,6 +1,18 @@
 # 24 · Direction score (−3…+3): inputs, timers and grading
 
-> **Research and logging only.** The score never places or suggests orders. It is a timestamped guess at which way a stock has the least resistance *right now*, and we grade it afterwards. Built 10/19/2026, config `v1-20261019`. **Page updated Tue 10/20/2026, 4:15 PM PT** (section 9, light score for the Sector watch, added). Items marked **live from 10/21** are being built on 10/20 for the Wednesday 10/21 open.
+> **Research and logging only.** The score never places or suggests orders. It is a timestamped guess at which way a stock has the least resistance *right now*, and we grade it afterwards. Built 10/19/2026, config `v1-20261019`. **Page updated Tue 10/20/2026, 6:55 PM PT** (section 0: the three scores and their on-screen names). Earlier: 4:15 PM PT (section 9, light score). Items marked **live from 10/21** are being built on 10/20 for the Wednesday 10/21 open.
+
+## 0. The three scores and their names (added Tue 10/20/2026, 6:55 PM PT)
+
+The page shows three direction scores. Each is named the same way everywhere (table header, chart lane, chart tooltip, header chips and the badge hover): **name (profile settings-version)**. The short version drops the date; the full settings ID is in the header hover and in `~/oid-data/config/score-config.json`. The live page reads the active IDs from that file (state field `score_versions`) and shows them, so a new settings version renames the column by itself.
+
+| Name on screen | Profile | Settings version (full ID) | Tickers | Inputs | Where it shows |
+|---|---|---|---|---|---|
+| **Direction (core v1.1)** | core | `v1.1-20261020` | 61 core names | All six (flip, wall room, volume, options flow with the quote-rule C/P, trend, market) | Tile badge, table column 2, chart lane "Direction", chart header chip |
+| **Full (sector widefull-v1.0)** | `wide_full` | `widefull-v1.0-20261021` | 144 sector names | Same six and same weights; options flow = 1-min **tick-test** C/P with its quality × 0.5; flip/walls only from on-surge FlashAlpha pulls | Table column 3 (chip F±n), chart lane "Full" |
+| **Light (light-v1.0)** | `light` | `light-v1.0-20261021` | 144 sector names | Trend, volume, market only (section 9) | Table column 4 (chip L±n), chart lane "Light" |
+
+**Which settings produced a value.** Every saved row carries the version that made it (`config_version` / `settings_version`). If it differs from the active version, the badge hover says so: on 10/20 the core badges were made by `v1-20261019` while `v1.1-20261020` is active (same math; v1.1 only added the 5 s change log). **Momentum** is not a score (it has no −3…+3 scale or weights); it sits just to the right of the score block in the table.
 
 ## 1. What the badge means
 

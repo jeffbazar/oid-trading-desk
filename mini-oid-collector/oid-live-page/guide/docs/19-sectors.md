@@ -9,6 +9,7 @@ Tiles are grouped into sectors so rotation is easy to spot: for example semis ho
 | **Sector strip** (under the flow lean strip) | One chip per group: short name, average % change, average rvol (chip color = the same heat scale as tiles), and 🔥 count of hot tiles. Tap a chip to jump to that group. |
 | **Heatmap → Group by sector** (checkbox, **on by default**) | One section per group. Each section header shows the group summary (below). Tiles inside are ordered by the **Sort** dropdown (default Name A→Z). Untick to get the flat grid back. The page remembers the choice on that device. |
 | **Table view** | New **Group** column. With Group by sector on, rows are grouped with a summary row per group; the column you click sorts rows *inside* each group. |
+| **Sector watch bar** (under the heatmap/table) | One line: "Sector watch", the sector feed status and its batched alerts, and **Open in Table ▸**, which jumps to the 144 sector names in the Table. The old Sector watch grid is **retired** (since 10/20 6:30 PM PT); its rows now live in the Table ([13](13-table.md)). ![Sector watch bar](img/sector-bar.png) |
 | **Tile tooltip** | Hover or long-press a tile to see its group name. (The right-edge wall scale has its own tooltip, see [23](23-wall-marks.md).) |
 
 ## Group header, field by field

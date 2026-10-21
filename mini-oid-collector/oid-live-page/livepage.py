@@ -855,6 +855,36 @@ class MomStateLog:
 MOMLOG = MomStateLog()
 
 
+SCORE_CFG = Path(os.environ.get("OID_SCORE_CONFIG", str(HOME / "oid-data/config/score-config.json")))  # SCORENAMES
+
+
+class ScoreVersions:
+    """SCORENAMES (2026-10-20): the score settings versions that are active now, read from the score config
+    (mtime cached), so table headers / chart lanes can name each score with its profile and settings version."""
+
+    def __init__(self):
+        self.m, self.v = None, {}
+
+    def get(self):
+        try:
+            m = SCORE_CFG.stat().st_mtime
+        except OSError:
+            return self.v
+        if m != self.m:
+            try:
+                c = json.loads(SCORE_CFG.read_text())
+                pr = c.get("profiles") or {}
+                self.v = {"core": c.get("config_version"), "light": (pr.get("light") or {}).get("config_version"),
+                          "full": (pr.get("wide_full") or {}).get("config_version"), "src": str(SCORE_CFG).replace(str(HOME), "~")}
+            except Exception:
+                pass
+            self.m = m
+        return self.v
+
+
+SCOREV = ScoreVersions()
+
+
 class Walls:
     def __init__(self):
         self.by, self.loaded_at, self.lock = {}, 0, threading.Lock()
@@ -1864,6 +1894,7 @@ class Engine:
                 "walls": {k: self.walls.status.get(k) for k in ("last_pass_pt", "err", "reqs_today")},
                 "wide": WIDE.payload,
                 "dir_cfg": DIR_CFG,
+                "score_versions": SCOREV.get(),  # SCORENAMES
                 "vol_surge": {"mode": st.get("mode"), "gate": st.get("last_gate"), "updated_pt": st.get("updated_pt"),
                               "events": [{k: e.get(k) for k in ("symbol", "engine_pt", "level", "level_price", "dir", "last", "rvol_1m", "vol_60s", "seat_id", "dry_run")} for e in evs[:20]]}}
 
@@ -2193,6 +2224,12 @@ class H(BaseHTTPRequestHandler):
                 return self._send(200, SECTORS_FILE.read_bytes(), "application/json")
             except OSError:
                 return self._send(404, json.dumps({"error": "no sectors.json"}), "application/json")
+        if path in ("/research", "/research/"):  # RESEARCHTAB
+            self.send_response(302)
+            self.send_header("Location", "/guide/research/")
+            self.send_header("Content-Length", "0")
+            self.end_headers()
+            return
         if path == "/guide":
             self.send_response(301)
             self.send_header("Location", "/guide/")
@@ -2207,6 +2244,8 @@ class H(BaseHTTPRequestHandler):
         """Static field guide (read-only): /guide/ viewer, /guide/docs/*.md + img, /guide/vendor/*.js."""
         from urllib.parse import unquote
         rel = unquote(rel) or "index.html"
+        if rel.endswith("/"):  # RESEARCHTAB: guide/research/ -> guide/research/index.html
+            rel += "index.html"
         if "\x00" in rel or rel.startswith("/") or ".." in rel.split("/"):
             return self._send(400, "bad path", "text/plain")
         root = GUIDE_DIR.resolve()

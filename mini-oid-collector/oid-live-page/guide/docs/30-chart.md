@@ -1,5 +1,9 @@
 # 30 · Stock chart (click a ticker)
 
+![NVDA 1m chart: header chip 'Direction', lanes price, volume, Direction score, momentum ribbon and C/P (Tue 10/20/2026, 6:55 PM PT)](img/chart-panel.png)
+
+> Score names updated **Tue 10/20/2026, 6:55 PM PT**: lanes, tooltip, header chips and footer use the same names as the table (**Direction**, **Light**, **Full**, with the settings version).
+
 > Added **Tue 10/20/2026, 5:45 PM PT**. Private live page on the Mac mini. All times PT (daily bars are labelled by ET trading date). Read-only research tool: **it never places orders**. Score shown **raw** (no smoothing).
 
 ![NVDA 1-minute chart, 10/20, with the tooltip at 9:34 AM](img/chart-preview.png)
@@ -19,7 +23,7 @@ Deep link (handy for bookmarks): `http://127.0.0.1:8791/#chart=NVDA/1m/1D` (also
 |---|---|---|
 | Price | Candles (OHLC) for the interval. **Call wall, put wall, flip as step lines** that change when the wall level changed, plus dashed lines with axis labels for the **live** levels the page shows right now. Walls do **not** stretch the price scale (see Price scale and walls). | green / red candles; call wall green, put wall red, flip amber dashed. Grey candles = pre/post 15 s bars priced from VWAP only, or "no trades" bars |
 | Volume | Shares per bar | green = close ≥ open, red = close < open |
-| Score | **Raw direction score** (−3…+3) as a step line, colored by the whole-number score. Core names: the core score. Sector watch names: **light** (dashed) and **full** (solid) | +3 dark green … 0 grey … −3 dark red; grid lines at 0 and ±2 |
+| Score (lane titles **Direction**, **Light**, **Full**) | **Raw direction score** (−3…+3) as a step line, colored by the whole-number score. Core names: **Direction (core v1.1)**. Sector names: **Light (light-v1.0)** (dashed) and **Full (sector widefull-v1.0)** (solid). Same names as the table columns ([24 §0](24-direction-score.md)) | +3 dark green … 0 grey … −3 dark red; grid lines at 0 and ±2 |
 | Momentum | Thin ribbon under the score: momentum state at each bar's close (core names only; see below) | ACCEL dark green, RESUME light green, DECEL amber, quiet grey |
 | C/P | Aggressor C/P **15 s** (purple) and **1 m** (blue), log scale, line at 1.0. Only drawn when C/P history exists for the name and range | |
 
@@ -43,7 +47,7 @@ The score and C/P are only drawn in **regular hours** (that's the only time they
 | **Fit walls** | Off (default): the price scale fits the candles and off-screen walls show as edge markers. On: walls and flip are included in the scale |
 | **Last hour** | Zoom to the last 60 minutes, plus the ~2 h of future axis on the right |
 | **Reset** | Show the whole range again, with the default right-side space (see below) |
-| Crosshair tooltip | Time (PT), O/H/L/C, volume, score (whole number, raw, since when, range inside the bar), light/full for Sector watch, C/P 15 s and 1 m with print counts, call wall / put wall / flip at that bar |
+| Crosshair tooltip | Time (PT), O/H/L/C, volume, each score under its full name, e.g. **Direction (core v1.1)** (whole number, raw, since when, range inside the bar), or **Light (light-v1.0)** / **Full (sector widefull-v1.0)** for sector names, C/P 15 s and 1 m with print counts, call wall / put wall / flip at that bar |
 
 ## Future time axis and panning (changed 10/20, 6:05 PM PT)
 

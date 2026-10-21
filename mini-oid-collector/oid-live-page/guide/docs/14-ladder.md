@@ -1,6 +1,8 @@
 # 14 · Last ladder panel
 [← Index](README.md)
 
+> **Retired: the Last ladder panel is no longer on the live page** (checked Tue 10/20/2026, 6:55 PM PT). This page is kept for reference only. The ladder dry run itself is listed on the [Research tab](32-research-tab.md).
+
 The **Last ladder** panel spans the full page width right under the tile grid, newest card per symbol first (up to 10). Each time a vol_surge fires, the box takes a **snapshot of the Robinhood order book** for that stock and posts it here. This is a *dry run* that tests one idea: **when the book is thin in the direction price is moving, does price run to the next big resting order (the "wall")?**
 
 ![Ladder thin vs thick](img/ladder-thin.png)

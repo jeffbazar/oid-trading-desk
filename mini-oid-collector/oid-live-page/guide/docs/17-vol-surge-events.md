@@ -1,7 +1,7 @@
 # 17 · vol_surge events log
 [← Index](README.md)
 
-The full list of trigger-engine surge events today, newest first. Example:
+The full list of trigger-engine surge events today, newest first. It sits in the collapsed **Logs** section at the bottom of the page (click **Logs** to open it). Example:
 
 `09:53:07 AM PT  AMAT ▼ day_low 420.14 · last 419.90 · rvol 3.10× · 60s 20K  [test]`
 

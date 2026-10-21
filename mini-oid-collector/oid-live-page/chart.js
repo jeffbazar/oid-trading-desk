@@ -89,10 +89,10 @@ function rowOf(sym){try{if(typeof st!=='undefined'&&st&&st.rows){const r=st.rows
 function scChip(lab,s,raw){if(s==null)return '';const c=SCOL[String(s)]||'#8c959f';return `<span class="chsc" style="background:${c}">${lab}${s>0?'+':''}${s}<small> ${raw==null?'':(+raw).toFixed(2)}</small></span>`;}
 function liveHead(){if(!OPEN)return;$('chsym').textContent=K.sym;const x=rowOf(K.sym);let h='';
  if(x&&x.k==='core'){const r=x.r;$('chtier').textContent='core';const rv=r.rvol!=null?r.rvol:r.day_rvol;
-  h=`<b>${f2(r.last)}</b> <span class="${r.chg>0?'up':r.chg<0?'dn':''}">${r.chg==null?'':(r.chg>0?'+':'')+(+r.chg).toFixed(2)+'%'}</span> · rvol <b>${rv==null?'—':(+rv).toFixed(1)+'×'}</b>${r.hot?' <span class="chhot">SURGE</span>':''} ${r.score&&r.score.s!=null?scChip('',r.score.s,r.score.raw):''}`+
+  h=`<b>${f2(r.last)}</b> <span class="${r.chg>0?'up':r.chg<0?'dn':''}">${r.chg==null?'':(r.chg>0?'+':'')+(+r.chg).toFixed(2)+'%'}</span> · rvol <b>${rv==null?'—':(+rv).toFixed(1)+'×'}</b>${r.hot?' <span class="chhot">SURGE</span>':''} ${r.score&&r.score.s!=null?scChip('Direction ',r.score.s,r.score.raw):''}`+
    `${r.af15?' · C/P 15s <b>'+fcp(r.af15.cp)+'</b>':''}${r.af60?' 1m <b>'+fcp(r.af60.cp)+'</b>':''}`;}
  else if(x){const r=x.r;$('chtier').textContent='Sector watch · '+(x.g.name||'');
-  h=`<b>${f2(r.p)}</b> <span class="${r.c>0?'up':r.c<0?'dn':''}">${r.c==null?'':(r.c>0?'+':'')+(+r.c).toFixed(2)+'%'}</span> · rvol <b>${r.r!=null?(+r.r).toFixed(1)+'×':r.dr!=null?'d '+(+r.dr).toFixed(1)+'×':'—'}</b>${r.sg?' <span class="chhot">SURGE</span>':''} ${r.ls?scChip('L',r.ls.s,r.ls.raw):''} ${r.fs?scChip('F',r.fs.s,r.fs.raw):''}`+
+  h=`<b>${f2(r.p)}</b> <span class="${r.c>0?'up':r.c<0?'dn':''}">${r.c==null?'':(r.c>0?'+':'')+(+r.c).toFixed(2)+'%'}</span> · rvol <b>${r.r!=null?(+r.r).toFixed(1)+'×':r.dr!=null?'d '+(+r.dr).toFixed(1)+'×':'—'}</b>${r.sg?' <span class="chhot">SURGE</span>':''} ${r.fs?scChip('Full ',r.fs.s,r.fs.raw):''} ${r.ls?scChip('Light ',r.ls.s,r.ls.raw):''}`+
    `${r.af15?' · C/P 15s <b>'+fcp(r.af15.cp)+'</b>':''}${r.af60?' 1m <b>'+fcp(r.af60.cp)+'</b>':''}`;}
  else $('chtier').textContent='';
  $('chlive').innerHTML=h;liveWalls(x);}
@@ -138,7 +138,7 @@ function build(keep){const L=window.LightweightCharts;if(CH){CH.remove();CH=null
  S.v=CH.addSeries(L.HistogramSeries,{priceFormat:{type:'custom',formatter:fv,minMove:1},priceLineVisible:false,lastValueVisible:false},1);
  const fix={autoscaleInfoProvider:()=>({priceRange:{minValue:-3.3,maxValue:3.3}})};
  const kinds=Object.keys(D.score||{});S.sc={};
- kinds.forEach((k,i)=>{S.sc[k]=CH.addSeries(L.LineSeries,Object.assign({lineWidth:k==='light'?2:3,lineType:1,lineStyle:k==='light'?2:0,priceLineVisible:false,lastValueVisible:true,title:k==='core'?'score':k==='light'?'light':'full',
+ kinds.forEach((k,i)=>{S.sc[k]=CH.addSeries(L.LineSeries,Object.assign({lineWidth:k==='light'?2:3,lineType:1,lineStyle:k==='light'?2:0,priceLineVisible:false,lastValueVisible:true,title:k==='core'?'Direction':k==='light'?'Light':'Full',
    priceFormat:{type:'price',precision:2,minMove:0.01}},fix),2);});
  const s0=S.sc[kinds[0]];if(s0){[0,2,-2].forEach(v=>s0.createPriceLine({price:v,color:v?'#d0d7de':'#8c959f',lineWidth:1,lineStyle:v?2:0,axisLabelVisible:false,title:v?(v>0?'+2':'-2'):''}));}
  S.hasMo=D.tier==='core';const CPP=S.hasMo?4:3;
@@ -176,7 +176,7 @@ function applyDelta(n){// n = reply with bars from `since` (inclusive): replace 
  for(let i=keep;i<D.bars.length;i++){const o=pts(i);IDX.set(o.c.time,i);S.c.update(o.c);S.v.update(o.v);S.cw.update(o.cw);S.pw.update(o.pw);S.gf.update(o.gf);for(const k in S.sc)S.sc[k].update(o.sc[k]);if(S.hasCp){S.cp15.update(o.cp15);S.cp60.update(o.cp60);}if(S.mo)S.mo.update(o.mo);}
  S.ws.setData(wsPoints());if(nr)ts.setVisibleLogicalRange(nr);edgesSoon();}
 function foot(ms,kb,live){const d=D;if(!d)return;const av=d.avail||{};const ivn=d.k>1?`1 bar = ${d.k} × ${d.iv}`:d.iv;
- const sc=Object.entries(d.sources.score||{}).map(([k,v])=>`${k}: ${v.length?v.join('; '):'none'}`).join(' · ');
+ const sc=Object.entries(d.sources.score||{}).map(([k,v])=>`${(window.scoreName?window.scoreName(k):({core:'Direction',light:'Light',full:'Full'})[k])}: ${v.length?v.join('; '):'none'}`).join(' · ');
  $('chfoot').innerHTML=`<span><b>${esc(d.sym)}</b> ${esc(ivn)} · ${esc(d.range)} = ${esc(d.from)} → ${esc(d.to)} · ${d.n_total} bars · ${esc(d.iv)} stored since <b>${esc(av[d.iv]||'?')}</b></span>`+
   (d.notes||[]).map(x=>`<span class="chnote">${esc(x)}</span>`).join('')+
   `<span>bars: ${esc((d.sources.bars||[]).join(', '))}</span><span>score: ${esc(sc)}</span><span>C/P: ${esc((d.sources.cp||[]).join(', ')||'none')}</span><span>momentum: ${esc((d.sources.mom||[]).join('; ')||'no history in this range')}</span><span>walls: ${esc((d.sources.walls||[]).join(', ')||'none')} (${(d.wall_events||[]).length} level changes)</span>`+
@@ -194,7 +194,7 @@ function tip(p){const el=$('chtip');if(!p||p.time==null||!D){el.hidden=true;retu
  if(!p.point){const x=CH.timeScale().timeToCoordinate(p.time),y=S.c.priceToCoordinate(D.bars[i][4]);if(x==null||y==null){el.hidden=true;return;}p={time:p.time,point:{x,y}};}
  const b=D.bars[i],w=D.walls[i],c=D.cp[i];let h=`<div class="tt">${esc(ptLabel(b[0]))}${D.k>1?' <small>('+D.k+'×'+D.iv+')</small>':''} <small>${{p:'pre',r:'',a:'post'}[b[6]]||''}</small></div>`+
   `<div>O <b>${f2(b[1])}</b> H <b>${f2(b[2])}</b> L <b>${f2(b[3])}</b> C <b>${f2(b[4])}</b></div><div>Vol <b>${fv(b[5])}</b>${b[7]===2?' <small class="mut">priced from 5 s VWAP</small>':b[7]===3?' <small class="mut">no trades</small>':''}</div>`;
- for(const k in D.score){const s=D.score[k][i];const lab=k==='core'?'Score':k==='light'?'Light':'Full';
+ for(const k in D.score){const s=D.score[k][i];const lab=(window.scoreName?window.scoreName(k):({core:'Direction',light:'Light',full:'Full'})[k]);
   h+=s?`<div>${lab} <b style="color:${SCOL[String(s[0])]}">${s[0]>0?'+':''}${s[0]}</b> raw <b>${s[1]==null?'—':(+s[1]).toFixed(3)}</b>${s[2]!==s[3]?` <small>range in bar ${s[3]>0?'+':''}${s[3]}…${s[2]>0?'+':''}${s[2]}</small>`:''}${s[4]?` <small>${s[4]} change${s[4]>1?'s':''}</small>`:''}<br><small class="mut">since ${esc(ptLabel(s[5]).replace(/^\w+ /,''))}</small></div>`:`<div>${lab} <span class="mut">— (no score: outside regular hours or not stored)</span></div>`;}
  if(S.hasMo){const m=(D.mom||[])[i];h+=m?`<div>Momentum <b style="color:${m[0]===2?'#1a7f37':m[0]===0?'#6e7781':MOC[m[0]]}">${MON[m[0]]}</b>${m[1]?` <small>since ${esc(new Date(m[1]*1000).toLocaleTimeString('en-US',{timeZone:'America/Los_Angeles'}))} PT</small>`:''}${m[2]?` <small>${m[2]} change${m[2]>1?'s':''} in bar</small>`:''}</div>`:'<div>Momentum <span class="mut">— (no momentum history for this bar: engine runs in regular hours; history starts 10/20)</span></div>';}
  else h+='<div>Momentum <span class="mut">— (momentum engine covers core names only)</span></div>';
