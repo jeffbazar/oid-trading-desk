@@ -153,7 +153,7 @@ Full 42-key table: `base-rates.json` → `backtest` (or the `pattern-backtest-re
 
 ## Options-cost check: 1m higher low / lower high (10/21)
 
-Question: does the move pay for an ATM weekly option? Script `/tmp/optcost.py` on the mini (research only); results `~/oid-data/patterns/optcost-20261021.json`, per-setup rows `optcost-setups-20261021.jsonl` (data dir, not synced).
+Question: does the move pay for an ATM weekly option? Scripts `~/oid-score/research/optsnap.py` (OPRA snapshot) and `optcost.py` (research only); results `~/oid-data/patterns/optcost-20261021.json`, per-setup rows `optcost-setups-20261021.jsonl` (data dir, not synced).
 
 - **Sample:** 17,153 graded setups: backtest 9/16–10/20 (HL 8,116, LH 8,304) + live 10/21 (HL 349, LH 384). Wrong-side setups excluded.
 - **Best move** = max favorable excursion in the 30 one-minute bars after entry (no stop applied), bp of the stock.
