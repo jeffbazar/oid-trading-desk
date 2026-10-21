@@ -96,3 +96,10 @@
 |---|---|---|---|
 | **Hal exit watcher** (option stop and target, +20% half, stock stop and target, 5-min structure break, time stop, 12:40 PM PT warning for 8 or fewer days to expiry; page 28) | Every **3 s** in market hours and for **15 min** after the close; status every 30 s otherwise. Price rules must hold 2 checks; each alert repeats at most every **2 min**, **3** times a day | Alpaca SIP stock trades and quotes, Alpaca OPRA option quotes, Alpaca SIP 5-minute bars (one fetch per name about 8 s after each 5-minute bar ends) | `com.oid.desk.hal-exit-watch` (always on, Nice 10; dry run until Hal's webhook is saved) |
 | **Hal's exit rules file** (box → mini) | Sent within about **15 s** of a change in market hours, 60 s otherwise | Box mirror poller (`/v1/desk-state`) | box `quotes/mirror_poller.py` |
+
+## Host health (added 10/20)
+
+| Metric | Refresh | Source | Job |
+|---|---|---|---|
+| **Mac mini resources** (load 1/5/15, total CPU %, memory free %, swap, disk free, network in/out, top 8 processes) | Every **15 s** weekdays 6:00 AM–1:30 PM PT, every **5 min** otherwise | macOS kernel counters, `memory_pressure`, `netstat -ib`, `ps` | `com.oid.desk.host-monitor` (always on, Nice 10, about 0.24% of one core at 15 s) |
+| **Daily host summary** (peak and p95 CPU and load, lowest memory free, top processes at the CPU peak) | Weekdays **1:15 PM PT** | `~/oid-data/host/host-YYYYMMDD.jsonl` | `com.oid.desk.host-summary` → `~/oid-data/host/summary-YYYYMMDD.txt` |

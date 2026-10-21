@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0"><dict>
+  <key>Label</key><string>com.oid.desk.host-summary</string>
+  <key>ProgramArguments</key><array><string>/bin/sh</string><string>-c</string><string>d=$(TZ=America/Los_Angeles date +%Y%m%d); /Users/jake/oid-desk/venv/bin/python -m oid_desk.host_monitor summary $d &gt; /Users/jake/oid-data/host/summary-$d.txt 2&gt;&amp;1; cat /Users/jake/oid-data/host/summary-$d.txt</string></array>
+  <key>WorkingDirectory</key><string>/Users/jake/oid-desk/app</string>
+  <key>EnvironmentVariables</key><dict><key>PYTHONPATH</key><string>/Users/jake/oid-desk/app</string><key>PYTHONDONTWRITEBYTECODE</key><string>1</string></dict>
+  <key>StartCalendarInterval</key><array>
+    <dict><key>Weekday</key><integer>1</integer><key>Hour</key><integer>13</integer><key>Minute</key><integer>15</integer></dict>
+    <dict><key>Weekday</key><integer>2</integer><key>Hour</key><integer>13</integer><key>Minute</key><integer>15</integer></dict>
+    <dict><key>Weekday</key><integer>3</integer><key>Hour</key><integer>13</integer><key>Minute</key><integer>15</integer></dict>
+    <dict><key>Weekday</key><integer>4</integer><key>Hour</key><integer>13</integer><key>Minute</key><integer>15</integer></dict>
+    <dict><key>Weekday</key><integer>5</integer><key>Hour</key><integer>13</integer><key>Minute</key><integer>15</integer></dict>
+  </array>
+  <key>RunAtLoad</key><false/>
+  <key>Nice</key><integer>10</integer>
+  <key>ProcessType</key><string>Background</string>
+  <key>StandardOutPath</key><string>/Users/jake/oid-desk/logs/host-summary.log</string>
+  <key>StandardErrorPath</key><string>/Users/jake/oid-desk/logs/host-summary.log</string>
+</dict></plist>

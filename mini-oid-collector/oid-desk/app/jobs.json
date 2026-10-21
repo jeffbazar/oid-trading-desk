@@ -395,6 +395,26 @@
     "closed": null
    },
    "desc": "Hal fast exit watcher: every 3 s in RTH (+15 min) checks paper-trades/hal-live/active-exit-rules.json seats (option stop/target/+20% half, stock stop/target, 5m structure, time stop, 12:40 PT DTE<=8 warning) -> Hal webhook (HAL_EXIT_WEBHOOK_URL/KEY files, hot-loaded; dry-run until present). NEVER TRADES"
+  },
+  "host-monitor": {
+   "group": "status",
+   "kind": "daemon",
+   "cwd": "app",
+   "cmd": [
+    "{py}",
+    "-m",
+    "oid_desk.host_monitor",
+    "loop"
+   ],
+   "secrets": [],
+   "nice": 10,
+   "heartbeat": "cache/host-health.json",
+   "ttl": {
+    "rth": 60,
+    "ext": 600,
+    "closed": 600
+   },
+   "desc": "Host resource logger: every 15 s weekdays 6:00-13:30 PT, 5 min otherwise -> ~/oid-data/host/host-YYYYMMDD.jsonl + cache/host-health.json (load, CPU, memory, swap, disk, net, top 8 procs). Read-only."
   }
  }
 }

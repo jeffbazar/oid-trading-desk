@@ -1837,3 +1837,63 @@ There is no live row yet (first session is 10/21). This row was written by the r
  ]
 }
 ```
+
+
+## Host health log (added 10/20)
+
+Files: `~/oid-data/host/host-YYYYMMDD.jsonl` (one line per sample, appended; dated in PT) and `~/oid-desk/desk/cache/host-health.json` (latest sample only, rewritten each time, plus `written_by` and `file`). Written by `oid_desk/host_monitor.py`. Summary: `python -m oid_desk.host_monitor summary YYYYMMDD`.
+
+| Column | Meaning |
+|---|---|
+| `ts` | Sample time, ISO 8601 with offset |
+| `ts_pt` | Same time in plain PT |
+| `interval_s` | 15 in the weekday 6:00 AM–1:30 PM PT window, 300 otherwise |
+| `load1` / `load5` / `load15` | Load averages (1, 5, 15 min) |
+| `cpu_pct` | Total CPU busy % across all cores since the previous sample |
+| `mem_free_pct` | Memory free % from `memory_pressure` |
+| `swap_used_mb` | Swap in use, MB |
+| `disk_free_gb` | Free space on the data volume, GB |
+| `net_in_Bps` / `net_out_Bps` | Network bytes per second in / out since the previous sample (physical interfaces) |
+| `top` | Top 8 processes by CPU: `pid`, `cpu` (% of one core, ps), `rss_mb`, `cmd` (short name; Python shows `python:<script or module>`) |
+
+Real row (10/20/2026, top list cut to 3 here):
+
+```json
+{
+ "ts": "2026-10-20T17:09:05-07:00",
+ "ts_pt": "2026-10-20 05:09:05 PM PT",
+ "interval_s": 300,
+ "load1": 1.55,
+ "load5": 1.74,
+ "load15": 1.78,
+ "cpu_pct": 10.2,
+ "mem_free_pct": 84,
+ "swap_used_mb": 0.0,
+ "disk_free_gb": 441.0,
+ "net_in_Bps": 232419,
+ "net_out_Bps": 331869,
+ "top": [
+  {
+   "pid": 14539,
+   "cpu": 15.8,
+   "rss_mb": 12.5,
+   "cmd": "contactsd"
+  },
+  {
+   "pid": 154,
+   "cpu": 12.0,
+   "rss_mb": 135.4,
+   "cmd": "WindowServer"
+  },
+  {
+   "pid": 136,
+   "cpu": 11.8,
+   "rss_mb": 26.6,
+   "cmd": "dasd"
+  },
+  {
+   "…": "5 more"
+  }
+ ]
+}
+```
