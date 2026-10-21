@@ -19,6 +19,7 @@ import score_lib as L
 import score_engine as E
 import score_changes as SC
 import score_wide as W
+import score_features as SF  # FEATURES 2026-10-21
 
 
 def main():
@@ -26,11 +27,21 @@ def main():
     ap.add_argument("date")
     ap.add_argument("--step", type=float, default=5.0)
     ap.add_argument("--out")
+    ap.add_argument("--features", action="store_true", help="FEATURES: also write score_features rows (writer score-replay-<profile>)")
+    ap.add_argument("--features-root", help="archive root for --features (default ~/oid-data/archive)")
+    ap.add_argument("--drop", help="ablation: comma list of components switched off")
+    ap.add_argument("--weight", help="ablation: comp=w[,comp=w]")
+    ap.add_argument("--add", help="add-one shadow input (news)")
+    ap.add_argument("--add-weight", type=float, default=0.5)
     a = ap.parse_args()
     cfg = L.load_config()
     P, paths = W.setup(cfg)
     date, d = a.date, a.date.replace("-", "")
-    out = Path(a.out) if a.out else L.OUT / f"replay-{d}-wide"
+    vtag = "-".join(x for x in (SF.ablate(P, a.drop, a.weight), f"add-{a.add}" if a.add else "") if x)
+    out = Path(a.out) if a.out else L.OUT / (f"replay-{d}-wide" + (f"-{vtag}" if vtag else ""))
+    feat = SF.FeatureSnap(P["score_profile"], writer=f"score-replay-{P['score_profile']}" + (f"-{vtag}" if vtag else ""), live=False,
+                          mode="replay" + (f"-{vtag}" if vtag else ""), root=a.features_root) if a.features else None
+    news = SF.NewsTone() if a.add else None
     if out.exists():
         shutil.rmtree(out)
     out.mkdir(parents=True)
@@ -79,12 +90,18 @@ def main():
             px = lb[5]
             row = W.score_row(s, t, px, date, P, bars1m.get(s), atr.get(s), mkt, "replay")
             cx = W.ctx_for(s, t, px, atr.get(s), lb[7], ring, extra={"px_src": "5s_close" if (lb[1] - lb[0]) < 10 else "1m_close"})
+            if news is not None:
+                SF.add_one(row, P, a.add, news, s, date, t, a.add_weight, L.combine)
+            if feat is not None:
+                feat.offer(date, t, s, px, row, cx, P["config_version"], trk.tag_fn)
             trk.observe(date, t, s, px, row, cx, P["config_version"])
         pass_cpu.append(time.process_time() - p0)
         steps += 1
         t += a.step
     px_end = {s: (ring.last(s, t_end) or [None] * 6)[5] for s in syms}
     trk.close_all(t_end, "session_end", px_by=px_end)
+    if feat is not None:
+        feat.flush()
     cpu = time.process_time() - c1
     tag = P["profile"].get("file_tag", "wide")
     ch = [json.loads(x) for x in (out / f"changes-{tag}-{d}.jsonl").open()]
@@ -99,7 +116,7 @@ def main():
     for e in ep:
         if abs(e["score"]) >= 2:
             big[(e.get("sector") or "?", abs(e["score"]))] += 1
-    summ = {"date": date, "profile": P["score_profile"], "config_version": P["config_version"], "inputs": sorted(W.enabled(P)),
+    summ = {"date": date, "variant": vtag or "baseline", "features_rows": feat.rows if feat else None, "profile": P["score_profile"], "config_version": P["config_version"], "inputs": sorted(W.enabled(P)),
             "step_s": a.step, "symbols_universe": len(syms), "symbols_scored": len(scored), "steps": steps,
             "price_bars": used, "resolution_note": ("1-minute: no wide 5 s RTH bars for this date, price/peak/trough from 1-min bars"
                                                     if used["5s"] == 0 else "5 s where available, 1-min fallback for the rest"),

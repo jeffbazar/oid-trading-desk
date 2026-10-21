@@ -1,56 +1,102 @@
 {
-  "_doc": "Feed catalog shared by the Mac mini data API (minihost/oid_desk/api.py serves exactly these desk-relative files) and the box mirror (quotes/mirror_poller.py). Box mode per group lives in config/mirror.json (off | shadow | live). shadow -> <shadow_root>/<path>; live -> <path>, or live_target when set (never clobbers a box file that a box script still owns). box_daemons = what scripts/oid-cutover.sh stops/flags when a group goes live (rollback = clear flag; mini-link-up watchdog restarts within 60 s). desk_state = files the box pushes TO the mini (POST /v1/desk-state).",
-  "version": "MIRROR-FEEDS-V1",
-  "shadow_root": "market-data/shadow",
-  "groups": {
-    "uw": {
-      "files": ["market-data/latest/uw-market-tide.json", "market-data/latest/uw-net-prem.json",
-                "market-data/latest/uw-flow-alerts.json", "cache/uw-refresh.json",
-                "chart-bot/whale-flow/latest/*.json"],
-      "box_daemons": ["uw-refresh", "whale-flow"]
-    },
-    "fa": {
-      "files": ["market-data/latest/fa-focus-levels.json", "market-data/latest/fa-levels.json",
-                "cache/fa-focus-refresh-state.json", "cache/focus-watch.json", "cache/focus-watch-events.jsonl"],
-      "box_daemons": ["focus-watch"]
-    },
-    "bars": {
-      "files": ["cache/bars/summary.json", "cache/bars/*-5m.json", "cache/bars/*-15m.json"],
-      "box_daemons": ["bars-poller"]
-    },
-    "marks": {
-      "files": ["market-data/latest/rh-quotes.json", "market-data/latest/mini-option-marks.json",
-                "cache/mini-quotes.json", "cache/mini-option-quotes.json", "cache/mini-marks.json"],
-      "live_target": {"market-data/latest/rh-quotes.json": "cache/mirror/mini-rh-quotes.json",
-                      "market-data/latest/mini-option-marks.json": "cache/mirror/mini-option-marks.json",
-                      "cache/mini-marks.json": "cache/mirror/mini-marks.json"},
-      "box_daemons": ["mini-poller"],
-      "hook": "apply_marks"
-    },
-    "macro": {
-      "files": ["market-data/latest/macro-public.json"],
-      "box_daemons": []
-    },
-    "edgar": {
-      "files": ["market-data/latest/premarket-edgar-mini.json"],
-      "box_daemons": []
-    },
-    "shortint": {
-      "files": ["market-data/latest/short-borrow.json", "data/short-borrow/uw-borrow/*.jsonl",
-                "data/short-borrow/finra-si/*.jsonl"],
-      "box_daemons": []
-    },
-    "status": {
-      "files": ["market-data/latest/mini-status.json"],
-      "box_daemons": []
-    }
+ "_doc": "Feed catalog shared by the Mac mini data API (minihost/oid_desk/api.py serves exactly these desk-relative files) and the box mirror (quotes/mirror_poller.py). Box mode per group lives in config/mirror.json (off | shadow | live). shadow -> <shadow_root>/<path>; live -> <path>, or live_target when set (never clobbers a box file that a box script still owns). box_daemons = what scripts/oid-cutover.sh stops/flags when a group goes live (rollback = clear flag; mini-link-up watchdog restarts within 60 s). desk_state = files the box pushes TO the mini (POST /v1/desk-state).",
+ "version": "MIRROR-FEEDS-V1",
+ "shadow_root": "market-data/shadow",
+ "groups": {
+  "uw": {
+   "files": [
+    "market-data/latest/uw-market-tide.json",
+    "market-data/latest/uw-net-prem.json",
+    "market-data/latest/uw-flow-alerts.json",
+    "cache/uw-refresh.json",
+    "chart-bot/whale-flow/latest/*.json"
+   ],
+   "box_daemons": [
+    "uw-refresh",
+    "whale-flow"
+   ]
   },
-  "desk_state": [
-    "paper-trades/trades.json", "paper-trades/paper-open.json", "cache/rh-live-option-positions.json",
-    "config/focus-watch.json", "config/option-watch-contracts.json", "config/stream-quote-allowlist.json",
-    "config/uw-refresh.json", "config/live-gate.json", "config/mini-desk.json",
-    "market-data/latest/vix-agent.json", "market-data/latest/macro-morning.json",
-    "paper-trades/hal-live/active-exit-rules.json"
-  ],
-  "desk_state_max_bytes": 4000000
+  "fa": {
+   "files": [
+    "market-data/latest/fa-focus-levels.json",
+    "market-data/latest/fa-levels.json",
+    "cache/fa-focus-refresh-state.json",
+    "cache/focus-watch.json",
+    "cache/focus-watch-events.jsonl"
+   ],
+   "box_daemons": [
+    "focus-watch"
+   ]
+  },
+  "bars": {
+   "files": [
+    "cache/bars/summary.json",
+    "cache/bars/*-5m.json",
+    "cache/bars/*-15m.json"
+   ],
+   "box_daemons": [
+    "bars-poller"
+   ]
+  },
+  "marks": {
+   "files": [
+    "market-data/latest/rh-quotes.json",
+    "market-data/latest/mini-option-marks.json",
+    "cache/mini-quotes.json",
+    "cache/mini-option-quotes.json",
+    "cache/mini-marks.json"
+   ],
+   "live_target": {
+    "market-data/latest/rh-quotes.json": "cache/mirror/mini-rh-quotes.json",
+    "market-data/latest/mini-option-marks.json": "cache/mirror/mini-option-marks.json",
+    "cache/mini-marks.json": "cache/mirror/mini-marks.json"
+   },
+   "box_daemons": [
+    "mini-poller"
+   ],
+   "hook": "apply_marks"
+  },
+  "macro": {
+   "files": [
+    "market-data/latest/macro-public.json"
+   ],
+   "box_daemons": []
+  },
+  "edgar": {
+   "files": [
+    "market-data/latest/premarket-edgar-mini.json"
+   ],
+   "box_daemons": []
+  },
+  "shortint": {
+   "files": [
+    "market-data/latest/short-borrow.json",
+    "data/short-borrow/uw-borrow/*.jsonl",
+    "data/short-borrow/finra-si/*.jsonl"
+   ],
+   "box_daemons": []
+  },
+  "status": {
+   "files": [
+    "market-data/latest/mini-status.json"
+   ],
+   "box_daemons": []
+  }
+ },
+ "desk_state": [
+  "paper-trades/trades.json",
+  "paper-trades/paper-open.json",
+  "cache/rh-live-option-positions.json",
+  "config/focus-watch.json",
+  "config/option-watch-contracts.json",
+  "config/stream-quote-allowlist.json",
+  "config/uw-refresh.json",
+  "config/live-gate.json",
+  "config/mini-desk.json",
+  "market-data/latest/vix-agent.json",
+  "market-data/latest/macro-morning.json",
+  "paper-trades/hal-live/active-exit-rules.json",
+  "chart-bot/scenarios/latest.json"
+ ],
+ "desk_state_max_bytes": 4000000
 }

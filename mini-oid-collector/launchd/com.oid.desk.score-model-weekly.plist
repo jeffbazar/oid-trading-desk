@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0"><dict>
+  <key>Label</key><string>com.oid.desk.score-model-weekly</string>
+  <key>ProgramArguments</key><array><string>/Users/jake/oid-desk/venv/bin/python</string><string>/Users/jake/oid-score/score_learn.py</string><string>scorecard</string></array>
+  <key>WorkingDirectory</key><string>/Users/jake/oid-score</string>
+  <key>EnvironmentVariables</key><dict><key>PYTHONUNBUFFERED</key><string>1</string><key>PYTHONDONTWRITEBYTECODE</key><string>1</string></dict>
+  <key>StartCalendarInterval</key><array>
+    <dict><key>Weekday</key><integer>6</integer><key>Hour</key><integer>11</integer><key>Minute</key><integer>0</integer></dict>
+  </array>
+  <key>RunAtLoad</key><false/>
+  <key>Nice</key><integer>15</integer>
+  <key>ProcessType</key><string>Background</string>
+  <key>StandardOutPath</key><string>/Users/jake/oid-score/logs/score-model-weekly.log</string>
+  <key>StandardErrorPath</key><string>/Users/jake/oid-score/logs/score-model-weekly.log</string>
+</dict></plist>

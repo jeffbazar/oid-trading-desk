@@ -16,6 +16,7 @@ from datetime import datetime
 import score_lib as L
 import score_engine as E
 import score_changes as SC
+import score_features as SF  # FEATURES 2026-10-21
 
 LOOP_S = 5
 FORCE_OPEN = os.environ.get("OID_SCORE_FORCE_OPEN") == "1"   # test/benchmark only (with OID_SCORE_OUT pointed at a scratch dir)
@@ -95,6 +96,7 @@ class Changes:
         self.ring = SC.Ring()
         self.tail = SC.Tail5s(self.ring)
         self.trk = SC.Tracker(L.OUT, mode="live")
+        self.feat = None  # FEATURES: score_features snapshots (15 s)
         self.last, self.resumed, self.cpu, self.n, self.stat_t, self.stat_c = 0.0, None, 0.0, 0, time.time(), 0
 
     def due(self, now, cfg):
@@ -112,16 +114,29 @@ class Changes:
                 log(f"changes: resumed {r[0]} open episodes, closed {r[1]} after gap")
         self.trk.bars(self.tail.poll(date))
         byr = {r["sym"]: r for r in rows}
+        if SF.enabled(cfg):  # FEATURES
+            if self.feat is None:
+                self.feat = SF.FeatureSnap("core")
+        else:
+            self.feat = None
+        fe = self.feat
         for row in score_rows(rows, now, date, cfg, ctx, mkt, "fast"):
             r = byr[row["sym"]]
-            self.trk.observe(date, now, row["sym"], row["px"], row, SC.ctx_live(r, row, self.ring, now), cfg["config_version"])
+            cx = SC.ctx_live(r, row, self.ring, now)
+            if fe is not None:
+                try:
+                    fe.offer(date, now, row["sym"], row["px"], row, cx, cfg["config_version"])
+                except Exception:
+                    pass
+            self.trk.observe(date, now, row["sym"], row["px"], row, cx, cfg["config_version"])
         self.trk.save(now)
         self.cpu += time.process_time() - c0
         self.n += 1
         if now - self.stat_t >= 900:
             c = self.trk.n_changes - self.stat_c
             log(f"changes: {c} change rows in last {round((now - self.stat_t) / 60)} min, {self.n} passes, "
-                f"fast-pass cpu {round(self.cpu / max(1, self.n) * 1000, 1)} ms/pass, open episodes {len(self.trk.ep)}")
+                f"fast-pass cpu {round(self.cpu / max(1, self.n) * 1000, 1)} ms/pass, open episodes {len(self.trk.ep)}"
+                + (f", features {self.feat.stats()}" if self.feat is not None else ""))
             self.stat_t, self.stat_c, self.cpu, self.n = now, self.trk.n_changes, 0.0, 0
 
     def session_end(self, now):

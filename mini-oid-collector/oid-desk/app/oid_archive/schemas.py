@@ -41,12 +41,17 @@ TABLE_COLUMNS: dict[str, list[tuple[str, str]]] = {
                        ("raw_state", "string"), ("since_ep", "float64"), ("since_pt", "string"), ("held", "float64"),
                        ("prov", "string"), ("first", "bool"), ("t_pt", "string"), ("detector_as_of_pt", "string"),
                        ("src", "string")],
+    # FEATURES (2026-10-21): registry-driven tables written by ~/oid-score/score_learn.py (not compact.py). Only the
+    # key columns are listed here (integrity check); the full column list lives in <archive>/<table>/_schema.json.
+    "score_features": [("snap_id", "string"), ("profile", "string"), ("symbol", "string")],
+    "score_labels": [("label_id", "string"), ("kind", "string"), ("symbol", "string")],
 }
 TABLE_COLUMNS = {k: v + COMMON for k, v in TABLE_COLUMNS.items()}
 
 KEYS = {"volume_5s": ("symbol", "bucket_start_ns"), "surges": ("surge_id",), "bars_1m": ("symbol", "bar_start_ns"),
         "bars_5m": ("symbol", "bar_start_ns"), "bars_15m": ("symbol", "bar_start_ns"), "bars_1h": ("symbol", "bar_start_ns"),
-        "bars_1d": ("symbol", "trade_date"), "fetch_log": ("fetch_id",), "momentum_state": ("change_id",)}
+        "bars_1d": ("symbol", "trade_date"), "fetch_log": ("fetch_id",), "momentum_state": ("change_id",),
+        "score_features": ("snap_id",), "score_labels": ("label_id",)}  # FEATURES
 
 
 def columns(table: str) -> list[str]:

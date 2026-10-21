@@ -16,6 +16,7 @@ from pathlib import Path
 import score_lib as L
 import score_engine as E
 import score_changes as SC
+import score_features as SF  # FEATURES 2026-10-21
 
 
 def main():
@@ -23,11 +24,21 @@ def main():
     ap.add_argument("date")
     ap.add_argument("--step", type=float, default=5.0)
     ap.add_argument("--out")
+    ap.add_argument("--features", action="store_true", help="FEATURES: also write score_features rows (writer score-replay-<profile>)")
+    ap.add_argument("--features-root", help="archive root for --features (default ~/oid-data/archive)")
+    ap.add_argument("--drop", help="ablation: comma list of components switched off")
+    ap.add_argument("--weight", help="ablation: comp=w[,comp=w]")
+    ap.add_argument("--add", help="add-one shadow input (news)")
+    ap.add_argument("--add-weight", type=float, default=0.5)
     ap.add_argument("--config")
     a = ap.parse_args()
     cfg = L.load_config(a.config)
     date, d = a.date, a.date.replace("-", "")
-    out = Path(a.out) if a.out else L.OUT / f"replay-{d}"
+    vtag = "-".join(x for x in (SF.ablate(cfg, a.drop, a.weight), f"add-{a.add}" if a.add else "") if x)
+    out = Path(a.out) if a.out else L.OUT / (f"replay-{d}" + (f"-{vtag}" if vtag else ""))
+    feat = SF.FeatureSnap("core", writer="score-replay-core" + (f"-{vtag}" if vtag else ""), live=False, mode="replay" + (f"-{vtag}" if vtag else ""),
+                          root=a.features_root) if a.features else None
+    news = SF.NewsTone() if a.add else None
     if out.exists():
         shutil.rmtree(out)
     out.mkdir(parents=True)
@@ -74,12 +85,18 @@ def main():
                 flow_score = fl if (fl.get("f") or {}).get("src") == "uw" else None
             row = E.make_row(s, t, float(px), date, cfg, bars1m.get(s), atr.get(s), walls, flow_score, mkt, "replay", "fast")
             ctx = SC.build_ctx(s, t, px, atr.get(s), flow_ctx, lb[7], walls, S.mom_at(s, t), ring)
+            if news is not None:
+                SF.add_one(row, cfg, a.add, news, s, date, t, a.add_weight, L.combine)
+            if feat is not None:
+                feat.offer(date, t, s, px, row, ctx, cfg["config_version"])
             trk.observe(date, t, s, px, row, ctx, cfg["config_version"])
         pass_cpu.append(time.process_time() - p0)
         steps += 1
         t += a.step
     px_end = {s: (ring.last(s, t_end) or [None] * 6)[5] for s in syms}
     trk.close_all(t_end, "session_end", px_by=px_end)
+    if feat is not None:
+        feat.flush()
     cpu = time.process_time() - c1
     # summary
     ch = [json.loads(x) for x in (out / f"changes-{d}.jsonl").open()]
@@ -93,7 +110,7 @@ def main():
     med = vals[len(vals) // 2] if vals else None
     durs = sorted(e["duration_s"] for e in ep)
     dn = sorted(e["duration_s"] for e in ep if e["stop_reason"] == "score_change")
-    summ = {"date": date, "step_s": a.step, "symbols": len(syms), "steps": steps, "window_pt": [L.pt_str(t_first), L.pt_str(t_end)],
+    summ = {"date": date, "variant": vtag or "baseline", "settings_version": cfg["config_version"], "features_rows": feat.rows if feat else None, "step_s": a.step, "symbols": len(syms), "steps": steps, "window_pt": [L.pt_str(t_first), L.pt_str(t_end)],
             "hours": round(hours, 2), "changes_rows": len(ch), "score_changes": len(real), "episodes": len(ep),
             "changes_per_ticker_hour": {"mean": round(len(real) / max(1, len(syms)) / hours, 1), "median": round(med, 1) if med is not None else None,
                                         "max": [per.most_common(1)[0][0], round(per.most_common(1)[0][1] / hours, 1)] if per else None,

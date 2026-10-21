@@ -135,21 +135,20 @@ class JsonlWriter:
 def iter_jsonl(paths: Iterable[Path]) -> Iterator[dict[str, Any]]:
     """Rows from JSONL parts; a trailing partial line (writer mid-append) or a bad line is skipped."""
     for p in sorted(paths):
-        try:
-            with open(p, "rb") as f:
-                data = f.read()
+        try:  # FEATURES 2026-10-21: stream line by line (score_features parts are ~100-300 MB)
+            f = open(p, "rb")
         except OSError:
             continue
-        lines = data.split(b"\n")
-        if data and not data.endswith(b"\n"):
-            lines = lines[:-1]
-        for ln in lines:
-            if not ln.strip():
-                continue
-            try:
-                yield json.loads(ln)
-            except ValueError:
-                continue
+        with f:
+            for ln in f:
+                if not ln.endswith(b"\n"):
+                    break  # trailing partial line (writer mid-append)
+                if not ln.strip():
+                    continue
+                try:
+                    yield json.loads(ln)
+                except ValueError:
+                    continue
 
 
 def partition_dir(table: str, date: str, parquet: bool = False, root: Optional[Path] = None) -> Path:

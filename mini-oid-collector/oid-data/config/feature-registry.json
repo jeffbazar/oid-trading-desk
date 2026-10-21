@@ -1,0 +1,1585 @@
+{
+ "registry_version": "fr-v1-20261021",
+ "updated_pt": "2026-10-20 PT",
+ "doc": "One row per score input. Weights are not logged per row (they are fixed by settings_version in score-config.json). Null values are omitted from JSONL rows; Parquet has every column. status: output | in_score | context | shadow | age. path is a dotted path into the score change row (comps.*, ctx.*); @news.* and @cs.* are filled by the snapshotter. Each feature names the age column that tells how old its value was. Shadow features are logged, never used by a live score until a promotion test passes.",
+ "snapshot": {
+  "every_s": 15,
+  "profiles": {
+   "core": "full row",
+   "wide_full": "full row",
+   "light": "lite row (score, light components, ages; no ctx/shadow)"
+  }
+ },
+ "sources": [
+  {
+   "id": "score",
+   "name": "Score outputs",
+   "method": "score_lib v1",
+   "cadence": "every pass",
+   "status": "live",
+   "where": "score_daemon / score_wide"
+  },
+  {
+   "id": "bars",
+   "name": "1-min and 5 s bars (Alpaca SIP)",
+   "method": "bar_measures",
+   "cadence": "1 min / 5 s",
+   "status": "live",
+   "where": "oid-quote cache + archive volume_5s"
+  },
+  {
+   "id": "fa_walls",
+   "name": "FlashAlpha walls + gamma flip",
+   "method": "fa-walls-pulse",
+   "cadence": "15 min (core), on surge (sector)",
+   "status": "live",
+   "where": "walls cache"
+  },
+  {
+   "id": "opra_cp",
+   "name": "Options C/P (OPRA aggressor)",
+   "method": "alpaca-opra-aggressor-1m",
+   "cadence": "5 s",
+   "status": "live",
+   "where": "cp-history"
+  },
+  {
+   "id": "uw",
+   "name": "Unusual Whales lean / C/P",
+   "method": "UW flow",
+   "cadence": "live page",
+   "status": "live",
+   "where": "live page state"
+  },
+  {
+   "id": "uw_tide",
+   "name": "UW market tide",
+   "method": "UW market-tide",
+   "cadence": "1-5 min",
+   "status": "live",
+   "where": "tide cache"
+  },
+  {
+   "id": "vix",
+   "name": "VIX",
+   "method": "Cboe/RH index",
+   "cadence": "1 min",
+   "status": "live",
+   "where": "vix cache"
+  },
+  {
+   "id": "market",
+   "name": "SPY/QQQ tape",
+   "method": "bar_measures on index",
+   "cadence": "every pass",
+   "status": "live",
+   "where": "score passes"
+  },
+  {
+   "id": "momentum",
+   "name": "Live page momentum state",
+   "method": "MOMSTATE",
+   "cadence": "on change",
+   "status": "context",
+   "where": "archive momentum_state"
+  },
+  {
+   "id": "surges",
+   "name": "Volume surges",
+   "method": "vol_surge",
+   "cadence": "on event",
+   "status": "context",
+   "where": "archive surges"
+  },
+  {
+   "id": "news_tone",
+   "name": "News / X post tone",
+   "method": "news-sentiment JSONL",
+   "cadence": "on item",
+   "status": "shadow",
+   "where": "~/oid-data/news-sentiment/"
+  },
+  {
+   "id": "sector_cp",
+   "name": "Sector C/P (tick-test)",
+   "method": "WIDECP cp-history-wide",
+   "cadence": "5 s",
+   "status": "shadow",
+   "where": "cp-history-wide (empty so far)"
+  },
+  {
+   "id": "chart_scenario",
+   "name": "Chart Bot daily scenarios",
+   "method": "CB-SCN-V1",
+   "cadence": "daily + 3 refreshes",
+   "status": "shadow",
+   "note": "Primaries' calibrated_score runs hot (44% est vs 36% realized). Soft colour only; never elevates a name alone.",
+   "where": "box chart-bot/scenarios/latest.json -> mini ~/oid-desk/desk/chart-bot/scenarios/latest.json (desk-state push)"
+  }
+ ],
+ "features": [
+  {
+   "id": "score",
+   "path": "score",
+   "type": "int",
+   "status": "output",
+   "source": "score",
+   "used_by": [
+    "core",
+    "full",
+    "light"
+   ],
+   "age": null,
+   "unit": "-3..+3",
+   "desc": "The published score (after the 2-pass hold).",
+   "in_light_rows": true,
+   "added": "2026-10-21"
+  },
+  {
+   "id": "raw",
+   "path": "raw",
+   "type": "float",
+   "status": "output",
+   "source": "score",
+   "used_by": [
+    "core",
+    "full",
+    "light"
+   ],
+   "age": null,
+   "unit": "sum c*q*w / sum w",
+   "desc": "Raw weighted sum before rounding to -3..+3.",
+   "in_light_rows": true,
+   "added": "2026-10-21"
+  },
+  {
+   "id": "coverage",
+   "path": "coverage",
+   "type": "float",
+   "status": "output",
+   "source": "score",
+   "used_by": [
+    "core",
+    "full",
+    "light"
+   ],
+   "age": null,
+   "unit": "0..1",
+   "desc": "Share of score weight that had usable data this pass.",
+   "in_light_rows": true,
+   "added": "2026-10-21"
+  },
+  {
+   "id": "n_stale",
+   "path": "@n_stale",
+   "type": "int",
+   "status": "output",
+   "source": "score",
+   "used_by": [
+    "core",
+    "full",
+    "light"
+   ],
+   "age": null,
+   "unit": "count",
+   "desc": "Number of components flagged stale.",
+   "in_light_rows": true,
+   "added": "2026-10-21"
+  },
+  {
+   "id": "n_missing",
+   "path": "@n_missing",
+   "type": "int",
+   "status": "output",
+   "source": "score",
+   "used_by": [
+    "core",
+    "full",
+    "light"
+   ],
+   "age": null,
+   "unit": "count",
+   "desc": "Number of components with no data.",
+   "in_light_rows": true,
+   "added": "2026-10-21"
+  },
+  {
+   "id": "px",
+   "path": "px",
+   "type": "float",
+   "status": "output",
+   "source": "score",
+   "used_by": [
+    "core",
+    "full",
+    "light"
+   ],
+   "age": null,
+   "unit": "$",
+   "desc": "Price used for this pass (last 5s close, or 1-min close on sector rows).",
+   "in_light_rows": true,
+   "added": "2026-10-21"
+  },
+  {
+   "id": "atr",
+   "path": "atr",
+   "type": "float",
+   "status": "output",
+   "source": "score",
+   "used_by": [
+    "core",
+    "full",
+    "light"
+   ],
+   "age": null,
+   "unit": "$",
+   "desc": "14-day ATR used to scale distances.",
+   "in_light_rows": true,
+   "added": "2026-10-21"
+  },
+  {
+   "id": "flip_c",
+   "path": "comps.flip.c",
+   "type": "float",
+   "status": "in_score",
+   "source": "fa_walls",
+   "used_by": [
+    "core",
+    "full"
+   ],
+   "age": "age_walls",
+   "unit": "-1..+1",
+   "desc": "Gamma flip from FlashAlpha walls: component value.",
+   "in_light_rows": false,
+   "added": "2026-10-21"
+  },
+  {
+   "id": "flip_q",
+   "path": "comps.flip.q",
+   "type": "float",
+   "status": "in_score",
+   "source": "fa_walls",
+   "used_by": [
+    "core",
+    "full"
+   ],
+   "age": "age_walls",
+   "unit": "0..1",
+   "desc": "Gamma flip from FlashAlpha walls: quality (stale/low-confidence discounts).",
+   "in_light_rows": false,
+   "added": "2026-10-21"
+  },
+  {
+   "id": "walls_c",
+   "path": "comps.walls.c",
+   "type": "float",
+   "status": "in_score",
+   "source": "fa_walls",
+   "used_by": [
+    "core",
+    "full"
+   ],
+   "age": "age_walls",
+   "unit": "-1..+1",
+   "desc": "Call/put walls (room to each wall): component value.",
+   "in_light_rows": false,
+   "added": "2026-10-21"
+  },
+  {
+   "id": "walls_q",
+   "path": "comps.walls.q",
+   "type": "float",
+   "status": "in_score",
+   "source": "fa_walls",
+   "used_by": [
+    "core",
+    "full"
+   ],
+   "age": "age_walls",
+   "unit": "0..1",
+   "desc": "Call/put walls (room to each wall): quality (stale/low-confidence discounts).",
+   "in_light_rows": false,
+   "added": "2026-10-21"
+  },
+  {
+   "id": "volume_c",
+   "path": "comps.volume.c",
+   "type": "float",
+   "status": "in_score",
+   "source": "bars",
+   "used_by": [
+    "core",
+    "full",
+    "light"
+   ],
+   "age": "age_bars",
+   "unit": "-1..+1",
+   "desc": "Up/down volume share and 15-min rvol from 1-min bars: component value.",
+   "in_light_rows": true,
+   "added": "2026-10-21"
+  },
+  {
+   "id": "volume_q",
+   "path": "comps.volume.q",
+   "type": "float",
+   "status": "in_score",
+   "source": "bars",
+   "used_by": [
+    "core",
+    "full",
+    "light"
+   ],
+   "age": "age_bars",
+   "unit": "0..1",
+   "desc": "Up/down volume share and 15-min rvol from 1-min bars: quality (stale/low-confidence discounts).",
+   "in_light_rows": true,
+   "added": "2026-10-21"
+  },
+  {
+   "id": "flow_c",
+   "path": "comps.flow.c",
+   "type": "float",
+   "status": "in_score",
+   "source": "opra_cp",
+   "used_by": [
+    "core",
+    "full"
+   ],
+   "age": "age_flow",
+   "unit": "-1..+1",
+   "desc": "Options C/P from OPRA aggressor flow (UW lean fallback): component value.",
+   "in_light_rows": false,
+   "added": "2026-10-21"
+  },
+  {
+   "id": "flow_q",
+   "path": "comps.flow.q",
+   "type": "float",
+   "status": "in_score",
+   "source": "opra_cp",
+   "used_by": [
+    "core",
+    "full"
+   ],
+   "age": "age_flow",
+   "unit": "0..1",
+   "desc": "Options C/P from OPRA aggressor flow (UW lean fallback): quality (stale/low-confidence discounts).",
+   "in_light_rows": false,
+   "added": "2026-10-21"
+  },
+  {
+   "id": "trend_c",
+   "path": "comps.trend.c",
+   "type": "float",
+   "status": "in_score",
+   "source": "bars",
+   "used_by": [
+    "core",
+    "full",
+    "light"
+   ],
+   "age": "age_bars",
+   "unit": "-1..+1",
+   "desc": "Price vs VWAP and 15-min return, in ATRs: component value.",
+   "in_light_rows": true,
+   "added": "2026-10-21"
+  },
+  {
+   "id": "trend_q",
+   "path": "comps.trend.q",
+   "type": "float",
+   "status": "in_score",
+   "source": "bars",
+   "used_by": [
+    "core",
+    "full",
+    "light"
+   ],
+   "age": "age_bars",
+   "unit": "0..1",
+   "desc": "Price vs VWAP and 15-min return, in ATRs: quality (stale/low-confidence discounts).",
+   "in_light_rows": true,
+   "added": "2026-10-21"
+  },
+  {
+   "id": "market_c",
+   "path": "comps.market.c",
+   "type": "float",
+   "status": "in_score",
+   "source": "market",
+   "used_by": [
+    "core",
+    "full",
+    "light"
+   ],
+   "age": "age_vix",
+   "unit": "-1..+1",
+   "desc": "SPY/QQQ tape, VIX change and UW market tide: component value.",
+   "in_light_rows": true,
+   "added": "2026-10-21"
+  },
+  {
+   "id": "market_q",
+   "path": "comps.market.q",
+   "type": "float",
+   "status": "in_score",
+   "source": "market",
+   "used_by": [
+    "core",
+    "full",
+    "light"
+   ],
+   "age": "age_vix",
+   "unit": "0..1",
+   "desc": "SPY/QQQ tape, VIX change and UW market tide: quality (stale/low-confidence discounts).",
+   "in_light_rows": true,
+   "added": "2026-10-21"
+  },
+  {
+   "id": "flip_gf",
+   "path": "comps.flip.x.gf",
+   "type": "float",
+   "status": "in_score",
+   "source": "fa_walls",
+   "used_by": [
+    "core",
+    "full"
+   ],
+   "age": "age_walls",
+   "unit": "$",
+   "desc": "Gamma flip level.",
+   "in_light_rows": false,
+   "added": "2026-10-21"
+  },
+  {
+   "id": "flip_d_atr",
+   "path": "comps.flip.x.d_atr",
+   "type": "float",
+   "status": "in_score",
+   "source": "fa_walls",
+   "used_by": [
+    "core",
+    "full"
+   ],
+   "age": "age_walls",
+   "unit": "ATR",
+   "desc": "Price minus gamma flip, in ATRs.",
+   "in_light_rows": false,
+   "added": "2026-10-21"
+  },
+  {
+   "id": "walls_cw",
+   "path": "comps.walls.x.cw",
+   "type": "float",
+   "status": "in_score",
+   "source": "fa_walls",
+   "used_by": [
+    "core",
+    "full"
+   ],
+   "age": "age_walls",
+   "unit": "$",
+   "desc": "Call wall.",
+   "in_light_rows": false,
+   "added": "2026-10-21"
+  },
+  {
+   "id": "walls_pw",
+   "path": "comps.walls.x.pw",
+   "type": "float",
+   "status": "in_score",
+   "source": "fa_walls",
+   "used_by": [
+    "core",
+    "full"
+   ],
+   "age": "age_walls",
+   "unit": "$",
+   "desc": "Put wall.",
+   "in_light_rows": false,
+   "added": "2026-10-21"
+  },
+  {
+   "id": "walls_up_atr",
+   "path": "comps.walls.x.up_atr",
+   "type": "float",
+   "status": "in_score",
+   "source": "fa_walls",
+   "used_by": [
+    "core",
+    "full"
+   ],
+   "age": "age_walls",
+   "unit": "ATR",
+   "desc": "Room up to the call wall.",
+   "in_light_rows": false,
+   "added": "2026-10-21"
+  },
+  {
+   "id": "walls_dn_atr",
+   "path": "comps.walls.x.dn_atr",
+   "type": "float",
+   "status": "in_score",
+   "source": "fa_walls",
+   "used_by": [
+    "core",
+    "full"
+   ],
+   "age": "age_walls",
+   "unit": "ATR",
+   "desc": "Room down to the put wall.",
+   "in_light_rows": false,
+   "added": "2026-10-21"
+  },
+  {
+   "id": "vol_updn",
+   "path": "comps.volume.x.updn",
+   "type": "float",
+   "status": "in_score",
+   "source": "bars",
+   "used_by": [
+    "core",
+    "full",
+    "light"
+   ],
+   "age": "age_bars",
+   "unit": "-1..+1",
+   "desc": "Up minus down volume share, last 15 1-min bars.",
+   "in_light_rows": true,
+   "added": "2026-10-21"
+  },
+  {
+   "id": "vol_rvol15",
+   "path": "comps.volume.x.rvol15",
+   "type": "float",
+   "status": "in_score",
+   "source": "bars",
+   "used_by": [
+    "core",
+    "full",
+    "light"
+   ],
+   "age": "age_bars",
+   "unit": "x norm",
+   "desc": "15-min volume vs the 20-day norm.",
+   "in_light_rows": true,
+   "added": "2026-10-21"
+  },
+  {
+   "id": "flow_cp",
+   "path": "comps.flow.x.cp",
+   "type": "float",
+   "status": "in_score",
+   "source": "opra_cp",
+   "used_by": [
+    "core",
+    "full"
+   ],
+   "age": "age_flow",
+   "unit": "ratio",
+   "desc": "Call/put aggressor premium ratio used by the score (1-min window).",
+   "in_light_rows": false,
+   "added": "2026-10-21"
+  },
+  {
+   "id": "flow_thin",
+   "path": "comps.flow.x.thin",
+   "type": "bool",
+   "status": "in_score",
+   "source": "opra_cp",
+   "used_by": [
+    "core",
+    "full"
+   ],
+   "age": "age_flow",
+   "unit": "bool",
+   "desc": "C/P window too thin to use.",
+   "in_light_rows": false,
+   "added": "2026-10-21"
+  },
+  {
+   "id": "flow_net_k",
+   "path": "comps.flow.x.net_k",
+   "type": "float",
+   "status": "in_score",
+   "source": "opra_cp",
+   "used_by": [
+    "core",
+    "full"
+   ],
+   "age": "age_flow",
+   "unit": "$k",
+   "desc": "Net call minus put premium, $k.",
+   "in_light_rows": false,
+   "added": "2026-10-21"
+  },
+  {
+   "id": "flow_uw_lean",
+   "path": "comps.flow.x.uw_lean",
+   "type": "text",
+   "status": "in_score",
+   "source": "uw",
+   "used_by": [
+    "core",
+    "full"
+   ],
+   "age": "age_flow",
+   "unit": "CALL/PUT",
+   "desc": "UW lean fallback when C/P is missing.",
+   "in_light_rows": false,
+   "added": "2026-10-21"
+  },
+  {
+   "id": "flow_src",
+   "path": "comps.flow.f.src",
+   "type": "text",
+   "status": "in_score",
+   "source": "opra_cp",
+   "used_by": [
+    "core",
+    "full"
+   ],
+   "age": "age_flow",
+   "unit": "text",
+   "desc": "Which flow source fed the score.",
+   "in_light_rows": false,
+   "added": "2026-10-21"
+  },
+  {
+   "id": "flow_cls",
+   "path": "comps.flow.f.cls",
+   "type": "text",
+   "status": "in_score",
+   "source": "opra_cp",
+   "used_by": [
+    "core",
+    "full"
+   ],
+   "age": "age_flow",
+   "unit": "text",
+   "desc": "'tick' on sector rows (tick-test C/P, no quotes).",
+   "in_light_rows": false,
+   "added": "2026-10-21"
+  },
+  {
+   "id": "trend_vwap_atr",
+   "path": "comps.trend.x.vwap_atr",
+   "type": "float",
+   "status": "in_score",
+   "source": "bars",
+   "used_by": [
+    "core",
+    "full",
+    "light"
+   ],
+   "age": "age_bars",
+   "unit": "ATR",
+   "desc": "Price minus VWAP, in ATRs.",
+   "in_light_rows": true,
+   "added": "2026-10-21"
+  },
+  {
+   "id": "trend_ret_atr",
+   "path": "comps.trend.x.ret_atr",
+   "type": "float",
+   "status": "in_score",
+   "source": "bars",
+   "used_by": [
+    "core",
+    "full",
+    "light"
+   ],
+   "age": "age_bars",
+   "unit": "ATR",
+   "desc": "15-min return, in ATRs.",
+   "in_light_rows": true,
+   "added": "2026-10-21"
+  },
+  {
+   "id": "mkt_spy_vwap_atr",
+   "path": "comps.market.x.idx.SPY.vwap_atr",
+   "type": "float",
+   "status": "in_score",
+   "source": "market",
+   "used_by": [
+    "core",
+    "full",
+    "light"
+   ],
+   "age": "age_bars",
+   "unit": "ATR",
+   "desc": "SPY vs VWAP.",
+   "in_light_rows": true,
+   "added": "2026-10-21"
+  },
+  {
+   "id": "mkt_spy_ret_atr",
+   "path": "comps.market.x.idx.SPY.ret_atr",
+   "type": "float",
+   "status": "in_score",
+   "source": "market",
+   "used_by": [
+    "core",
+    "full",
+    "light"
+   ],
+   "age": "age_bars",
+   "unit": "ATR",
+   "desc": "SPY 15-min return.",
+   "in_light_rows": true,
+   "added": "2026-10-21"
+  },
+  {
+   "id": "mkt_qqq_vwap_atr",
+   "path": "comps.market.x.idx.QQQ.vwap_atr",
+   "type": "float",
+   "status": "in_score",
+   "source": "market",
+   "used_by": [
+    "core",
+    "full",
+    "light"
+   ],
+   "age": "age_bars",
+   "unit": "ATR",
+   "desc": "QQQ vs VWAP.",
+   "in_light_rows": true,
+   "added": "2026-10-21"
+  },
+  {
+   "id": "mkt_qqq_ret_atr",
+   "path": "comps.market.x.idx.QQQ.ret_atr",
+   "type": "float",
+   "status": "in_score",
+   "source": "market",
+   "used_by": [
+    "core",
+    "full",
+    "light"
+   ],
+   "age": "age_bars",
+   "unit": "ATR",
+   "desc": "QQQ 15-min return.",
+   "in_light_rows": true,
+   "added": "2026-10-21"
+  },
+  {
+   "id": "mkt_vix_chg_pct",
+   "path": "comps.market.x.vix_chg_pct",
+   "type": "float",
+   "status": "in_score",
+   "source": "vix",
+   "used_by": [
+    "core",
+    "full",
+    "light"
+   ],
+   "age": "age_vix",
+   "unit": "%",
+   "desc": "VIX change vs reference.",
+   "in_light_rows": true,
+   "added": "2026-10-21"
+  },
+  {
+   "id": "mkt_tide_delta",
+   "path": "comps.market.x.tide_delta",
+   "type": "float",
+   "status": "in_score",
+   "source": "uw_tide",
+   "used_by": [
+    "core",
+    "full",
+    "light"
+   ],
+   "age": "age_tide",
+   "unit": "$",
+   "desc": "UW market tide net premium change.",
+   "in_light_rows": true,
+   "added": "2026-10-21"
+  },
+  {
+   "id": "mkt_part_tape",
+   "path": "comps.market.f.parts.tape",
+   "type": "float",
+   "status": "in_score",
+   "source": "market",
+   "used_by": [
+    "core",
+    "full",
+    "light"
+   ],
+   "age": "age_bars",
+   "unit": "-1..+1",
+   "desc": "Market part: index tape.",
+   "in_light_rows": true,
+   "added": "2026-10-21"
+  },
+  {
+   "id": "mkt_part_vix",
+   "path": "comps.market.f.parts.vix",
+   "type": "float",
+   "status": "in_score",
+   "source": "vix",
+   "used_by": [
+    "core",
+    "full",
+    "light"
+   ],
+   "age": "age_vix",
+   "unit": "-1..+1",
+   "desc": "Market part: VIX.",
+   "in_light_rows": true,
+   "added": "2026-10-21"
+  },
+  {
+   "id": "mkt_part_tide",
+   "path": "comps.market.f.parts.tide",
+   "type": "float",
+   "status": "in_score",
+   "source": "uw_tide",
+   "used_by": [
+    "core",
+    "full",
+    "light"
+   ],
+   "age": "age_tide",
+   "unit": "-1..+1",
+   "desc": "Market part: tide.",
+   "in_light_rows": true,
+   "added": "2026-10-21"
+  },
+  {
+   "id": "age_bars",
+   "path": "comps.volume.f.bar_age_s",
+   "type": "float",
+   "status": "age",
+   "source": "bars",
+   "used_by": [
+    "core",
+    "full",
+    "light"
+   ],
+   "age": null,
+   "unit": "s",
+   "desc": "Seconds since the last closed 1-min bar.",
+   "in_light_rows": true,
+   "added": "2026-10-21"
+  },
+  {
+   "id": "age_walls",
+   "path": "comps.walls.f.age_s",
+   "type": "float",
+   "status": "age",
+   "source": "fa_walls",
+   "used_by": [
+    "core",
+    "full",
+    "light"
+   ],
+   "age": null,
+   "unit": "s",
+   "desc": "Seconds since the walls pull.",
+   "in_light_rows": false,
+   "added": "2026-10-21"
+  },
+  {
+   "id": "age_flow",
+   "path": "comps.flow.f.age_s",
+   "type": "float",
+   "status": "age",
+   "source": "opra_cp",
+   "used_by": [
+    "core",
+    "full",
+    "light"
+   ],
+   "age": null,
+   "unit": "s",
+   "desc": "Seconds since the C/P sample.",
+   "in_light_rows": false,
+   "added": "2026-10-21"
+  },
+  {
+   "id": "age_vix",
+   "path": "comps.market.x.vix_age_s",
+   "type": "float",
+   "status": "age",
+   "source": "vix",
+   "used_by": [
+    "core",
+    "full",
+    "light"
+   ],
+   "age": null,
+   "unit": "s",
+   "desc": "Seconds since the VIX print.",
+   "in_light_rows": true,
+   "added": "2026-10-21"
+  },
+  {
+   "id": "age_tide",
+   "path": "comps.market.x.tide_age_s",
+   "type": "float",
+   "status": "age",
+   "source": "uw_tide",
+   "used_by": [
+    "core",
+    "full",
+    "light"
+   ],
+   "age": null,
+   "unit": "s",
+   "desc": "Seconds since the UW tide sample.",
+   "in_light_rows": true,
+   "added": "2026-10-21"
+  },
+  {
+   "id": "age_tape",
+   "path": "ctx.tape.60.lag_s",
+   "type": "float",
+   "status": "age",
+   "source": "bars",
+   "used_by": [
+    "core",
+    "full",
+    "light"
+   ],
+   "age": null,
+   "unit": "s",
+   "desc": "Lag of the 5s tape behind wall clock.",
+   "in_light_rows": false,
+   "added": "2026-10-21"
+  },
+  {
+   "id": "age_mom",
+   "path": "ctx.mom.age_s",
+   "type": "float",
+   "status": "age",
+   "source": "momentum",
+   "used_by": [
+    "core",
+    "full",
+    "light"
+   ],
+   "age": null,
+   "unit": "s",
+   "desc": "Seconds since the momentum state changed.",
+   "in_light_rows": false,
+   "added": "2026-10-21"
+  },
+  {
+   "id": "age_news",
+   "path": "@news.last_age_s",
+   "type": "float",
+   "status": "age",
+   "source": "news_tone",
+   "used_by": [
+    "core",
+    "full",
+    "light"
+   ],
+   "age": null,
+   "unit": "s",
+   "desc": "Seconds since the last scored headline/post for this ticker.",
+   "in_light_rows": false,
+   "added": "2026-10-21"
+  },
+  {
+   "id": "age_cs",
+   "path": "@cs.age_s",
+   "type": "float",
+   "status": "age",
+   "source": "chart_scenario",
+   "used_by": [
+    "core",
+    "full",
+    "light"
+   ],
+   "age": null,
+   "unit": "s",
+   "desc": "Seconds since Chart Bot's scenarios file was written.",
+   "in_light_rows": false,
+   "added": "2026-10-21"
+  },
+  {
+   "id": "ctx_cp_15s",
+   "path": "ctx.flow.cp_15s",
+   "type": "float",
+   "status": "context",
+   "source": "opra_cp",
+   "used_by": [
+    "core",
+    "full"
+   ],
+   "age": "age_flow",
+   "unit": "ratio",
+   "desc": "C/P over the last 15 s.",
+   "in_light_rows": false,
+   "added": "2026-10-21"
+  },
+  {
+   "id": "ctx_cp_60s",
+   "path": "ctx.flow.cp_60s",
+   "type": "float",
+   "status": "context",
+   "source": "opra_cp",
+   "used_by": [
+    "core",
+    "full"
+   ],
+   "age": "age_flow",
+   "unit": "ratio",
+   "desc": "C/P over the last 60 s.",
+   "in_light_rows": false,
+   "added": "2026-10-21"
+  },
+  {
+   "id": "ctx_thin_15s",
+   "path": "ctx.flow.thin_15s",
+   "type": "bool",
+   "status": "context",
+   "source": "opra_cp",
+   "used_by": [
+    "core",
+    "full"
+   ],
+   "age": "age_flow",
+   "unit": "bool",
+   "desc": "15 s C/P window thin.",
+   "in_light_rows": false,
+   "added": "2026-10-21"
+  },
+  {
+   "id": "ctx_n_15s",
+   "path": "ctx.flow.n_15s",
+   "type": "float",
+   "status": "context",
+   "source": "opra_cp",
+   "used_by": [
+    "core",
+    "full"
+   ],
+   "age": "age_flow",
+   "unit": "count",
+   "desc": "Option prints in the last 15 s.",
+   "in_light_rows": false,
+   "added": "2026-10-21"
+  },
+  {
+   "id": "ctx_n_60s",
+   "path": "ctx.flow.n_60s",
+   "type": "float",
+   "status": "context",
+   "source": "opra_cp",
+   "used_by": [
+    "core",
+    "full"
+   ],
+   "age": "age_flow",
+   "unit": "count",
+   "desc": "Option prints in the last 60 s.",
+   "in_light_rows": false,
+   "added": "2026-10-21"
+  },
+  {
+   "id": "ctx_uw_cp",
+   "path": "ctx.flow.uw_cp",
+   "type": "float",
+   "status": "context",
+   "source": "uw",
+   "used_by": [
+    "core",
+    "full"
+   ],
+   "age": "age_flow",
+   "unit": "ratio",
+   "desc": "UW call/put ratio (live page).",
+   "in_light_rows": false,
+   "added": "2026-10-21"
+  },
+  {
+   "id": "ctx_lean5",
+   "path": "ctx.flow.lean5",
+   "type": "text",
+   "status": "context",
+   "source": "uw",
+   "used_by": [
+    "core",
+    "full"
+   ],
+   "age": "age_flow",
+   "unit": "text",
+   "desc": "UW 5-min lean (live page).",
+   "in_light_rows": false,
+   "added": "2026-10-21"
+  },
+  {
+   "id": "ctx_lean15",
+   "path": "ctx.flow.lean15",
+   "type": "text",
+   "status": "context",
+   "source": "uw",
+   "used_by": [
+    "core",
+    "full"
+   ],
+   "age": "age_flow",
+   "unit": "text",
+   "desc": "UW 15-min lean (live page).",
+   "in_light_rows": false,
+   "added": "2026-10-21"
+  },
+  {
+   "id": "ctx_ask_lean",
+   "path": "ctx.flow.ask_lean",
+   "type": "text",
+   "status": "context",
+   "source": "uw",
+   "used_by": [
+    "core",
+    "full"
+   ],
+   "age": "age_flow",
+   "unit": "text",
+   "desc": "Ask-side lean (live page).",
+   "in_light_rows": false,
+   "added": "2026-10-21"
+  },
+  {
+   "id": "ctx_flow_dir",
+   "path": "ctx.flow_dir",
+   "type": "float",
+   "status": "context",
+   "source": "opra_cp",
+   "used_by": [
+    "core",
+    "full"
+   ],
+   "age": "age_flow",
+   "unit": "-1/0/+1",
+   "desc": "Direction implied by C/P.",
+   "in_light_rows": false,
+   "added": "2026-10-21"
+  },
+  {
+   "id": "ctx_rvol_1m",
+   "path": "ctx.rvol_1m",
+   "type": "float",
+   "status": "context",
+   "source": "bars",
+   "used_by": [
+    "core",
+    "full"
+   ],
+   "age": "age_tape",
+   "unit": "x norm",
+   "desc": "1-minute rvol.",
+   "in_light_rows": false,
+   "added": "2026-10-21"
+  },
+  {
+   "id": "ctx_surge",
+   "path": "ctx.surge",
+   "type": "bool",
+   "status": "context",
+   "source": "surges",
+   "used_by": [
+    "core",
+    "full"
+   ],
+   "age": null,
+   "unit": "bool",
+   "desc": "Volume surge active.",
+   "in_light_rows": false,
+   "added": "2026-10-21"
+  },
+  {
+   "id": "ctx_day_rvol",
+   "path": "ctx.day_rvol",
+   "type": "float",
+   "status": "context",
+   "source": "bars",
+   "used_by": [
+    "core",
+    "full"
+   ],
+   "age": "age_tape",
+   "unit": "x norm",
+   "desc": "Day volume vs norm (live page).",
+   "in_light_rows": false,
+   "added": "2026-10-21"
+  },
+  {
+   "id": "ctx_chg_pct",
+   "path": "ctx.chg_pct",
+   "type": "float",
+   "status": "context",
+   "source": "bars",
+   "used_by": [
+    "core",
+    "full"
+   ],
+   "age": "age_tape",
+   "unit": "%",
+   "desc": "Day change % (live page).",
+   "in_light_rows": false,
+   "added": "2026-10-21"
+  },
+  {
+   "id": "ctx_vdir",
+   "path": "ctx.vdir",
+   "type": "text",
+   "status": "context",
+   "source": "bars",
+   "used_by": [
+    "core",
+    "full"
+   ],
+   "age": "age_tape",
+   "unit": "text",
+   "desc": "Live page volume direction.",
+   "in_light_rows": false,
+   "added": "2026-10-21"
+  },
+  {
+   "id": "ctx_room_call_atr",
+   "path": "ctx.room_call_atr",
+   "type": "float",
+   "status": "context",
+   "source": "fa_walls",
+   "used_by": [
+    "core",
+    "full"
+   ],
+   "age": "age_walls",
+   "unit": "ATR",
+   "desc": "Room to call wall.",
+   "in_light_rows": false,
+   "added": "2026-10-21"
+  },
+  {
+   "id": "ctx_room_put_atr",
+   "path": "ctx.room_put_atr",
+   "type": "float",
+   "status": "context",
+   "source": "fa_walls",
+   "used_by": [
+    "core",
+    "full"
+   ],
+   "age": "age_walls",
+   "unit": "ATR",
+   "desc": "Room to put wall.",
+   "in_light_rows": false,
+   "added": "2026-10-21"
+  },
+  {
+   "id": "ctx_mom_state",
+   "path": "ctx.mom.state",
+   "type": "text",
+   "status": "context",
+   "source": "momentum",
+   "used_by": [
+    "core",
+    "full"
+   ],
+   "age": "age_mom",
+   "unit": "text",
+   "desc": "Live page momentum state (quiet / building / running / fading ...).",
+   "in_light_rows": false,
+   "added": "2026-10-21"
+  },
+  {
+   "id": "ctx_tape60_ret_bp",
+   "path": "ctx.tape.60.ret_bp",
+   "type": "float",
+   "status": "context",
+   "source": "bars",
+   "used_by": [
+    "core",
+    "full"
+   ],
+   "age": "age_tape",
+   "unit": "bp",
+   "desc": "Last-60 s return from 5 s bars.",
+   "in_light_rows": false,
+   "added": "2026-10-21"
+  },
+  {
+   "id": "ctx_tape60_speed",
+   "path": "ctx.tape.60.speed_bp_10s",
+   "type": "float",
+   "status": "context",
+   "source": "bars",
+   "used_by": [
+    "core",
+    "full"
+   ],
+   "age": "age_tape",
+   "unit": "bp/10s",
+   "desc": "Last-60 s speed.",
+   "in_light_rows": false,
+   "added": "2026-10-21"
+  },
+  {
+   "id": "ctx_tape60_vol_rising",
+   "path": "ctx.tape.60.vol_rising",
+   "type": "bool",
+   "status": "context",
+   "source": "bars",
+   "used_by": [
+    "core",
+    "full"
+   ],
+   "age": "age_tape",
+   "unit": "bool",
+   "desc": "Volume rising inside the last 60 s.",
+   "in_light_rows": false,
+   "added": "2026-10-21"
+  },
+  {
+   "id": "ctx_tape120_ret_bp",
+   "path": "ctx.tape.120.ret_bp",
+   "type": "float",
+   "status": "context",
+   "source": "bars",
+   "used_by": [
+    "core",
+    "full"
+   ],
+   "age": "age_tape",
+   "unit": "bp",
+   "desc": "Last-120 s return.",
+   "in_light_rows": false,
+   "added": "2026-10-21"
+  },
+  {
+   "id": "ctx_mkt_avg_60",
+   "path": "ctx.mkt.avg_60",
+   "type": "float",
+   "status": "context",
+   "source": "market",
+   "used_by": [
+    "core",
+    "full"
+   ],
+   "age": "age_tape",
+   "unit": "bp",
+   "desc": "SPY/QQQ average last-60 s return.",
+   "in_light_rows": false,
+   "added": "2026-10-21"
+  },
+  {
+   "id": "ctx_mkt_avg_120",
+   "path": "ctx.mkt.avg_120",
+   "type": "float",
+   "status": "context",
+   "source": "market",
+   "used_by": [
+    "core",
+    "full"
+   ],
+   "age": "age_tape",
+   "unit": "bp",
+   "desc": "SPY/QQQ average last-120 s return.",
+   "in_light_rows": false,
+   "added": "2026-10-21"
+  },
+  {
+   "id": "news_net_60m",
+   "path": "@news.net_60m",
+   "type": "float",
+   "status": "shadow",
+   "source": "news_tone",
+   "used_by": [
+    "shadow"
+   ],
+   "age": "age_news",
+   "unit": "sum tone",
+   "desc": "Sum of headline/post tone for this ticker over the last 60 min (news-sentiment JSONL, X posts at their weight).",
+   "in_light_rows": false,
+   "added": "2026-10-21"
+  },
+  {
+   "id": "news_n_60m",
+   "path": "@news.n_60m",
+   "type": "int",
+   "status": "shadow",
+   "source": "news_tone",
+   "used_by": [
+    "shadow"
+   ],
+   "age": "age_news",
+   "unit": "count",
+   "desc": "Scored items for this ticker in the last 60 min.",
+   "in_light_rows": false,
+   "added": "2026-10-21"
+  },
+  {
+   "id": "cs_label",
+   "path": "@cs.label",
+   "type": "text",
+   "status": "shadow",
+   "source": "chart_scenario",
+   "used_by": [
+    "shadow"
+   ],
+   "age": "age_cs",
+   "unit": "label",
+   "desc": "Chart Bot primary scenario label (BULL_BREAKOUT, BULL_PULLBACK_HOLD, RANGE_CHOP, BEAR_BREAKDOWN, BEAR_FAILED_RALLY).",
+   "in_light_rows": false,
+   "added": "2026-10-21"
+  },
+  {
+   "id": "cs_dir",
+   "path": "@cs.dir",
+   "type": "int",
+   "status": "shadow",
+   "source": "chart_scenario",
+   "used_by": [
+    "shadow"
+   ],
+   "age": "age_cs",
+   "unit": "-1/0/+1",
+   "desc": "Primary scenario direction (long +1, neutral 0, short -1).",
+   "in_light_rows": false,
+   "added": "2026-10-21"
+  },
+  {
+   "id": "cs_score",
+   "path": "@cs.score",
+   "type": "float",
+   "status": "shadow",
+   "source": "chart_scenario",
+   "used_by": [
+    "shadow"
+   ],
+   "age": "age_cs",
+   "unit": "0..1",
+   "desc": "Primary scenario calibrated_score (walk-forward success rate). Runs hot on primaries: ~44% estimated vs ~36% realized (selection effect) - treat as a ranking, not a probability.",
+   "in_light_rows": false,
+   "added": "2026-10-21"
+  },
+  {
+   "id": "cs_trig_atr",
+   "path": "@cs.trig_atr",
+   "type": "float",
+   "status": "shadow",
+   "source": "chart_scenario",
+   "used_by": [
+    "shadow"
+   ],
+   "age": "age_cs",
+   "unit": "ATR",
+   "desc": "Trigger minus live price, in 14-day ATRs.",
+   "in_light_rows": false,
+   "added": "2026-10-21"
+  },
+  {
+   "id": "cs_inv_atr",
+   "path": "@cs.inv_atr",
+   "type": "float",
+   "status": "shadow",
+   "source": "chart_scenario",
+   "used_by": [
+    "shadow"
+   ],
+   "age": "age_cs",
+   "unit": "ATR",
+   "desc": "Invalidation minus live price, in ATRs.",
+   "in_light_rows": false,
+   "added": "2026-10-21"
+  },
+  {
+   "id": "cs_t1_atr",
+   "path": "@cs.t1_atr",
+   "type": "float",
+   "status": "shadow",
+   "source": "chart_scenario",
+   "used_by": [
+    "shadow"
+   ],
+   "age": "age_cs",
+   "unit": "ATR",
+   "desc": "T1 minus live price, in ATRs.",
+   "in_light_rows": false,
+   "added": "2026-10-21"
+  },
+  {
+   "id": "cs_pid",
+   "path": "@cs.pid",
+   "type": "text",
+   "status": "shadow",
+   "source": "chart_scenario",
+   "used_by": [
+    "shadow"
+   ],
+   "age": "age_cs",
+   "unit": "id",
+   "desc": "Primary prediction_id (joins to Chart Bot predictions/outcomes).",
+   "in_light_rows": false,
+   "added": "2026-10-21"
+  },
+  {
+   "id": "cs_rlo_atr",
+   "path": "@cs.rlo_atr",
+   "type": "float",
+   "status": "shadow",
+   "source": "chart_scenario",
+   "used_by": [
+    "shadow"
+   ],
+   "age": "age_cs",
+   "unit": "ATR",
+   "desc": "RANGE_CHOP low minus live price, in ATRs.",
+   "in_light_rows": false,
+   "added": "2026-10-21"
+  },
+  {
+   "id": "cs_rhi_atr",
+   "path": "@cs.rhi_atr",
+   "type": "float",
+   "status": "shadow",
+   "source": "chart_scenario",
+   "used_by": [
+    "shadow"
+   ],
+   "age": "age_cs",
+   "unit": "ATR",
+   "desc": "RANGE_CHOP high minus live price, in ATRs.",
+   "in_light_rows": false,
+   "added": "2026-10-21"
+  },
+  {
+   "id": "cs_status",
+   "path": "@cs.status",
+   "type": "text",
+   "status": "shadow",
+   "source": "chart_scenario",
+   "used_by": [
+    "shadow"
+   ],
+   "age": "age_cs",
+   "unit": "text",
+   "desc": "Primary status: active, triggered, target_hit, target2_hit, void, expired, held. From latest.json, overridden by the mini 30-min status job (status-live.json) when the prediction_id matches.",
+   "in_light_rows": false,
+   "added": "2026-10-21"
+  },
+  {
+   "id": "sector_cp_15s",
+   "alias_of": "ctx_cp_15s",
+   "path": "ctx.flow.cp_15s",
+   "type": "float",
+   "status": "shadow",
+   "source": "sector_cp",
+   "used_by": [
+    "shadow:light"
+   ],
+   "age": "age_flow",
+   "unit": "ratio",
+   "in_light_rows": false,
+   "added": "2026-10-21",
+   "desc": "Sector-row tick-test C/P (15 s). Not a separate column: it is ctx_cp_15s on full-profile sector rows (light rows carry no ctx). Empty until the wide C/P feed has data."
+  }
+ ]
+}

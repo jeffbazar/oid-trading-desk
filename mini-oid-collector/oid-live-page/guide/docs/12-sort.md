@@ -16,4 +16,6 @@ Names with no data sort to the end. Ties fall back to A→Z.
 
 **No auto-float.** Tiles only move when *you* pick a sort. Nothing reorders itself when a name gets hot: a surge shows up as the pulsing border, the surge strip and the flow lean strip, not by jumping the tile to the top. Pick **Volume heat** or **Surges first** if you want the busy names first; with the default **Name** sort, positions never change.
 
+Sector-name tiles (the 16 sector sections) follow the same dropdown; names with no live value (e.g. 1-min rvol after hours) fall to the end of their section.
+
 With **Group by sector** on (default), the sort applies **inside each group**; groups themselves stay in a fixed order and tiles never change group. See [Sector groups](19-sectors.md).

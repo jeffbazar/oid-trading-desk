@@ -1239,6 +1239,8 @@ class WideWatch:
         self.payload = None
         self.sec_m, self.groups, self.info = None, [], {}
         self.prev_m, self.prev = {}, {}     # sym -> store mtime, {date: last close}
+        self.tail, self.lbars, self.lb_date = {}, {}, None  # SECTORHEAT: store tail {date: [(t, v, slot)]}, live closed bars (today)
+        self.wn_m, self.wn, self.sp_t, self.sp = None, {}, 0.0, None  # SECTORHEAT: wide same-minute norms, /wide-spark.json cache
         self.walls_m, self.walls = None, {}
         self.light_m, self.light = None, {}  # LIGHT: latest-wide.json (raw, unsmoothed light direction score, 5 s)
         self.full_m, self.full = None, {}    # WIDECP: latest-widefull.json (full score, wide_full profile)
@@ -1278,6 +1280,8 @@ class WideWatch:
                     if b.get("c") is not None:
                         closes[b["d"]] = b["c"]
                 self.prev[sym] = closes
+                ds = sorted({b.get("d") for b in bars if b.get("d")})[-2:]  # SECTORHEAT: last 30 bars of the 2 newest sessions
+                self.tail[sym] = {dd: [(b["t"], float(b.get("v") or 0), b.get("slot", -1)) for b in bars if b.get("d") == dd][-SPARK_N:] for dd in ds}
             except Exception:
                 self.prev[sym] = {}
             self.prev_m[sym] = m
@@ -1408,6 +1412,63 @@ class WideWatch:
                 out[k[0] + "d"] = rnd((px / last - 1) * 100, 1) if last else None
         return out
 
+    def _wnorm(self, sym, slot):
+        """SECTORHEAT: same-minute 1-min volume norm for a sector name (collector's wide live-norms-1m.json)."""
+        f = WIDE_STORE.parent / "live-norms-1m.json"
+        try:
+            m = f.stat().st_mtime
+        except OSError:
+            return None
+        if m != self.wn_m:
+            try:
+                self.wn = json.loads(f.read_text()).get("norms") or {}
+            except Exception:
+                self.wn = {}
+            self.wn_m = m
+        row = self.wn.get(sym)
+        if row is None or slot is None or slot < 0 or slot >= len(row):
+            return None
+        return row[slot]
+
+    def _heat_extra(self, sym, v, ls, et_date):
+        """SECTORHEAT: Heatmap tile footer + current-minute bar, from the same collector read (no new pulls)."""
+        if self.lb_date != et_date:
+            self.lbars, self.lb_date = {}, et_date
+        if not v:
+            return {"v1": None, "pc": None, "dv": ls.get("volume"), "dn": ls.get("norm_day"), "hi": rnd(ls.get("high"), 4), "lo": rnd(ls.get("low"), 4),
+                    "lt": f"{ls.get('date')} close" if ls.get("date") else None, "pb": None, "pn": None, "ps": None}
+        lc, cur = v.get("last_closed_bar"), v.get("cur_bar")
+        if lc and lc.get("t"):
+            b = self.lbars.setdefault(sym, {})
+            b[lc["t"]] = (lc["t"], float(lc.get("v") or 0), et_slot(lc["t"])[1])
+            if len(b) > SPARK_N + 10:
+                for k in sorted(b)[:len(b) - SPARK_N]:
+                    b.pop(k, None)
+        pn = self._wnorm(sym, et_slot(cur["t"])[1]) if (cur and cur.get("t")) else None
+        return {"v1": v.get("vol_60s"), "pc": rnd(v.get("pace_rvol_10s")), "dv": v.get("day_vol_rth"), "dn": v.get("day_norm_to_now"), "lt": v.get("last_trade_pt"),
+                "hi": rnd(v.get("day_high"), 4), "lo": rnd(v.get("day_low"), 4),
+                "pb": round(cur.get("v") or 0) if cur else None, "pn": rnd(pn) if pn else None, "ps": cur.get("elapsed_s") if cur else None}
+
+    def spark_payload(self, now):
+        """SECTORHEAT: /wide-spark.json = last 30 one-min volumes + same-minute norm per sector name (Heatmap sparkline)."""
+        if self.sp is not None and now - self.sp_t < 10:
+            return self.sp
+        out = {}
+        for g in (self.payload or {}).get("groups") or []:
+            for r in g.get("rows") or []:
+                sym, d = r["s"], r.get("d")
+                self._prev_close(sym, None)  # loads the REST store tail (cached by mtime)
+                bars = {b[0]: b for b in (self.tail.get(sym) or {}).get(d, [])}
+                if r.get("m") == "L" and d == self.lb_date:
+                    bars.update(self.lbars.get(sym) or {})
+                sp = []
+                for k in sorted(bars)[-SPARK_N:]:
+                    n = self._wnorm(sym, bars[k][2])
+                    sp.append([round(bars[k][1]), round(n) if n else None])
+                out[sym] = sp
+        self.sp, self.sp_t = {"as_of_pt": pt_str(now), "n": len(out), "spark": out}, now
+        return self.sp
+
     def refresh(self, now):
         if self.payload is not None and now - self.t < WIDE_EVERY_S:
             return False
@@ -1465,6 +1526,10 @@ class WideWatch:
                 i = self.info.get(sym) or {}
                 row = {"s": sym, "p": rnd(last, 4), "c": chg, "r": rv, "dr": drv, "sg": sg, "mv": mv, "m": mode, "d": d,
                        "i": i.get("industry"), "w": self._wall_row(sym, last, now, et_date), "ls": self._light_row(sym, now)}
+                try:  # SECTORHEAT: tile footer fields (1m vol, 10s pace, day vol, hi/lo) + current-minute bar
+                    row.update(self._heat_extra(sym, v if use_live else None, ls, et_date))
+                except Exception:
+                    pass
                 try:  # WIDECP: aggressor C/P chips, C/P direction, flow lean, volume direction, full score
                     af = self._af(of.get(sym), rth, now)
                     row.update(af)
@@ -2214,6 +2279,11 @@ class H(BaseHTTPRequestHandler):
                 return self._send(200, WALL_FILES[0][1].read_bytes(), "application/json")
             except OSError:
                 return self._send(404, json.dumps({"error": "no fa-walls-pulse.json"}), "application/json")
+        if path == "/wide-spark.json":  # SECTORHEAT: Heatmap sparklines for the sector names
+            try:
+                return self._send_json_gz(200, WIDE.spark_payload(time.time()))
+            except Exception as e:
+                return self._send(500, json.dumps({"error": type(e).__name__}), "application/json")
         if path == "/wide-sectors.json":  # WIDE: sector watch groups
             try:
                 return self._send(200, WIDE_SECTORS_FILE.read_bytes(), "application/json")

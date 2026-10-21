@@ -38,6 +38,7 @@ from pathlib import Path
 import score_lib as L
 import score_engine as E
 import score_changes as SC
+import score_features as SF  # FEATURES 2026-10-21
 
 PROFILE = os.environ.get("OID_SCORE_PROFILE", "light")
 CORE_STORE = L.STORE
@@ -237,6 +238,7 @@ def main():
     ring = SC.Ring()
     tails = None
     trk = None
+    feat = None  # FEATURES
     cfg_m, uni_m = None, None
     cpu = n = 0
     stat_t, stat_c, resumed = time.time(), 0, None
@@ -310,6 +312,11 @@ def main():
                     wrows[r.get("s")] = r
             badge = {}
             fn = trk.tag_fn
+            if SF.enabled(cfg):  # FEATURES: score_features snapshots (15 s); light = lite rows
+                if feat is None or feat.profile != P["score_profile"]:
+                    feat = SF.FeatureSnap(P["score_profile"])
+            else:
+                feat = None
             for s in syms:
                 wr = wrows.get(s) or {}
                 lb = ring.last(s, now)
@@ -325,6 +332,11 @@ def main():
                              extra={"day_rvol": wr.get("dr"), "chg_pct": wr.get("c"), "px_src": "live_last" if wr.get("m") == "L" and wr.get("p") else "5s_close",
                                     "vdir": wr.get("vdir"), "cpdir": wr.get("cpdir")},
                              flow=flow_ctx(wr), walls=wl)
+                if feat is not None:
+                    try:
+                        feat.offer(date, now, s, row["px"], row, cx, P["config_version"], fn)
+                    except Exception:
+                        pass
                 trk.observe(date, now, s, row["px"], row, cx, P["config_version"])
                 e = trk.ep.get(s) or {}
                 badge[s] = {"s": row["score"], "raw": row["raw"], "cov": row["coverage"], "since_t": round(e["t0"], 1) if e.get("t0") else None,
@@ -340,7 +352,8 @@ def main():
             if now - stat_t >= STAT_S:
                 rss = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / (1024 * 1024 if sys.platform == "darwin" else 1024)
                 log(f"{trk.n_changes - stat_c} change rows in last {round((now - stat_t) / 60)} min, {n} passes, "
-                    f"cpu {round(cpu / max(1, n) * 1000, 1)} ms/pass, open holds {len(trk.ep)}, max RSS {round(rss)} MB")
+                    f"cpu {round(cpu / max(1, n) * 1000, 1)} ms/pass, open holds {len(trk.ep)}, max RSS {round(rss)} MB"
+                    + (f", features {feat.stats()}" if feat is not None else ""))
                 stat_t, stat_c, cpu, n = now, trk.n_changes, 0.0, 0
             time.sleep(max(0.2, fs - (time.time() - loop_t0)))
         except Exception as ex:

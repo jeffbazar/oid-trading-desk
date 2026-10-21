@@ -1,6 +1,8 @@
 # 13 · Table view (one table for every ticker)
 [← Index](README.md)
 
+> Changed **Tue 10/20/2026, 7:45 PM PT**: sector rows now fill **1-min vol, 10s pace, Day vol, Day norm, Day high/low and Last trade** from the same sector feed read the page already made (no new data pulls). The Heatmap now shows the sector names too ([4](04-tile-anatomy.md#sector-name-tiles)).
+
 > Changed **Tue 10/20/2026, 6:55 PM PT**: **every score column now sits right after Symbol and is named by its profile and settings version**: **Direction (core v1.1)**, **Full (sector widefull-v1.0)**, **Light (light-v1.0)**. Hover a header for the full settings ID, what the score uses, and which settings version produced the values on screen. **Momentum** follows the score block (it is a state, not a −3…+3 score).
 >
 > Changed **Tue 10/20/2026, 6:30 PM PT**: the 144 **Sector watch** names are now sections of this table (one per sector, after the core groups). The separate Sector watch panel is now a one-line bar with its alerts and an **Open in Table ▸** button. The Heatmap is unchanged (core tiles).
@@ -48,17 +50,17 @@ Ticker sets: **core** = 65 rows (61 streamed stocks/ETFs plus 4 extended rows su
 | Momentum | yes (57 names the engine tracks) | **missing** (engine is core only) | core only |
 | Group | yes | yes | core groups vs sector list |
 | Last, Chg % | yes | yes | same |
-| 1-min vol | yes | **missing** (sector feed sends rvol, not the share count) | core only |
+| 1-min vol | yes | yes (regular hours; since 10/20 7:45 PM PT) | same collector field (`vol_60s`) |
 | 1-min rvol | yes | yes (regular hours) | same labels and thresholds; sector norms come from the sector bar store |
-| 10s pace | yes | **missing** | core only |
-| Day vol, Day norm | yes | **missing** | core only |
+| 10s pace | yes | yes (regular hours; since 10/20 7:45 PM PT) | same collector field |
+| Day vol, Day norm | yes | yes (since 10/20 7:45 PM PT) | same collector fields; sector norms from the sector bar store |
 | Day vs norm | yes | yes (144) | same ratio; sector value comes from the sector feed |
-| Day high / low | yes | **missing** | core only |
+| Day high / low | yes | yes (since 10/20 7:45 PM PT) | same |
 | C/P 15s / 1m | yes, names in the core options set | yes, about 140 names (2,972 contracts) | **Differs:** core = quote rule vs OPRA NBBO; sector = **tick test** (no streamed option quotes: the 1,000-quote cap per connection is used by the core). Marked **tt** |
 | Lean | yes (computed in the page from the C/P, new 10/20) | yes (server) | same rule (1.10 / 0.91); sector built on the tick-test C/P (**tt**) |
 | Vol dir | yes | yes | same rule, regular hours |
 | Walls | yes (58; FlashAlpha refresh ~10 min) | **mostly missing**: only after a surge (≤30 pulls a day) | same source, very different freshness |
-| Last trade | yes | **missing** | core only |
+| Last trade | yes | yes (since 10/20 7:45 PM PT) | same |
 
 Not in the table for either set (Heatmap tiles only, core names): the UW 15m / 5m lean chips, the news badge and the sparkline.
 

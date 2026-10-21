@@ -23,7 +23,7 @@ flowchart TD
   SS --> N["Note line: market-closed or data warnings"]
   N --> NEWS["News panel: Followed / All market / X posts, sentiment chips"]
   NEWS --> V{"View toggle"}
-  V -->|Heatmap| G["Group by sector + Sort + legend<br/>core tiles in sector cards"]
+  V -->|Heatmap| G["Group by sector + Sort + legend<br/>core tiles in sector cards<br/>+ 16 sector-name sections"]
   V -->|Table| T["One table for every ticker<br/>Symbol · Direction · Full · Light · Momentum · Group · …"]
   G --> W["Sector watch bar: status, alerts, Open in Table ▸"]
   T --> W
@@ -96,6 +96,7 @@ On a phone each sector card takes the full width with 3 tiles across, and the pr
 | 6:05 PM | Chart: future time axis (~2 h), trackpad pan, Center button | [30](30-chart.md) |
 | 6:30 PM | One table for every ticker; Sector watch grid retired to a one-line bar; momentum lane on the chart; walls no longer squash candles | [13](13-table.md), [30](30-chart.md) |
 | 6:55 PM | Score columns moved next to Symbol and named by profile + settings version; chart lanes and tooltips use the same names; **Research** tab; this guide refreshed with new screenshots | [13](13-table.md), [24](24-direction-score.md), [32](32-research-tab.md) |
+| 7:45 PM | **Heatmap shows the 144 sector names** as 16 sections after the core groups (same tile, F/L scores, tt C/P, — for gaps); every group bar folds (remembered); sector rows in the Table gain 1-min vol, 10s pace, day vol/norm, high/low, last trade | [4](04-tile-anatomy.md#sector-name-tiles), [19](19-sectors.md), [13](13-table.md) |
 
 ## What changed on 10/19/2026
 | Time (PT) | Change | Page |

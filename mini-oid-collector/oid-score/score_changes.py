@@ -320,7 +320,7 @@ class Sources:
         for v in self.mom.values():
             v.sort()
         self.rows = {}
-        p = L.OUT / f"scores-{d}.jsonl"
+        p = Path(os.environ["OID_REPLAY_ROWS"]) if os.environ.get("OID_REPLAY_ROWS") else L.OUT / f"scores-{d}.jsonl"  # FEATURES: backfill rows for replays
         if p.exists():
             for ln in p.open():
                 try:
