@@ -1,5 +1,5 @@
 known secret values loaded: 12 (from 6 secret stores; values never printed)
-binary files checked for known values: 20
+binary files checked for known values: 21
 scrubbed (file -> placeholder): 0
 HARD findings (fail): 0
 soft findings (review; long hex/base64): 2

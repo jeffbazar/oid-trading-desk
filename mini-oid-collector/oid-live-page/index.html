@@ -164,7 +164,7 @@ section{margin-top:8px;padding:6px 8px}
 .vd{font-weight:800;margin-left:2px;font-size:10px}.vd.up{color:#1a7f37}.vd.dn{color:#cf222e}.vd.flat,.vd.thin{color:#8c959f}.vd sub{font-size:8px;font-weight:600;color:var(--mut);vertical-align:0}
 .cd{font-size:9px;font-weight:800;margin-left:2px;cursor:help}.cd.up{color:#1a7f37}.cd.dn{color:#cf222e}.cd.flat,.cd.thin,.cd.wait{color:#8c959f}
 .cd.strong{color:#fff;padding:0 3px;border-radius:3px}.cd.strong.up{background:#1a7f37}.cd.strong.dn{background:#cf222e}.cd small{font-size:8px;font-weight:600}
-</style><link rel="stylesheet" href="chart.css"></head><body>
+</style><link rel="stylesheet" href="chart.css?v=20261020-pan"></head><body>
 <header><h1>OID live volume</h1><span id="clock" class="pill">connecting…</span><span id="mkt" class="pill"></span><span id="vsmode" class="pill"></span>
 <span class="tabs" style="margin-left:auto"><button id="bh" class="on" onclick="view('heat')">Heatmap</button> <button id="bt" onclick="view('table')">Table</button> <button id="bc" onclick="openLastChart()" title="Open the stock chart (last ticker). Tip: click any tile, table row or Sector watch row to chart that ticker.">Chart</button> <a href="guide/" id="bg">Field Guide</a></span></header>
 <div id="strip"></div><div id="momg"></div><div id="moms"></div><div id="uwleg"></div><div id="flowlean"></div><div id="secstrip"></div><div id="note"></div>
@@ -420,4 +420,4 @@ loadNews();setInterval(loadNews,20000);try{if(localStorage.lvNewsMin==='1')nMin(
 setInterval(()=>{if(st)render();},5000);
 $('tb').addEventListener('click',e=>{const tr=e.target.closest&&e.target.closest('tr[data-s]');if(tr&&window.openChart)openChart(tr.dataset.s);});
 $('wgrid').addEventListener('click',e=>{const tr=e.target.closest&&e.target.closest('tr[data-s]');if(tr&&window.openChart&&!e.target.closest('.gh'))openChart(tr.dataset.s);});
-</script><script src="chart.js"></script></body></html>
+</script><script src="chart.js?v=20261020-pan"></script></body></html>

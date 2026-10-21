@@ -33,26 +33,39 @@ The score and C/P are only drawn in **regular hours** (that's the only time they
 | **15s 1m 5m 15m 1h 1d** | Bar interval |
 | **1D 1W 1M 3M YTD 1Y** | Range, counted back from the latest stored session. If the machine doesn't have that much history, the chart shows what it has and says so in the footer (e.g. "15s data on this machine starts 2026-10-19") |
 | ext hrs | Include pre-market (4:00–6:30 AM) and after-hours (1:00–5:00 PM) bars |
-| Mouse wheel | Zoom in/out around the cursor |
+| Mouse wheel up/down, or trackpad pinch | Zoom in/out around the cursor |
+| **Two-finger sideways swipe** (Mac trackpad), or Shift + wheel | Pan, same zoom (sideways swipes never zoom) |
+| **← / →** arrow keys | Pan by 10% of the visible width, same zoom |
+| **Center** | Put the latest candle in the middle of the chart, same zoom |
 | Drag | Pan. The chart is **not pinned to the right edge**: drag left to pull the last candle toward the middle (as on Robinhood); drag right to go back in time |
 | **Shift + drag**, or **⬚ Box zoom** then drag | Zoom to the dragged time span |
-| **Last hour** | Zoom to the last 60 minutes, keeping **12 empty bars** of space right of the last candle |
+| **Last hour** | Zoom to the last 60 minutes, plus the ~2 h of future axis on the right |
 | **Reset** | Show the whole range again, with the default right-side space (see below) |
 | Crosshair tooltip | Time (PT), O/H/L/C, volume, score (whole number, raw, since when, range inside the bar), light/full for Sector watch, C/P 15 s and 1 m with print counts, call wall / put wall / flip at that bar |
 
-## Right-side space (changed 10/20, 6:00 PM PT)
+## Future time axis and panning (changed 10/20, 6:05 PM PT)
 
-The latest candle no longer sits under the price-axis labels (last price, call wall / put wall / flip). There is always empty space to its right:
+The time axis **always runs about 2 hours of clock time past the latest candle**, so the latest candle sits clear of the price-axis labels (last price, call wall / put wall / flip) and the axis prints future times (e.g. 17:00, 18:00 after a 4:55 PM PT last bar).
 
-- **Default padding = max(12 bars, 8% of the bars shown).** Example: NVDA 5m/1D has 192 bars → 16 bars of space; 5m/1W has 960 bars → 77 bars. Last hour uses 12 bars.
+| Interval | Default future space |
+|---|---|
+| 15s | 480 bars (2 h) |
+| 1m | 120 bars (2 h) |
+| 5m | 24 bars (2 h) |
+| 15m | 8 bars (2 h) |
+| 1h | 2 bars (2 h) |
+| 1d | max(12, 8% of the bars shown) trading days, weekends skipped |
+
+- When the range is long, the space is never **less than about 60 px**, so on 15m/1M and 1h/3M it can be more than 2 hours (measured: 15m/1M = 62 bars, 1h/3M = 49 bars).
 - Applied when the chart opens, on **Reset**, on **Last hour**, and when you change the interval or range. Box zoom shows exactly the span you dragged.
-- Drag and zoom freely after that; nothing clamps the last candle to the right edge. All lanes (price, volume, score, C/P) share one time axis, so they move together.
+- **How it works:** the chart holds invisible time-only points for the future (no price, no volume, no tooltip), at least max(the default above, 70% of the bars, 200). That's why dragging, a two-finger swipe or ← → move the latest candle to the middle or further at the **same zoom**, and the axis keeps printing times there. Data lanes (price, volume, score, C/P) share this one time axis, so they all move together.
+- **Why it didn't work before (6:01 PM PT report):** a Mac two-finger sideways swipe arrives as a wheel event. The chart library had wheel-scrolling off and read the swipe's small up/down part as **zoom**, so swiping zoomed instead of panning. Sideways-dominant swipes are now handled by the page and only pan. The axis also had no time points past the last bar, so it ended at the last candle.
 
-![NVDA 5m 1D with space right of the last candle](img/chart-preview-rightpad.png)
+![NVDA 5m 1D: Center puts the 4:55 PM PT candle in the middle; the axis runs on to 01:00](img/chart-preview-pan.png)
 
 ## Live updating
 
-While the chart is open and the range includes today, it asks the mini every **5 s** for the bars from the last bar on (`since=`), replaces the last bar and appends new ones. **Auto-follow only at the live edge:** if the latest candle is on screen, a new bar scrolls the view by one bar so the candle keeps its spot (and its space on the right). If you have panned or zoomed back so the latest candle is off screen, the view stays exactly where you left it; press **Reset** or **Last hour** to jump back. The header line (last price, % change, rvol, SURGE, score badge, C/P) comes straight from the page's own 1-second stream, so it matches the tiles exactly. The live wall lines are redrawn whenever the page's wall levels refresh (core every ~10 min; Sector watch on surge).
+While the chart is open and the range includes today, it asks the mini every **5 s** for the bars from the last bar on (`since=`), replaces the last bar and appends new ones. **Auto-follow only at the live edge:** if the latest candle is on screen, a new bar scrolls the view by one bar so the candle keeps its spot, and the future axis is extended again so it still runs ~2 h past the latest candle. If you have panned or zoomed back so the latest candle is off screen, the view stays exactly where you left it; press **Reset** or **Last hour** to jump back. The header line (last price, % change, rvol, SURGE, score badge, C/P) comes straight from the page's own 1-second stream, so it matches the tiles exactly. The live wall lines are redrawn whenever the page's wall levels refresh (core every ~10 min; Sector watch on surge).
 
 ## Data sources per interval
 

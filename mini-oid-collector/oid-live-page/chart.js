@@ -11,6 +11,19 @@ const POLL_MS=5000;
 // PAD = default rightOffset in bars; fitted views (open, Reset, range buttons) use max(PAD, 8% of the bars shown) so the gap stays visible on long ranges.
 const PAD=12,PAD_FRAC=0.08;
 const padFor=n=>Math.max(PAD,Math.ceil(n*PAD_FRAC));
+// FUTURE SPACE (10/20 6 PM): intraday charts always extend ~2 h of clock time past the latest candle. The space is made of
+// invisible time-only points (whitespace) on their own hidden series, so the time axis prints future times and drag /
+// trackpad pan move through it natively. Bars = 2 h / bar size (15s 480, 1m 120, 5m 24, 15m 8, 1h 2; ÷k when downsampled),
+// never less than ~60 px so the candle clears the price labels. 1d: max(12 bars, 8%) of trading days (weekends skipped).
+const FUT_S=7200,IVSEC={'15s':15,'1m':60,'5m':300,'15m':900,'1h':3600,'1d':86400},MIN_GAP_PX=60;
+function futBars(){if(!D)return PAD;const n=D.bars.length;if(D.iv==='1d')return padFor(n);
+ const step=IVSEC[D.iv]*(D.k||1),f=Math.max(1,Math.round(FUT_S/step));const w=Math.max(200,(($('chc')||{}).clientWidth||1200)-70);
+ return Math.max(f,Math.ceil(MIN_GAP_PX*n/Math.max(100,w-MIN_GAP_PX)));}
+// The hidden time-only points run further than the default view (max(future bars, 70% of the bars, 200)) so the axis keeps
+// printing future times while you pan the latest candle toward the middle or past it.
+function wsPoints(){if(!D||!D.bars.length)return [];const lt=D.bars[D.bars.length-1][0],F=Math.max(futBars(),Math.ceil(D.bars.length*0.7),200),out=[];
+ if(D.iv==='1d'){let t=lt;while(out.length<F){t+=86400;const wd=new Date((t+off(t,'America/New_York'))*1000).getUTCDay();if(wd!==0&&wd!==6)out.push({time:ct(t)});}return out;}
+ const step=IVSEC[D.iv]*(D.k||1);let prev=ct(lt);for(let j=1;j<=F;j++){let t=ct(lt+j*step);if(t<=prev)t=prev+step;out.push({time:t});prev=t;}return out;}
 let K={sym:null,iv:'1m',rng:'1D',ext:1,box:false};
 try{Object.assign(K,JSON.parse(localStorage.lvChart||'{}'));}catch(e){}
 K.box=false;
@@ -36,12 +49,12 @@ function ensureModal(){if($('chm'))return;const m=document.createElement('div');
  <div class="chh"><b id="chsym"></b><span id="chtier" class="chtag"></span><span id="chlive"></span>
   <span class="chsp"></span><span class="chbtns" id="chiv"></span><span class="chbtns" id="chrng"></span>
   <label class="chx"><input type="checkbox" id="chext"> ext hrs</label>
-  <button id="chlh" title="Zoom to the last 60 minutes">Last hour</button><button id="chbox" title="Box zoom: drag across the chart to zoom (or hold Shift and drag)">⬚ Box zoom</button><button id="chreset" title="Reset zoom (whole range, with space right of the last candle)">Reset</button>
+  <button id="chlh" title="Zoom to the last 60 minutes">Last hour</button><button id="chbox" title="Box zoom: drag across the chart to zoom (or hold Shift and drag)">⬚ Box zoom</button><button id="chctr" title="Put the latest candle in the middle (same zoom). Arrow keys ← → also pan">Center</button><button id="chreset" title="Reset zoom (whole range, with space right of the last candle)">Reset</button>
   <button id="chclose" title="Close (Esc)">✕</button></div>
  <div class="chbody"><div id="chc"></div><div id="chsel" hidden></div><div id="chtip" hidden></div><div id="chempty" hidden></div></div>
  <div class="chf" id="chfoot"></div></div>`;document.body.appendChild(m);
  m.addEventListener('click',e=>{if(e.target===m)closeChart();});
- $('chclose').onclick=closeChart;$('chreset').onclick=homeView;
+ $('chclose').onclick=closeChart;$('chreset').onclick=homeView;$('chctr').onclick=centerLast;
  $('chlh').onclick=lastHour;$('chbox').onclick=()=>{K.box=!K.box;$('chbox').classList.toggle('on',K.box);if(CH)CH.applyOptions({handleScroll:{pressedMouseMove:!K.box}});};
  $('chext').onchange=e=>{K.ext=e.target.checked?1:0;save();load(true);};
  $('chiv').innerHTML=IVS.map(v=>`<button data-iv="${v}">${v}</button>`).join('');
@@ -56,7 +69,18 @@ window.openChart=function(sym){if(!sym)return;ensureModal();K.sym=String(sym).to
  paintCtl();liveHead();loadLib().then(()=>load(true)).catch(e=>{$('chempty').hidden=false;$('chempty').textContent=e.message;});};
 window.openLastChart=function(){openChart(K.sym||'NVDA');};
 function closeChart(){OPEN=false;REQ++;if($('chfoot'))$('chfoot').innerHTML='';if($('chm'))$('chm').hidden=true;document.body.classList.remove('chopen');clearTimeout(TIMER);TIMER=null;if(CH){CH.remove();CH=null;S={};}D=null;}
-document.addEventListener('keydown',e=>{if(e.key==='Escape'&&OPEN){e.preventDefault();closeChart();}});
+document.addEventListener('keydown',e=>{if(!OPEN)return;if(e.key==='Escape'){e.preventDefault();closeChart();return;}
+ if((e.key==='ArrowLeft'||e.key==='ArrowRight')&&!/INPUT|SELECT|TEXTAREA/.test((e.target&&e.target.tagName)||'')){e.preventDefault();panBy((e.key==='ArrowRight'?1:-1)*0.1);}});
+// ---- pan helpers (zoom unchanged: the visible width in bars is kept exactly)
+function panBars(d){if(!CH||!d)return;const ts=CH.timeScale(),r=ts.getVisibleLogicalRange();if(!r)return;ts.setVisibleLogicalRange({from:r.from+d,to:r.to+d});}
+function panBy(frac){if(!CH)return;const r=CH.timeScale().getVisibleLogicalRange();if(r)panBars((r.to-r.from)*frac);}
+function centerLast(){if(!CH||!D||!D.bars.length)return;const ts=CH.timeScale(),r=ts.getVisibleLogicalRange();if(!r)return;const h=(r.to-r.from)/2,c=D.bars.length-1;ts.setVisibleLogicalRange({from:c-h,to:c+h});}
+// Mac trackpad: a two-finger sideways swipe is a wheel event with deltaX. The library would read its small deltaY as zoom
+// (and its wheel-scroll is off), so sideways-dominant wheel events are taken here and pan; up/down wheel and pinch still zoom.
+function wheelPan(){const el=$('chc');if(!el||el.dataset.wp)return;el.dataset.wp=1;
+ el.addEventListener('wheel',e=>{if(!CH||e.ctrlKey)return;const ax=Math.abs(e.deltaX),ay=Math.abs(e.deltaY);const sx=e.shiftKey&&ax===0?e.deltaY:e.deltaX;
+  if(!(ax>ay||(e.shiftKey&&ay>0)))return;e.preventDefault();e.stopPropagation();const ts=CH.timeScale(),r=ts.getVisibleLogicalRange();if(!r)return;
+  const u=e.deltaMode===1?32:e.deltaMode===2?el.clientWidth:1;const bs=Math.max(0.05,(ts.width()||el.clientWidth)/(r.to-r.from));panBars(sx*u/bs);},{capture:true,passive:false});}
 // ---- live header from the page's own stream (raw numbers, same as the tiles)
 function rowOf(sym){try{if(typeof st!=='undefined'&&st&&st.rows){const r=st.rows.find(x=>x.sym===sym);if(r)return {k:'core',r};}}catch(e){}
  try{if(typeof WIDE!=='undefined'&&WIDE&&WIDE.groups){for(const g of WIDE.groups){const r=g.rows.find(x=>x.s===sym);if(r)return {k:'wide',r,g};}}}catch(e){}return null;}
@@ -83,6 +107,7 @@ function build(keep){const L=window.LightweightCharts;if(CH){CH.remove();CH=null
   timeScale:{borderColor:'#d0d7de',timeVisible:D.iv!=='1d',secondsVisible:D.iv==='15s',rightOffset:PAD,fixLeftEdge:false,fixRightEdge:false,shiftVisibleRangeOnNewBar:true,lockVisibleTimeRangeOnResize:true},
   handleScroll:{mouseWheel:false,pressedMouseMove:!K.box,horzTouchDrag:true,vertTouchDrag:false},handleScale:{mouseWheel:true,pinch:true,axisPressedMouseMove:true},
   localization:{locale:'en-US'}});
+ S.ws=CH.addSeries(L.LineSeries,{color:'rgba(0,0,0,0)',lineWidth:1,priceLineVisible:false,lastValueVisible:false,crosshairMarkerVisible:false,visible:true},0);
  S.c=CH.addSeries(L.CandlestickSeries,{upColor:'#1a7f37',downColor:'#cf222e',borderVisible:false,wickUpColor:'#1a7f37',wickDownColor:'#cf222e',priceLineVisible:true},0);
  S.cw=CH.addSeries(L.LineSeries,{color:'#1a7f37',lineWidth:2,lineType:1,lineStyle:0,priceLineVisible:false,lastValueVisible:false,crosshairMarkerVisible:false,title:''},0);
  S.pw=CH.addSeries(L.LineSeries,{color:'#cf222e',lineWidth:2,lineType:1,lineStyle:0,priceLineVisible:false,lastValueVisible:false,crosshairMarkerVisible:false},0);
@@ -98,7 +123,7 @@ function build(keep){const L=window.LightweightCharts;if(CH){CH.remove();CH=null
   S.cp60=CH.addSeries(L.LineSeries,{color:'#0969da',lineWidth:2,priceLineVisible:false,lastValueVisible:true,title:'C/P 1m',priceFormat:{type:'price',precision:2,minMove:0.01}},3);
   S.cp60.priceScale().applyOptions({mode:1});S.cp60.createPriceLine({price:1,color:'#8c959f',lineWidth:1,lineStyle:2,axisLabelVisible:false,title:'1.0'});}
  const P=CH.panes();try{P[0].setStretchFactor(5);P[1].setStretchFactor(1.3);if(P[2])P[2].setStretchFactor(1.6);if(P[3])P[3].setStretchFactor(1.4);}catch(e){}
- CH.subscribeCrosshairMove(tip);setData();if(keep)CH.timeScale().setVisibleLogicalRange(keep);else homeView();liveWalls(rowOf(K.sym));setTimeout(()=>{if(window.chartAfterBuild)chartAfterBuild();},250);}
+ CH.subscribeCrosshairMove(tip);wheelPan();setData();if(keep)CH.timeScale().setVisibleLogicalRange(keep);else homeView();liveWalls(rowOf(K.sym));setTimeout(()=>{if(window.chartAfterBuild)chartAfterBuild();},250);}
 const cpv=x=>x==null?null:Math.max(0.05,Math.min(20,x));
 function pts(i){const b=D.bars[i],t=ct(b[0]),o={};const fl=b[7];
  o.c=fl===2||fl===3?{time:t,open:b[1],high:b[2],low:b[3],close:b[4],color:'#afb8c1',wickColor:'#afb8c1'}:{time:t,open:b[1],high:b[2],low:b[3],close:b[4]};
@@ -108,7 +133,7 @@ function pts(i){const b=D.bars[i],t=ct(b[0]),o={};const fl=b[7];
  const c=D.cp[i];o.cp15=c&&c[0]!=null?{time:t,value:cpv(c[0])}:{time:t};o.cp60=c&&c[1]!=null?{time:t,value:cpv(c[1])}:{time:t};return o;}
 function setData(){IDX=new Map();const A={c:[],v:[],cw:[],pw:[],gf:[],cp15:[],cp60:[],sc:{}};for(const k in S.sc)A.sc[k]=[];
  for(let i=0;i<D.bars.length;i++){const o=pts(i);IDX.set(o.c.time,i);A.c.push(o.c);A.v.push(o.v);A.cw.push(o.cw);A.pw.push(o.pw);A.gf.push(o.gf);A.cp15.push(o.cp15);A.cp60.push(o.cp60);for(const k in S.sc)A.sc[k].push(o.sc[k]);}
- S.c.setData(A.c);S.v.setData(A.v);S.cw.setData(A.cw);S.pw.setData(A.pw);S.gf.setData(A.gf);for(const k in S.sc)S.sc[k].setData(A.sc[k]);if(S.hasCp){S.cp15.setData(A.cp15);S.cp60.setData(A.cp60);}
+ S.ws.setData(wsPoints());S.c.setData(A.c);S.v.setData(A.v);S.cw.setData(A.cw);S.pw.setData(A.pw);S.gf.setData(A.gf);for(const k in S.sc)S.sc[k].setData(A.sc[k]);if(S.hasCp){S.cp15.setData(A.cp15);S.cp60.setData(A.cp60);}
  $('chempty').hidden=D.bars.length>0;if(!D.bars.length)$('chempty').textContent=`No ${D.iv} bars stored for ${D.sym} in this range.`;}
 function applyDelta(n){// n = reply with bars from `since` (inclusive): replace the last bar, append new ones
  const t0=n.bars.length?n.bars[0][0]:null;if(t0==null)return;
@@ -121,13 +146,13 @@ function applyDelta(n){// n = reply with bars from `since` (inclusive): replace 
  const add=D.bars.length-n0,nr=vr?(atEdge?{from:vr.from+add,to:vr.to+add}:{from:vr.from,to:vr.to}):null;
  const hadCp=S.hasCp,nowCp=n.cp.some(x=>x&&(x[0]!=null||x[1]!=null));if(nowCp&&!hadCp){build(nr);return;}
  for(let i=keep;i<D.bars.length;i++){const o=pts(i);IDX.set(o.c.time,i);S.c.update(o.c);S.v.update(o.v);S.cw.update(o.cw);S.pw.update(o.pw);S.gf.update(o.gf);for(const k in S.sc)S.sc[k].update(o.sc[k]);if(S.hasCp){S.cp15.update(o.cp15);S.cp60.update(o.cp60);}}
- if(nr)ts.setVisibleLogicalRange(nr);}
+ S.ws.setData(wsPoints());if(nr)ts.setVisibleLogicalRange(nr);}
 function foot(ms,kb,live){const d=D;if(!d)return;const av=d.avail||{};const ivn=d.k>1?`1 bar = ${d.k} × ${d.iv}`:d.iv;
  const sc=Object.entries(d.sources.score||{}).map(([k,v])=>`${k}: ${v.length?v.join('; '):'none'}`).join(' · ');
  $('chfoot').innerHTML=`<span><b>${esc(d.sym)}</b> ${esc(ivn)} · ${esc(d.range)} = ${esc(d.from)} → ${esc(d.to)} · ${d.n_total} bars · ${esc(d.iv)} stored since <b>${esc(av[d.iv]||'?')}</b></span>`+
   (d.notes||[]).map(x=>`<span class="chnote">${esc(x)}</span>`).join('')+
   `<span>bars: ${esc((d.sources.bars||[]).join(', '))}</span><span>score: ${esc(sc)}</span><span>C/P: ${esc((d.sources.cp||[]).join(', ')||'none')}</span><span>walls: ${esc((d.sources.walls||[]).join(', ')||'none')} (${(d.wall_events||[]).length} level changes)</span>`+
-  `<span class="mut">${live?'live · ':''}server ${d.gen_ms} ms · ${ms} ms · ${kb} KB · ${new Date().toLocaleTimeString('en-US',{timeZone:'America/Los_Angeles'})} PT · drag = pan (pull the last candle toward the middle) · wheel = zoom · auto-follow only at the live edge · Shift+drag or ⬚ = box zoom · Esc closes</span>`;}
+  `<span class="mut">${live?'live · ':''}server ${d.gen_ms} ms · ${ms} ms · ${kb} KB · ${new Date().toLocaleTimeString('en-US',{timeZone:'America/Los_Angeles'})} PT · drag / two-finger swipe / ← → = pan (axis runs ~2 h past the last candle) · Center = latest candle in the middle · wheel up/down or pinch = zoom · auto-follow only at the live edge · Shift+drag or ⬚ = box zoom · Esc closes</span>`;}
 function url(since){return `chart.json?sym=${encodeURIComponent(K.sym)}&iv=${K.iv}&range=${K.rng}&ext=${K.ext}`+(since!=null?`&since=${since}`:'');}
 function load(full){if(!OPEN||!window.LightweightCharts)return;clearTimeout(TIMER);paintCtl();const my=++REQ;const t0=performance.now();
  const since=(!full&&D&&D.bars.length)?D.bars[D.bars.length-1][0]:null;BUSY=true;
@@ -148,9 +173,9 @@ function tip(p){const el=$('chtip');if(!p||p.time==null||!D){el.hidden=true;retu
  el.innerHTML=h;el.hidden=false;const box=$('chc').getBoundingClientRect();const x=p.point.x,y=p.point.y;const tw=el.offsetWidth,th=el.offsetHeight;
  el.style.left=Math.max(4,Math.min(box.width-tw-60,x+16>box.width-tw-60?x-tw-16:x+16))+'px';el.style.top=Math.max(4,Math.min(box.height-th-4,y-th/2))+'px';}
 // ---- zoom helpers
-function lastHour(){if(!CH||!D||!D.bars.length)return;const n=D.bars.length,lt=D.bars[n-1][0];let i=n-1;while(i>0&&D.bars[i-1][0]>=lt-3600)i--;CH.timeScale().setVisibleLogicalRange({from:i-0.5,to:n-1+padFor(n-i)});}
+function lastHour(){if(!CH||!D||!D.bars.length)return;const n=D.bars.length,lt=D.bars[n-1][0];let i=n-1;while(i>0&&D.bars[i-1][0]>=lt-3600)i--;CH.timeScale().setVisibleLogicalRange({from:i-0.5,to:n-1+futBars()});}
 // default view: whole range plus right padding (open, Reset, range / interval buttons). One time scale for all panes, so volume/score/C/P follow.
-function homeView(){if(!CH||!D)return;const n=D.bars.length;if(!n){CH.timeScale().fitContent();return;}CH.timeScale().setVisibleLogicalRange({from:-0.5,to:n-1+padFor(n)});}
+function homeView(){if(!CH||!D)return;const n=D.bars.length;if(!n){CH.timeScale().fitContent();return;}CH.timeScale().setVisibleLogicalRange({from:-0.5,to:n-1+futBars()});}
 function boxZoom(){const body=document.querySelector('#chm .chbody');let x0=null;const sel=$('chsel');
  const start=e=>{if(!CH)return;if(!(K.box||e.shiftKey)||e.button!==0)return;e.stopPropagation();e.preventDefault();const r=$('chc').getBoundingClientRect();x0=e.clientX-r.left;sel.hidden=false;sel.style.left=x0+'px';sel.style.width='0px';};
  body.addEventListener('mousedown',start,true);body.addEventListener('pointerdown',e=>{if(K.box||e.shiftKey)e.stopPropagation();},true);
