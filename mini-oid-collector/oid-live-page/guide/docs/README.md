@@ -86,6 +86,7 @@ flowchart LR
 | 31 | [Score learning plan](31-score-learning-plan.md) | plan | How the scores learn from logged results (steps 1–4 built 10/21: 15 s features, nightly labels, experiments) |
 | 32 | [Research tab](32-research-tab.md) | Research button | Every study so far, from `studies-index.json` |
 | 33 | [Feature registry](33-feature-registry.md) | generated | Every score input, its age column, live / context / shadow status; Chart Bot scenarios as a shadow source |
+| 34 | [Chart-pattern detector](34-pattern-detector.md) | shadow | Live 1m/5m/30m pattern detection, backtest base rates, nightly grading, chart markers and the Patterns column <!-- PATTERNS-1021 --> |
 | ★ | [Signal walkthroughs](18-walkthroughs.md) | — | Call-lean surge vs put-lean surge vs conflict, with examples |
 | ? | [Glossary](glossary.md) | — | Short definitions |
 

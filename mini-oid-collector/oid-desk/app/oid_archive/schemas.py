@@ -45,13 +45,15 @@ TABLE_COLUMNS: dict[str, list[tuple[str, str]]] = {
     # key columns are listed here (integrity check); the full column list lives in <archive>/<table>/_schema.json.
     "score_features": [("snap_id", "string"), ("profile", "string"), ("symbol", "string")],
     "score_labels": [("label_id", "string"), ("kind", "string"), ("symbol", "string")],
+    "patterns": [("rec_id", "string"), ("det_id", "string"), ("ticker", "string")],  # PATTERNS (shadow)
+    "pattern_labels": [("label_id", "string"), ("det_id", "string"), ("ticker", "string")],
 }
 TABLE_COLUMNS = {k: v + COMMON for k, v in TABLE_COLUMNS.items()}
 
 KEYS = {"volume_5s": ("symbol", "bucket_start_ns"), "surges": ("surge_id",), "bars_1m": ("symbol", "bar_start_ns"),
         "bars_5m": ("symbol", "bar_start_ns"), "bars_15m": ("symbol", "bar_start_ns"), "bars_1h": ("symbol", "bar_start_ns"),
         "bars_1d": ("symbol", "trade_date"), "fetch_log": ("fetch_id",), "momentum_state": ("change_id",),
-        "score_features": ("snap_id",), "score_labels": ("label_id",)}  # FEATURES
+        "score_features": ("snap_id",), "score_labels": ("label_id",), "patterns": ("rec_id",), "pattern_labels": ("label_id",)}  # FEATURES PATTERNS
 
 
 def columns(table: str) -> list[str]:

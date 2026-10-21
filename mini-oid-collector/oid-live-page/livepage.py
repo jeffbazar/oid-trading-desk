@@ -2294,6 +2294,14 @@ class H(BaseHTTPRequestHandler):
                 return self._send(200, SECTORS_FILE.read_bytes(), "application/json")
             except OSError:
                 return self._send(404, json.dumps({"error": "no sectors.json"}), "application/json")
+        if path == "/patterns.json":  # PATTERNS (10/21): shadow pattern detector, top active pattern per ticker
+            try:
+                d = json.loads((Path.home() / "oid-data/patterns/live.json").read_text())
+                body = {k: d.get(k) for k in ("as_of", "as_of_pt", "mode", "detector_version", "note")}
+                body["by_sym"] = {s: {"top": v.get("top"), "n_active": v.get("n_active")} for s, v in (d.get("by_sym") or {}).items()}
+                return self._send(200, json.dumps(body), "application/json")
+            except Exception:
+                return self._send(404, json.dumps({"error": "no patterns live.json yet (com.oid.desk.patterns)"}), "application/json")
         if path in ("/research", "/research/"):  # RESEARCHTAB
             self.send_response(302)
             self.send_header("Location", "/guide/research/")

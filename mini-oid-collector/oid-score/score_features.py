@@ -274,6 +274,35 @@ class Scenarios:
                 "alt1_label": alt1_l, "alt1_status": alt1_s, "alt_n_live": alt_n}
 
 
+class Patterns:
+    """PATTERNS (10/21): top active chart pattern per ticker from ~/oid-data/patterns/live.json (pattern_daemon.py).
+    Shadow only. Ignored unless mode == live and the file is < 150 s old (a replay file never leaks into live rows)."""
+
+    def __init__(self, path=None):
+        self.path = Path(path or (HOME / "oid-data/patterns/live.json"))
+        self.chk, self.m, self.doc = 0.0, None, {}
+
+    def get(self, sym, now):
+        if now - self.chk >= 15:
+            self.chk = now
+            try:
+                m = self.path.stat().st_mtime
+                if m != self.m:
+                    self.doc, self.m = json.loads(self.path.read_text()), m
+            except Exception:
+                self.doc, self.m = {}, None
+        d = self.doc or {}
+        if d.get("mode") != "live" or now - float(d.get("as_of") or 0) > 150:
+            return None
+        v = (d.get("by_sym") or {}).get(sym)
+        age = round(now - float(d.get("as_of") or now), 1)
+        if not v:
+            return {"active": 0, "age_s": age}
+        t = v.get("top") or {}
+        return {"active": v.get("n_active", 0), "dir": t.get("dir"), "prob": t.get("prob"), "name": t.get("pattern"),
+                "iv": t.get("iv"), "state": t.get("state"), "n": t.get("n"), "src": t.get("src"), "age_s": age}
+
+
 # ------------------------------------------------------------------ flatten one pass
 def flatten(row, ctx, reg, lite, extra):
     out = {}
@@ -305,6 +334,7 @@ class FeatureSnap:
         self.last = {}
         self.news = NewsTone() if not self.lite else None
         self.scen = Scenarios() if (not self.lite and mode == "live") else None  # replays: no look-ahead from today's file
+        self.pat = Patterns() if (not self.lite and mode == "live") else None  # PATTERNS (shadow)
         self.q = queue.Queue(maxsize=20000)
         self.buf, self.paths = [], {}
         self.rows = self.errors = self.dropped = 0
@@ -344,6 +374,9 @@ class FeatureSnap:
                 cs = self.scen.get(sym, px, row.get("atr"), t)
                 for k2, v in (cs or {}).items():
                     extra["cs." + k2] = v
+            if getattr(self, "pat", None) is not None:  # PATTERNS (shadow)
+                for k2, v in (self.pat.get(sym, t) or {}).items():
+                    extra["pat." + k2] = v
         rec = {"snap_id": f"{self.profile}|{sym}|{int(t // SLOT_S) * SLOT_S}|{self.mode}", "profile": self.profile,
                "symbol": sym, "date": date, "slot_t": int(t // SLOT_S) * SLOT_S, "t": round(t, 3),
                "settings_version": version, "registry_version": reg.get("registry_version"), "mode": self.mode,

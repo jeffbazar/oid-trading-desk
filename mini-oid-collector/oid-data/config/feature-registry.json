@@ -108,6 +108,15 @@
    "where": "cp-history-wide (empty so far)"
   },
   {
+   "id": "patterns",
+   "name": "Chart-pattern detector (shadow)",
+   "method": "pat-v1-20261021 (patterns.py)",
+   "cadence": "each 1m bar close (1m/5m/30m engines)",
+   "status": "shadow",
+   "note": "Never feeds a live score or a trade until Jeffrey approves. prob = backtest/live hit rate per pattern+interval+direction.",
+   "where": "~/oid-data/patterns/live.json (com.oid.desk.patterns); archive patterns/date=*/"
+  },
+  {
    "id": "chart_scenario",
    "name": "Chart Bot daily scenarios",
    "method": "CB-SCN-V1",
@@ -1050,6 +1059,23 @@
    "added": "2026-10-21"
   },
   {
+   "id": "age_pat",
+   "path": "@pat.age_s",
+   "type": "float",
+   "status": "age",
+   "source": "patterns",
+   "used_by": [
+    "core",
+    "full",
+    "light"
+   ],
+   "age": null,
+   "unit": "s",
+   "desc": "Seconds since the pattern detector last wrote live.json (one pass per 1-min bar close).",
+   "in_light_rows": false,
+   "added": "2026-10-21"
+  },
+  {
    "id": "ctx_cp_15s",
    "path": "ctx.flow.cp_15s",
    "type": "float",
@@ -1655,6 +1681,126 @@
    "age": "age_cs",
    "unit": "count",
    "desc": "How many alternates (up to 3) are triggered, target_hit or target2_hit right now.",
+   "in_light_rows": false,
+   "added": "2026-10-21"
+  },
+  {
+   "id": "pattern_active",
+   "path": "@pat.active",
+   "type": "int",
+   "status": "shadow",
+   "source": "patterns",
+   "used_by": [
+    "shadow"
+   ],
+   "age": "age_pat",
+   "unit": "count",
+   "desc": "Directional chart patterns active for this ticker right now (confirmed or triggered, any of 1m/5m/30m). Shadow pattern detector, Field Guide 34.",
+   "in_light_rows": false,
+   "added": "2026-10-21"
+  },
+  {
+   "id": "pattern_dir",
+   "path": "@pat.dir",
+   "type": "int",
+   "status": "shadow",
+   "source": "patterns",
+   "used_by": [
+    "shadow"
+   ],
+   "age": "age_pat",
+   "unit": "-1/0/+1",
+   "desc": "Direction of the top active pattern (highest prob_est): +1 up, -1 down. Null when none.",
+   "in_light_rows": false,
+   "added": "2026-10-21"
+  },
+  {
+   "id": "pattern_prob",
+   "path": "@pat.prob",
+   "type": "float",
+   "status": "shadow",
+   "source": "patterns",
+   "used_by": [
+    "shadow"
+   ],
+   "age": "age_pat",
+   "unit": "0..1",
+   "desc": "prob_est of the top active pattern: raw backtest hit rate (target before a closing invalidation) for its pattern+interval+direction, or the live rate once live n >= 20. Conditional on the trigger.",
+   "in_light_rows": false,
+   "added": "2026-10-21"
+  },
+  {
+   "id": "pattern_name",
+   "path": "@pat.name",
+   "type": "text",
+   "status": "shadow",
+   "source": "patterns",
+   "used_by": [
+    "shadow"
+   ],
+   "age": "age_pat",
+   "unit": "label",
+   "desc": "Top active pattern: breakout, breakdown, failed_breakout, failed_breakdown, bull_flag, bear_flag, head_shoulders, inv_head_shoulders, double_top, double_bottom, vwap_reclaim, vwap_loss, higher_low, lower_high, gap_up, gap_down.",
+   "in_light_rows": false,
+   "added": "2026-10-21"
+  },
+  {
+   "id": "pattern_interval",
+   "path": "@pat.iv",
+   "type": "text",
+   "status": "shadow",
+   "source": "patterns",
+   "used_by": [
+    "shadow"
+   ],
+   "age": "age_pat",
+   "unit": "1m/5m/30m",
+   "desc": "Bar interval the top pattern was detected on.",
+   "in_light_rows": false,
+   "added": "2026-10-21"
+  },
+  {
+   "id": "pattern_state",
+   "path": "@pat.state",
+   "type": "text",
+   "status": "shadow",
+   "source": "patterns",
+   "used_by": [
+    "shadow"
+   ],
+   "age": "age_pat",
+   "unit": "text",
+   "desc": "State of the top pattern: confirmed or triggered.",
+   "in_light_rows": false,
+   "added": "2026-10-21"
+  },
+  {
+   "id": "pattern_prob_n",
+   "path": "@pat.n",
+   "type": "int",
+   "status": "shadow",
+   "source": "patterns",
+   "used_by": [
+    "shadow"
+   ],
+   "age": "age_pat",
+   "unit": "count",
+   "desc": "Sample size behind pattern_prob (n < 20 = low sample).",
+   "in_light_rows": false,
+   "added": "2026-10-21"
+  },
+  {
+   "id": "pattern_prob_src",
+   "path": "@pat.src",
+   "type": "text",
+   "status": "shadow",
+   "source": "patterns",
+   "used_by": [
+    "shadow"
+   ],
+   "age": "age_pat",
+   "unit": "text",
+   "desc": "backtest or live.",
    "in_light_rows": false,
    "added": "2026-10-21"
   },

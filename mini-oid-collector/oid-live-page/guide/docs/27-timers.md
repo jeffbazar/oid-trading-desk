@@ -10,6 +10,8 @@
 | **score_labels + Parquet** | Weekdays **1:40 PM PT** | 5 s / 1-min bars after each snapshot | `com.oid.desk.score-labels` |
 | **Weekly model scorecard** | Saturdays **11:00 AM PT** | score_labels Parquet + experiments log | `com.oid.desk.score-model-weekly` |
 | **Chart Bot scenario status** (chart lines, shadow) | Every **30 min**, :01 and :31 past the hour, 7:01 AM–1:31 PM PT weekdays | Chart Bot latest.json (box push) + mini 1-min bars rolled to 30 min | `com.oid.desk.chart-scn-status` |
+| **Chart-pattern detector** (shadow) <!-- PATTERNS-1021 --> | Always loaded; works once per 1-min bar close, 6:30 AM–1:01 PM PT weekdays | Mini 1-min SIP bars (core + Sector watch stores) → 1m / 5m / 30m engines → archive `patterns` + `live.json` | `com.oid.desk.patterns` |
+| **Pattern grader** (shadow) | Weekdays **1:50 PM PT** | archive `patterns` + 1-min bars → `pattern_labels`, live hit rates, scorecard, experiments.jsonl | `com.oid.desk.pattern-grade` |
 | **Quotes** (bid/ask, last trade) | Streamed; quote cache written every **2 s** | Alpaca SIP stocks + OPRA options websockets | `com.oid.quote-collector` (always on) |
 | **Live volume** (1 s / 10 s / 30 s / 60 s volume, rvol_1m, 10 s pace) | Every **1 s** from each trade print | Alpaca SIP trade prints vs 20-session same-minute norms | `com.oid.quote-collector` |
 | **5-second bars** (price + volume, all 61 tickers) | One bar every **5 s**, written 3 s after the bar ends | Alpaca SIP trade prints | `com.oid.quote-collector` (`volume_5s`) |

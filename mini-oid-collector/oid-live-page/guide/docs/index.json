@@ -136,6 +136,10 @@
   "title": "33 · Feature registry (every score input, its age and status)"
  },
  {
+  "file": "34-pattern-detector.md",
+  "title": "34 · Chart-pattern detector (shadow)"
+ },
+ {
   "file": "glossary.md",
   "title": "Glossary"
  }

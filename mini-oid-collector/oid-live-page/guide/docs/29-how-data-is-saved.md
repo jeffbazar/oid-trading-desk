@@ -1972,3 +1972,13 @@ Real row (10/20/2026, top list cut to 3 here):
  ]
 }
 ```
+
+
+## patterns and pattern_labels (added 10/21, shadow pattern detector) <!-- PATTERNS-1021 -->
+
+| Table | Writer | When | Where / key |
+|---|---|---|---|
+| `patterns` | `pattern_daemon.py` (`com.oid.desk.patterns`); replays `pattern_learn.py replay` | one line per detection state change, at 1-min bar closes in RTH | `archive/patterns/date=…/part-patterns-live-<n>.jsonl` (replay: `part-patterns-replay-1.jsonl`); key `rec_id` |
+| `pattern_labels` | `pattern_learn.py grade` (`com.oid.desk.pattern-grade`, weekdays 1:50 PM PT) | nightly, last 10 days rewritten | `archive/pattern_labels/date=…/part-pattern-grader-1.jsonl`; key `label_id` |
+
+Columns and a real row: Field Guide › 34. About 14 MB/day of JSONL (10/20 replay: 18,967 records). Base rates: `~/oid-data/patterns/base-rates.json`; current state: `~/oid-data/patterns/live.json`.

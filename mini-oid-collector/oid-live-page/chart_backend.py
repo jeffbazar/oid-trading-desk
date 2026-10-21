@@ -767,8 +767,49 @@ def build(req):
                     "mom": mom_used if tier == "core" else ["momentum engine covers core names only"]},
         "notes": notes, "gen_ms": round((time.time() - t_start) * 1000, 1),
         "scn": scn_for(sym),  # CHARTSCN
+        "pat": pat_for(sym, sdates),  # PATTERNS
     }
     return data
+
+
+PAT_DIR = HOME / "oid-data/archive/patterns"   # PATTERNS (10/21): shadow chart-pattern detector records
+
+
+def _pat_init():
+    return {}
+
+
+def _pat_fold(d, st):
+    st.setdefault(d.get("ticker"), []).append((d.get("ts"), d.get("det_id"), d.get("pattern"), d.get("interval"), d.get("direction"),
+                                              d.get("state"), d.get("key_levels") or {}, d.get("prob_est"), d.get("prob_source"),
+                                              d.get("prob_n"), d.get("confidence_raw")))
+
+
+def pat_for(sym, dates):
+    """PATTERNS: detections for sym on the chart's dates (live parts first, else the replay part) -> dets (first ts,
+    last state, latest levels and prob). Shadow only."""
+    recs, used, src = [], [], set()
+    for d in dates:
+        dd = PAT_DIR / f"date={d}"
+        fs = sorted(dd.glob("part-patterns-live-*.jsonl")) or sorted(dd.glob("part-patterns-replay-*.jsonl"))
+        if not fs:
+            continue
+        for p in fs:
+            st = tail(p, _pat_fold, _pat_init)
+            recs += (st or {}).get(sym, [])
+        used.append(d)
+        src.add("replay" if "replay" in fs[0].name else "live")
+    if not used:
+        return None
+    by = {}
+    for r in sorted(recs, key=lambda x: x[0] or 0):
+        ts, did, pat, iv, dr, stt, kl, pr, ps, pn, cf = r
+        x = by.get(did)
+        if x is None:
+            x = by[did] = {"id": did, "p": pat, "iv": iv, "d": dr, "t0": ts, "conf": cf}
+        x.update(st=stt, t1=ts, trig=kl.get("trigger"), tgt=kl.get("target"), inv=kl.get("invalidation"), prob=pr, src=ps, n=pn)
+    dets = sorted(by.values(), key=lambda x: x["t0"] or 0)[-400:]
+    return {"dets": dets, "dates": used, "src": "+".join(sorted(src)), "version": "pat-v1-20261021"}
 
 
 SCN_FILE = HOME / "oid-desk/desk/chart-bot/scenarios/latest.json"   # CHARTSCN: box -> mini desk-state push

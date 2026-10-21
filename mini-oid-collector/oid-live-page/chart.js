@@ -114,12 +114,14 @@ function lastPx(){const x=rowOf(K.sym);if(x){const v=x.k==='core'?x.r.last:x.r.p
 function edges(){const box=$('chedge');if(!box)return;if(!CH||!S.c||!D||!D.bars.length){box.innerHTML='';return;}
  let ph=0,aw=0;try{ph=CH.panes()[0].getHeight();aw=CH.priceScale('right',0).width();}catch(e){}
  if(!ph){box.innerHTML='';return;}const top=S.c.coordinateToPrice(0),bot=S.c.coordinateToPrice(ph);if(top==null||bot==null){box.innerHTML='';return;}
- const w=wallNow()||{},sc=scnNow();if(!wallNow()&&!sc){box.innerHTML='';return;}const lp=lastPx();const up=[],dn=[];
+ const w=wallNow()||{},sc=scnNow(),pl=patLevels();if(!wallNow()&&!sc&&!pl.length){box.innerHTML='';return;}const lp=lastPx();const up=[],dn=[];
  [['cw','call wall','#1a7f37'],['pw','put wall','#cf222e'],['gf','flip','#9a6700']].forEach(([k,nm,col])=>{const v=w[k];if(v==null)return;const px=+v;
   const d=lp?((px-lp)/lp*100):null;const lab=`${nm} ${px.toFixed(2)}${d==null?'':` (${d>=0?'+':'−'}${Math.abs(d).toFixed(1)}%)`}${w.st?' stale':''}`;
   if(px>top)up.push([px,`▲ ${lab}`,col]);else if(px<bot)dn.push([px,`▼ ${lab}`,col]);});
  scnLevels(sc).forEach(([px,t,col])=>{px=+px;const d=lp?((px-lp)/lp*100):null;const lab=`${t.replace(/ \(.*\)$/,'')} ${px.toFixed(2)}${d==null?'':` (${d>=0?'+':'−'}${Math.abs(d).toFixed(1)}%)`}`;
   if(px>top)up.push([px,`▲ ${lab}`,col]);else if(px<bot)dn.push([px,`▼ ${lab}`,col]);});  // CHARTSCN
+ pl.forEach(([px,t,col])=>{px=+px;const d=lp?((px-lp)/lp*100):null;const lab=`${t.replace(/ \(.*\)$/,'')} ${px.toFixed(2)}${d==null?'':` (${d>=0?'+':'−'}${Math.abs(d).toFixed(1)}%)`}`;
+  if(px>top)up.push([px,`▲ ${lab}`,col]);else if(px<bot)dn.push([px,`▼ ${lab}`,col]);});  // PATTERNS
  up.sort((a,b)=>a[0]-b[0]);dn.sort((a,b)=>b[0]-a[0]);
  box.innerHTML=up.map((x,j)=>`<div class="che" style="top:${4+j*19}px;right:${aw+8}px;color:${x[2]};border-color:${x[2]}" title="outside the visible price range; turn on Fit walls to include it">${esc(x[1])}</div>`).join('')+
   dn.map((x,j)=>`<div class="che" style="top:${ph-22-j*19}px;right:${aw+8}px;color:${x[2]};border-color:${x[2]}" title="outside the visible price range; turn on Fit walls to include it">${esc(x[1])}</div>`).join('');}
@@ -134,7 +136,36 @@ function scnLevels(s){const o=[];if(!s)return o;const lab=String(s.label).replac
 function scnLines(){if(!S.c)return;const s=scnNow();const key=JSON.stringify(s);if(key===SCN_KEY)return;SCN_KEY=key;
  SCNPL.forEach(p=>{try{S.c.removePriceLine(p)}catch(e){}});SCNPL=[];
  scnLevels(s).forEach(([px,t,col])=>SCNPL.push(S.c.createPriceLine({price:+px,color:col,lineWidth:1,lineStyle:2,axisLabelVisible:true,title:t})));edgesSoon();}
-function build(keep){const L=window.LightweightCharts;if(CH){CH.remove();CH=null;S={};}LIVEPL=[];LAST_INFO='';SCNPL=[];SCN_KEY='';
+// ---- PATTERNS (10/21): shadow chart-pattern detector (pattern_daemon.py): markers, active-pattern tag (raw prob, source, n),
+// dashed trigger / target / invalidation lines for the selected pattern (price lines: never in autoscale; edge markers when off-screen).
+const PSHORT={range:'RNG',bull_flag:'FLAG',bear_flag:'FLAG',breakout:'BO',breakdown:'BD',failed_breakout:'FBO',failed_breakdown:'FBD',head_shoulders:'H&S',inv_head_shoulders:'iH&S',double_top:'DT',double_bottom:'DB',vwap_reclaim:'VWAP+',vwap_loss:'VWAP−',higher_low:'HL',lower_high:'LH',gap_up:'GAP',gap_down:'GAP'};
+let PATPL=[],PAT_KEY='',PSEL=null,PIV={'1m':0,'5m':1,'30m':1};try{Object.assign(PIV,JSON.parse(localStorage.lvPatIv||'{}'))}catch(e){}
+const pName=p=>String(p).replace(/_/g,' ');
+function patDets(){return (D&&D.pat&&D.pat.dets)||[];}
+function patActive(){return patDets().filter(x=>x.st==='forming'||x.st==='confirmed'||x.st==='triggered').sort((a,b)=>((b.d?1:0)-(a.d?1:0))||((b.prob==null?-1:b.prob)-(a.prob==null?-1:a.prob)));}
+function patSel(){const a=patDets();if(PSEL){const x=a.find(y=>y.id===PSEL);if(x)return x;}return patActive().filter(x=>x.d)[0]||null;}
+function patLevels(){const s=patSel();if(!s||!s.d)return [];const lab=`${pName(s.p)} ${s.iv}`;const o=[];
+ if(s.trig!=null)o.push([s.trig,`PAT trigger (${lab} · ${s.st})`,'#bc4c00']);if(s.tgt!=null)o.push([s.tgt,'PAT target','#116329']);if(s.inv!=null)o.push([s.inv,'PAT invalidation','#82071e']);return o;}
+function pProb(x){return x.prob==null?(x.d?'no rate yet':'context'):`${(x.prob*100).toFixed(1)}% raw (${x.src}${x.n!=null?' n='+x.n:''}${x.n!=null&&x.n<20?', n<20':''})`;}
+function barIdx(t){const B=D.bars;let lo=0,hi=B.length-1,r=-1;while(lo<=hi){const m=(lo+hi)>>1;if(B[m][0]<=t){r=m;lo=m+1;}else hi=m-1;}return r;}
+function patMarks(){if(!D||!D.bars.length)return [];const sel=patSel();const out=[];
+ patDets().forEach(x=>{if(!x.d||!PIV[x.iv])return;const i=barIdx(x.t0-1);if(i<0)return;const up=x.d>0,isS=sel&&sel.id===x.id;
+  out.push({time:ct(D.bars[i][0]),position:up?'belowBar':'aboveBar',shape:up?'arrowUp':'arrowDown',color:up?(isS?'#116329':'#2da44e'):(isS?'#82071e':'#cf222e'),size:isS?2:1,text:(PSHORT[x.p]||x.p)+' '+x.iv,id:x.id});});
+ out.sort((a,b)=>a.time-b.time);return out;}
+function patTag(){const bd=document.querySelector('#chm .chbody');if(!bd)return;let el=$('chpat');
+ if(!el){el=document.createElement('div');el.id='chpat';bd.appendChild(el);el.addEventListener('click',e=>{const t=e.target.closest('[data-pid],[data-piv]');if(!t)return;
+  if(t.dataset.piv){PIV[t.dataset.piv]=PIV[t.dataset.piv]?0:1;try{localStorage.lvPatIv=JSON.stringify(PIV)}catch(_){}}else PSEL=t.dataset.pid;PAT_KEY='';patDraw();edgesSoon();});}
+ if(!D||!D.pat){el.innerHTML='<div class="pth">Patterns <span class="mut">(shadow) · no detections for this range</span></div>';return;}
+ const act=patActive().slice(0,5),sel=patSel();
+ el.innerHTML=`<div class="pth">Patterns <span class="mut">(shadow · ${esc(D.pat.src||'')})</span>${['1m','5m','30m'].map(v=>`<span class="ptiv${PIV[v]?' on':''}" data-piv="${v}" title="show ${v} markers">${v}</span>`).join('')}</div>`+
+  (act.length?act.map(x=>`<div class="ptr${sel&&sel.id===x.id?' sel':''}" data-pid="${esc(x.id)}" title="${esc(`${pName(x.p)} ${x.iv} · ${x.st} · trigger ${x.trig??'—'} · target ${x.tgt??'—'} · invalidation ${x.inv??'—'} · confidence_raw ${x.conf??'—'} · prob = hit rate of triggered ${pName(x.p)} ${x.iv} (target before a closing invalidation), raw, not smoothed. Shadow only: not in any score or trade. Click to draw its lines.`)}">${x.d>0?'▲':x.d<0?'▼':'◆'} ${esc(pName(x.p))} ${x.iv} · ${esc(x.st)} · <b>${esc(pProb(x))}</b></div>`).join(''):'<div class="mut">no active pattern at the last bar</div>');}
+function patDraw(){if(!S.c||!D)return;const L=window.LightweightCharts;
+ try{if(!S.mk&&L.createSeriesMarkers)S.mk=L.createSeriesMarkers(S.c,[]);if(S.mk)S.mk.setMarkers(patMarks());}catch(e){}
+ const lv=patLevels();const key=JSON.stringify(lv);if(key!==PAT_KEY){PAT_KEY=key;PATPL.forEach(p=>{try{S.c.removePriceLine(p)}catch(e){}});PATPL=[];
+  lv.forEach(([px,t,col])=>PATPL.push(S.c.createPriceLine({price:+px,color:col,lineWidth:1,lineStyle:2,axisLabelVisible:true,title:t})));}
+ patTag();}
+function patFoot(){const p=D&&D.pat;if(!p)return '<span class="mut">Patterns: none in this range</span>';return `<span title="shadow chart-pattern detector ${esc(p.version||'')}; never feeds a score or a trade">Patterns: ${(p.dets||[]).length} detections (${esc(p.src||'')}${p.dates&&p.dates.length?' · '+esc(p.dates.join(', ')):''})</span>`;}
+function build(keep){const L=window.LightweightCharts;if(CH){CH.remove();CH=null;S={};}LIVEPL=[];LAST_INFO='';SCNPL=[];SCN_KEY='';PATPL=[];PAT_KEY='';S.mk=null;
  const el=$('chc');CH=L.createChart(el,{autoSize:true,layout:{background:{type:'solid',color:'#ffffff'},textColor:'#1f2328',fontSize:11,panes:{separatorColor:'#d0d7de',separatorHoverColor:'#afb8c1'}},
   grid:{vertLines:{color:'#f0f2f4'},horzLines:{color:'#f0f2f4'}},crosshair:{mode:0},rightPriceScale:{borderColor:'#d0d7de'},
   timeScale:{borderColor:'#d0d7de',timeVisible:D.iv!=='1d',secondsVisible:D.iv==='15s',rightOffset:PAD,fixLeftEdge:false,fixRightEdge:false,shiftVisibleRangeOnNewBar:true,lockVisibleTimeRangeOnResize:true},
@@ -160,7 +191,7 @@ function build(keep){const L=window.LightweightCharts;if(CH){CH.remove();CH=null
   S.cp60.priceScale().applyOptions({mode:1});S.cp60.createPriceLine({price:1,color:'#8c959f',lineWidth:1,lineStyle:2,axisLabelVisible:false,title:'1.0'});}
  const P=CH.panes();try{P[0].setStretchFactor(5);P[1].setStretchFactor(1.3);if(P[2])P[2].setStretchFactor(1.6);if(S.hasMo&&P[3])P[3].setStretchFactor(0.35);if(P[CPP])P[CPP].setStretchFactor(1.4);}catch(e){}
  CH.timeScale().subscribeVisibleLogicalRangeChange(edgesSoon);
- CH.subscribeCrosshairMove(tip);wheelPan();setData();if(keep)CH.timeScale().setVisibleLogicalRange(keep);else homeView();liveWalls(rowOf(K.sym));scnLines();edgesSoon();setTimeout(()=>{if(window.chartAfterBuild)chartAfterBuild();},250);}
+ CH.subscribeCrosshairMove(tip);wheelPan();setData();if(keep)CH.timeScale().setVisibleLogicalRange(keep);else homeView();liveWalls(rowOf(K.sym));scnLines();patDraw();edgesSoon();setTimeout(()=>{if(window.chartAfterBuild)chartAfterBuild();},250);}
 const cpv=x=>x==null?null:Math.max(0.05,Math.min(20,x));
 function pts(i){const b=D.bars[i],t=ct(b[0]),o={};const fl=b[7];
  o.c=fl===2||fl===3?{time:t,open:b[1],high:b[2],low:b[3],close:b[4],color:'#afb8c1',wickColor:'#afb8c1'}:{time:t,open:b[1],high:b[2],low:b[3],close:b[4]};
@@ -181,17 +212,17 @@ function applyDelta(n){// n = reply with bars from `since` (inclusive): replace 
  const ts=CH.timeScale(),vr=ts.getVisibleLogicalRange(),n0=D.bars.length,atEdge=!vr||vr.to>=n0-1.5;let j=D.bars.length-1;while(j>=0&&D.bars[j][0]>=t0)j--;
  const keep=j+1;D.bars=D.bars.slice(0,keep).concat(n.bars);D.walls=D.walls.slice(0,keep).concat(n.walls);D.cp=D.cp.slice(0,keep).concat(n.cp);D.mom=(D.mom||[]).slice(0,keep).concat(n.mom||n.bars.map(()=>null));
  for(const k in D.score)D.score[k]=D.score[k].slice(0,keep).concat((n.score||{})[k]||n.bars.map(()=>null));
- D.wall_events=n.wall_events;D.scn=n.scn;scnLines();D.gen_ms=n.gen_ms;D.notes=n.notes;D.sources=n.sources;D.n_total=n.n_total;
+ D.wall_events=n.wall_events;D.scn=n.scn;scnLines();D.pat=n.pat;D.gen_ms=n.gen_ms;D.notes=n.notes;D.sources=n.sources;D.n_total=n.n_total;
  const add=D.bars.length-n0,nr=vr?(atEdge?{from:vr.from+add,to:vr.to+add}:{from:vr.from,to:vr.to}):null;
  const hadCp=S.hasCp,nowCp=n.cp.some(x=>x&&(x[0]!=null||x[1]!=null));if(nowCp&&!hadCp){build(nr);return;}
  for(let i=keep;i<D.bars.length;i++){const o=pts(i);IDX.set(o.c.time,i);S.c.update(o.c);S.v.update(o.v);S.cw.update(o.cw);S.pw.update(o.pw);S.gf.update(o.gf);for(const k in S.sc)S.sc[k].update(o.sc[k]);if(S.hasCp){S.cp15.update(o.cp15);S.cp60.update(o.cp60);}if(S.mo)S.mo.update(o.mo);}
- S.ws.setData(wsPoints());if(nr)ts.setVisibleLogicalRange(nr);edgesSoon();}
+ S.ws.setData(wsPoints());if(nr)ts.setVisibleLogicalRange(nr);patDraw();edgesSoon();}
 function foot(ms,kb,live){const d=D;if(!d)return;const av=d.avail||{};const ivn=d.k>1?`1 bar = ${d.k} × ${d.iv}`:d.iv;
  const sc=Object.entries(d.sources.score||{}).map(([k,v])=>`${(window.scoreName?window.scoreName(k):({core:'Direction',light:'Light',full:'Full'})[k])}: ${v.length?v.join('; '):'none'}`).join(' · ');
  $('chfoot').innerHTML=`<span><b>${esc(d.sym)}</b> ${esc(ivn)} · ${esc(d.range)} = ${esc(d.from)} → ${esc(d.to)} · ${d.n_total} bars · ${esc(d.iv)} stored since <b>${esc(av[d.iv]||'?')}</b></span>`+
   (d.notes||[]).map(x=>`<span class="chnote">${esc(x)}</span>`).join('')+
   `<span>bars: ${esc((d.sources.bars||[]).join(', '))}</span><span>score: ${esc(sc)}</span><span>C/P: ${esc((d.sources.cp||[]).join(', ')||'none')}</span><span>momentum: ${esc((d.sources.mom||[]).join('; ')||'no history in this range')}</span><span>walls: ${esc((d.sources.walls||[]).join(', ')||'none')} (${(d.wall_events||[]).length} level changes)</span>`+
-  (d.scn?`<span title="Chart Bot CB-SCN-V1 primary, shadow only. calibrated_score runs hot on primaries (~44% est vs ~36% realized)">Chart Bot: ${esc(String(d.scn.label).replace(/_/g,' ').toLowerCase())} ${d.scn.score!=null?Math.round(d.scn.score*100)+'%':''} · ${esc(d.scn.status||'?')} (${esc(d.scn.status_src)}${d.scn.status_asof?', '+esc(d.scn.status_asof):''}) · run ${esc(d.scn.run||'?')}${(d.scn.alts||[]).length?' · alts: '+d.scn.alts.map(a=>esc(String(a.label).replace(/_/g,' ').toLowerCase())+' '+esc(a.status||'?')).join(', '):''}</span>`/*CBSTATUS*/:'<span class="mut">Chart Bot: no scenario for this ticker</span>')+
+  (d.scn?`<span title="Chart Bot CB-SCN-V1 primary, shadow only. calibrated_score runs hot on primaries (~44% est vs ~36% realized)">Chart Bot: ${esc(String(d.scn.label).replace(/_/g,' ').toLowerCase())} ${d.scn.score!=null?Math.round(d.scn.score*100)+'%':''} · ${esc(d.scn.status||'?')} (${esc(d.scn.status_src)}${d.scn.status_asof?', '+esc(d.scn.status_asof):''}) · run ${esc(d.scn.run||'?')}${(d.scn.alts||[]).length?' · alts: '+d.scn.alts.map(a=>esc(String(a.label).replace(/_/g,' ').toLowerCase())+' '+esc(a.status||'?')).join(', '):''}</span>`/*CBSTATUS*/:'<span class="mut">Chart Bot: no scenario for this ticker</span>')+patFoot()+
   `<span class="mut">${live?'live · ':''}server ${d.gen_ms} ms · ${ms} ms · ${kb} KB · ${new Date().toLocaleTimeString('en-US',{timeZone:'America/Los_Angeles'})} PT · drag / two-finger swipe / ← → = pan (axis runs ~2 h past the last candle) · Center = latest candle in the middle · wheel up/down or pinch = zoom · auto-follow only at the live edge · Shift+drag or ⬚ = box zoom · Esc closes</span>`;}
 function url(since){return `chart.json?sym=${encodeURIComponent(K.sym)}&iv=${K.iv}&range=${K.rng}&ext=${K.ext}`+(since!=null?`&since=${since}`:'');}
 function load(full){if(!OPEN||!window.LightweightCharts)return;clearTimeout(TIMER);paintCtl();const my=++REQ;const t0=performance.now();

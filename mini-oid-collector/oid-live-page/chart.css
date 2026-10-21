@@ -33,3 +33,9 @@ body.chopen{overflow:hidden}
 /* WALL SCALE (10/20): labelled edge markers for walls outside the visible price range */
 #chm #chedge{position:absolute;inset:0;pointer-events:none;z-index:4}
 #chm .che{position:absolute;background:#ffffffe8;border:1px solid;border-radius:4px;padding:0 5px;font-size:11px;font-weight:700;white-space:nowrap;font-variant-numeric:tabular-nums;pointer-events:auto;cursor:help}
+
+/* PATTERNS (10/21): shadow pattern tag */
+#chm #chpat{position:absolute;left:8px;top:6px;z-index:5;background:rgba(255,255,255,.9);border:1px solid #d0d7de;border-radius:6px;padding:3px 7px;font-size:11px;max-width:48%;line-height:1.55;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+#chpat .ptr{cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}#chpat .ptr.sel{background:#fff8c5}#chpat .pth{font-weight:600}
+#chpat .ptiv{cursor:pointer;margin-left:5px;padding:0 4px;border:1px solid #d0d7de;border-radius:4px;color:#57606a;font-weight:400}#chpat .ptiv.on{background:#ddf4ff;color:#0969da;border-color:#54aeff}
+#chpat .mut{color:#57606a;font-weight:400}
