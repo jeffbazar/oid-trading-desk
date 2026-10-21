@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow"><meta name="referrer" content="no-referrer">
+<meta name="color-scheme" content="light">
+<title>OID live page — Research (private)</title>
+<style>
+:root{color-scheme:light;--bg:#fff;--panel:#f6f8fa;--line:#d0d7de;--fg:#1f2328;--mut:#59636e;--blue:#0969da}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;padding:env(safe-area-inset-top) 12px 40px}
+header{position:sticky;top:0;z-index:5;background:var(--bg);padding:8px 0 6px;border-bottom:1px solid var(--line);display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center}
+h1.t{font-size:15px;margin:0}.tabs{margin-left:auto}.tabs a{display:inline-block;background:var(--panel);color:var(--fg);border:1px solid var(--line);padding:5px 12px;border-radius:6px;font-size:13px;text-decoration:none}
+.tabs a.on{background:var(--blue);border-color:var(--blue);color:#fff}
+.wrap{max-width:1250px;margin:0 auto}.intro{color:var(--mut);font-size:13px;margin:10px 0}
+.flt{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 10px}.flt button{font-size:12px;border:1px solid var(--line);background:#fff;border-radius:12px;padding:2px 10px;cursor:pointer}.flt button.on{background:#ddf4ff;border-color:var(--blue);color:var(--blue);font-weight:600}
+table{border-collapse:collapse;width:100%}th,td{border:1px solid var(--line);padding:6px 8px;vertical-align:top;text-align:left;font-size:13px}th{background:var(--panel);position:sticky;top:44px}
+td.t{min-width:230px;width:19%}td.d{white-space:nowrap;font-variant-numeric:tabular-nums}td.t b{display:block}td.t small{color:var(--mut)}
+.st{display:inline-block;font-size:11px;font-weight:700;border-radius:10px;padding:1px 8px;white-space:nowrap}
+.s-planned{background:#eef1f4;color:#57606a;border:1px dashed #8c959f}.s-promising{background:#dafbe1;color:#116329}.s-adopted{background:#ddf4ff;color:#0550ae}
+.s-mixed{background:#fff8c5;color:#7d4e00}.s-not-supported{background:#ffebe9;color:#a40e26}.s-insufficient{background:#f6f8fa;color:#59636e;border:1px solid var(--line)}
+.s-ongoing{background:#fbefff;color:#8250df}.s-rejected{background:#ffebe9;color:#82071e}
+a.f{white-space:nowrap}#doc{display:none;border:1px solid var(--line);border-radius:8px;padding:6px 16px 16px;margin:12px 0;background:#fff}
+#doc table{display:block;overflow-x:auto;width:auto}#doc th{position:static}#doc img{max-width:100%}#doc pre{background:var(--panel);padding:8px;overflow:auto}#doc code{background:var(--panel);padding:1px 4px;border-radius:4px}
+.dh{display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--line);padding:6px 0;margin-bottom:6px;position:sticky;top:44px;background:#fff}.dh button{margin-left:auto}
+@media (max-width:800px){table,thead,tbody,tr,td{display:block}thead{display:none}td{border:none;padding:3px 0}tr{border:1px solid var(--line);border-radius:8px;margin:8px 0;padding:8px}}
+</style></head><body>
+<header><h1 class="t">OID live volume</h1><span class="tabs"><a href="../../">Dashboard</a> <a href="../">Field Guide</a> <a href="./" class="on">Research</a></span></header>
+<div class="wrap">
+<p class="intro"><b>Studies we have run for the live page and the desk</b>, newest first. Every number comes from the linked file. Research and paper only. The list is built from <code>studies-index.json</code>, so a new study is one new entry. This is the live page's own list; Research Bot's registered studies (S1–S16, trader requests, DS1) are on <a id="rb" href="https://swift-dune-cs3e.here.now/#research" target="_blank" rel="noopener">swift-dune › Research ↗</a>.</p>
+<div class="flt" id="flt"></div>
+<div id="doc"></div>
+<table><thead><tr><th>Date</th><th>Study and question</th><th>Method and data</th><th>Headline result</th><th>Verdict</th><th>File</th></tr></thead><tbody id="tb"><tr><td colspan="6">loading…</td></tr></tbody></table>
+<p class="intro" id="foot"></p>
+</div>
+<script src="../vendor/marked.min.js"></script>
+<script>
+'use strict';
+const E=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const LBL={planned:'Planned','promising':'Promising',mixed:'Mixed',adopted:'Adopted / built','not-supported':'Not supported',insufficient:'Too little data',ongoing:'Ongoing',rejected:'Rejected'};
+let D=null,F='all';
+function fmtD(s){const [y,m,d]=s.split('-');return `${+m}/${+d}/${y}`;}
+function render(){const ss=[...D.studies].sort((a,b)=>b.date.localeCompare(a.date)).filter(s=>F==='all'||s.status===F);
+ document.getElementById('tb').innerHTML=ss.map(s=>`<tr id="s-${E(s.id)}"><td class="d">${fmtD(s.date)}</td><td class="t"><b>${E(s.title)}</b><small>${E(s.question)}</small></td><td>${E(s.method)}</td><td>${E(s.result)}</td><td><span class="st s-${E(s.status)}">${E(LBL[s.status]||s.status)}</span><br>${E(s.verdict)}</td><td><a class="f" href="#f=${encodeURIComponent(s.file)}">full file ▸</a>${(s.extra||[]).map(x=>`<br><a class="f" href="#f=${encodeURIComponent(x.file)}">${E(x.label)} ▸</a>`).join('')}</td></tr>`).join('')||'<tr><td colspan="6">none</td></tr>';
+ const cnt={};D.studies.forEach(s=>cnt[s.status]=(cnt[s.status]||0)+1);
+ document.getElementById('flt').innerHTML=[['all','All',D.studies.length],...Object.keys(LBL).filter(k=>cnt[k]).map(k=>[k,LBL[k],cnt[k]])].map(([k,l,n])=>`<button class="${F===k?'on':''}" onclick="F='${k}';render()">${E(l)} (${n})</button>`).join('');
+ document.getElementById('foot').textContent=`${D.studies.length} studies · index updated ${D.updated_pt} · files live in guide/research/files/ on the mini`;}
+async function showDoc(){const m=location.hash.match(/^#f=(.+)$/);const el=document.getElementById('doc');if(!m){el.style.display='none';return;}
+ const f=decodeURIComponent(m[1]);if(!/^files\/[\w.\-]+\.md$/.test(f)){el.style.display='none';return;}
+ el.style.display='block';el.innerHTML='loading…';try{const r=await fetch(f,{cache:'no-store'});const t=await r.text();
+ el.innerHTML=`<div class="dh"><b>${E(f.slice(6))}</b><a href="${E(f)}" target="_blank">raw</a><button onclick="location.hash=''">close ✕</button></div>`+(window.marked?marked.parse(t):`<pre>${E(t)}</pre>`);el.scrollIntoView();}catch(e){el.textContent='could not load '+f;}}
+fetch('studies-index.json',{cache:'no-store'}).then(r=>r.json()).then(j=>{D=j;if(j.research_bot)document.getElementById('rb').href=j.research_bot;render();showDoc();});
+addEventListener('hashchange',showDoc);
+</script></body></html>
