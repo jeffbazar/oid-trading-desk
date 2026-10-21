@@ -36,12 +36,17 @@ TABLE_COLUMNS: dict[str, list[tuple[str, str]]] = {
                   ("started_iso", "string"), ("finished_ns", "int64"), ("latency_ms", "float64"), ("http_status", "int32"),
                   ("n_items", "int32"), ("bytes", "int64"), ("rate_limit_limit", "int32"), ("rate_limit_remaining", "int32"),
                   ("rate_limit_reset_ns", "int64"), ("est_cost_usd", "float64"), ("error_class", "string"), ("error_msg", "string")],
+    # MOMSTATE (2026-10-20): live page momentum state, one row per change (oid-livepage writer)
+    "momentum_state": [("change_id", "string"), ("symbol", "string"), ("state", "string"), ("prev_state", "string"),
+                       ("raw_state", "string"), ("since_ep", "float64"), ("since_pt", "string"), ("held", "float64"),
+                       ("prov", "string"), ("first", "bool"), ("t_pt", "string"), ("detector_as_of_pt", "string"),
+                       ("src", "string")],
 }
 TABLE_COLUMNS = {k: v + COMMON for k, v in TABLE_COLUMNS.items()}
 
 KEYS = {"volume_5s": ("symbol", "bucket_start_ns"), "surges": ("surge_id",), "bars_1m": ("symbol", "bar_start_ns"),
         "bars_5m": ("symbol", "bar_start_ns"), "bars_15m": ("symbol", "bar_start_ns"), "bars_1h": ("symbol", "bar_start_ns"),
-        "bars_1d": ("symbol", "trade_date"), "fetch_log": ("fetch_id",)}
+        "bars_1d": ("symbol", "trade_date"), "fetch_log": ("fetch_id",), "momentum_state": ("change_id",)}
 
 
 def columns(table: str) -> list[str]:

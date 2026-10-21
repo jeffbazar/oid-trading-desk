@@ -6,7 +6,7 @@
 
 - Every number the desk shows during the day is saved to a file on the Mac mini with its own timestamp, so any second of the day can be replayed later.
 - The **core tickers** (about 61 streamed names) and the **144 Sector watch names** now save the **same kinds of rows**: 5-second volume bars, 1-minute bars (live and the final REST copy), Parquet copies with 5-min / 15-min / 1-hour rollups, 15-second C/P history, and a row for every direction-score change and every finished score hold.
-- Two things the Sector watch still does **not** have, by design: the momentum engine (ACCEL / DECEL / RESUME), and the old 15-minute score grid (`scores-*.jsonl`). The change and hold files replace the grid.
+- Two things the Sector watch still does **not** have, by design: the momentum engine (ACCEL / DECEL / RESUME; the core's momentum **state changes** are archived since 10/20 6:26 PM PT, see `momentum_state`), and the old 15-minute score grid (`scores-*.jsonl`). The change and hold files replace the grid.
 - The Sector watch **C/P is measured differently** (see "Why the Sector watch C/P is a tick test" below), and its walls come only from on-surge FlashAlpha pulls.
 - Raw stock and option prints are **not** saved one by one, for the core or the Sector watch. They are rolled up in memory into the 5-second buckets, 1-minute bars and 15 s / 60 s C/P windows, and those roll-ups are what's saved.
 
@@ -26,6 +26,7 @@ Sizes are bytes on disk for one full trading day (measured 10/19–10/20; Sector
 | Live options flow snapshot | `~/oid-optflow/data/optflow.json` | `~/oid-optflow/data/optflow-wide.json` (**new**) | rewritten every 1 s | `computed_at` (PT ISO), `computed_epoch`, `last_trade_t`, `last_recv` | overwritten (the 15 s history above is the archive) | ≈ 30 KB / 80 KB file |
 | Options contract set | `~/oid-optflow/data/optflow-subs.json` | `~/oid-optflow/data/optflow-wide-subs.json` (**new**) | every 15 min | `selected_at` (PT ISO) | overwritten | 32 KB / 96 KB |
 | Momentum events | `~/oid-desk/state/momentum/events-YYYYMMDD.jsonl`, `ticks-YYYYMMDD.jsonl` | not produced (momentum engine is core only) | on each event / bar | `time_pt` (`YYYY-MM-DD hh:mm:ss AM PT`) | kept | 2.5 + 1.7 MB |
+| Momentum state (**new 10/20, 6:26 PM PT**) | `~/oid-data/archive/momentum_state/date=YYYY-MM-DD/part-oid-livepage-N.jsonl` (ET date) | not produced (momentum engine is core only) | one row each time the Momentum state a ticker **shows on the page** changes (checked every second, incl. the 10-min quiet rule), plus the first state of each day | `event_ts_ns` / `event_ts_iso` (UTC), `t_pt` (PT), `since_ep` (epoch s, when the engine's flag started) | JSONL 90 days (deleted only once Parquet holds every row), Parquet forever (`archive/parquet/momentum_state/`, written by `com.oid.archive.main` 2:00 PM and `post` 5:15 PM) | < 1 MB a day |
 | Score grid (15 min + volume-surge rows) | `~/oid-data/score/scores-YYYYMMDD.jsonl` | not produced | 15-min grid + anchors + surge events | `t` (epoch s), `t_pt` | kept | 2.2 MB |
 | Score changes | `~/oid-data/score/changes-YYYYMMDD.jsonl` | light: `changes-wide-YYYYMMDD.jsonl`; full: `changes-widefull-YYYYMMDD.jsonl` (**new**) | checked every 5 s, one row only when the whole-number score changes (and the first score each day) | `t` (epoch s), `t_utc` (UTC, ms, `Z`), `t_pt`, plus `prev_start_*` | kept | ≈ 35–40 MB each |
 | Score holds | `episodes-YYYYMMDD.jsonl` | `episodes-wide-…`, `episodes-widefull-…` | one row when a score ends | `start_t`/`stop_t`/`peak_t`/`trough_t` (epoch s) with `_utc` and `_pt` twins | kept | ≈ 40 MB each |
@@ -223,6 +224,52 @@ Plus `last_trade_t`, `last_recv` (PT ISO), `contracts`, `mom.15s/60s` (`d` arrow
 | `definitions` | plain-text definitions used |
 
 Each stats block: `holds` (count), `pct_with` (% of holds whose `gain_bp` > 0, the "went with the score" rate), `median_gain_bp`, `mean_gain_bp`, `mean_peak_bp` (average `mfe_bp`), `mean_trough_bp` (average `mae_bp`), `median_hold_s`.
+
+### momentum_state (core, new 10/20)
+
+Written by the live page (`livepage.py`, `MomStateLog`), same layout as the other archive tables, so the existing compact (Parquet) and weekly integrity (90-day delete) jobs handle it. Read back by the chart's momentum lane ([30](30-chart.md)).
+
+| Column | Type | Meaning |
+|---|---|---|
+| `change_id` | text | `SYM-event_ts_ns`, the Parquet key |
+| `symbol` | text | ticker |
+| `state` | text | state shown on the page now: `accelerate`, `resume`, `decelerate`, `quiet` |
+| `prev_state` | text | state before this change (null on the first row of the day) |
+| `raw_state` | text | the engine's own last state (differs from `state` when the 10-min quiet rule applies) |
+| `since_ep`, `since_pt` | epoch s, text | when the engine's flag started |
+| `held` | price | the engine's held level |
+| `prov` | text | provisional flag from the forming bar, if any |
+| `first` | bool | first row for the name that day (or after the file was new) |
+| `t_pt` | text | when the page saw the change, PT |
+| `detector_as_of_pt` | text | the engine's `current.json` time at that moment |
+| `src` | text | engine writer, e.g. `momentum@0.1-shadow` |
+| `schema_version`, `event_ts_ns`, `event_ts_iso`, `ingest_ts_ns`, `ingest_ts_iso`, `writer` | | common archive columns (UTC) |
+
+Real row (10/20, first row written at 6:26:35 PM PT, after the close, so every name starts `quiet`):
+
+```json
+{
+ "change_id": "AAOI-1792545995328733952",
+ "symbol": "AAOI",
+ "state": "quiet",
+ "prev_state": null,
+ "raw_state": "quiet",
+ "since_ep": null,
+ "since_pt": null,
+ "held": 76.96,
+ "prov": null,
+ "first": true,
+ "t_pt": "2026-10-20 6:26:35 PM PT",
+ "detector_as_of_pt": "2026-10-20 12:59:53 PM PT",
+ "src": "momentum@0.1-shadow",
+ "schema_version": "v1",
+ "event_ts_ns": 1792545995328733952,
+ "event_ts_iso": "2026-10-21T01:26:35.328Z",
+ "ingest_ts_ns": 1792545995328733952,
+ "ingest_ts_iso": "2026-10-21T01:26:35.328Z",
+ "writer": "oid-livepage"
+}
+```
 
 ## Real example rows (copied from the mini, 10/20/2026)
 

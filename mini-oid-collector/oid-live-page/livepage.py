@@ -780,6 +780,81 @@ def _lvl(px, step):
 MOMENTUM = MomentumFeed()
 
 
+MOMLOG_ROOT = Path(os.environ.get("OID_LIVEPAGE_MOMLOG", str(HOME / "oid-data/archive")))  # MOMSTATE
+
+
+class MomStateLog:
+    """MOMSTATE (2026-10-20): one archive row each time the Momentum state a ticker SHOWS on the page changes
+    (accelerate / resume / decelerate / quiet, incl. the 10-min quiet rule), plus the first state of each ET day.
+    Written to ~/oid-data/archive/momentum_state/date=YYYY-MM-DD/part-oid-livepage-N.jsonl (ET date), same layout and
+    columns style as the other archive tables, so com.oid.archive.main/post compact it to Parquet and
+    com.oid.archive.weekly deletes JSONL after 90 days once Parquet holds every row. Read back by chart_backend.py."""
+    WRITER = "oid-livepage"
+
+    def __init__(self, root=MOMLOG_ROOT):
+        self.dir0 = root / "momentum_state"
+        self.day, self.path, self.last, self.errors, self.rows = None, None, {}, 0, 0
+
+    def _open_day(self, day):
+        d = self.dir0 / f"date={day}"
+        d.mkdir(parents=True, exist_ok=True)
+        last, seqs = {}, []
+        for f in sorted(d.glob("part-*.jsonl")):
+            if f.name.startswith(f"part-{self.WRITER}-"):
+                try:
+                    seqs.append(int(f.stem.rsplit("-", 1)[1]))
+                except ValueError:
+                    pass
+            try:  # restore the last logged state per name so a restart does not re-log unchanged names
+                for ln in f.read_text(errors="replace").splitlines():
+                    try:
+                        x = json.loads(ln)
+                        last[x["symbol"]] = x.get("state")
+                    except Exception:
+                        continue
+            except OSError:
+                pass
+        self.day, self.last = day, last
+        self.path = d / f"part-{self.WRITER}-{(max(seqs) + 1) if seqs else 1}.jsonl"
+
+    def note(self, rows, by, md, now):
+        try:
+            day = datetime.fromtimestamp(now, ET).strftime("%Y-%m-%d")
+            if day != self.day:
+                self._open_day(day)
+            out = []
+            ns = int(now * 1e9)
+            iso = datetime.fromtimestamp(now, timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3] + "Z"
+            tpt = datetime.fromtimestamp(now, PT).strftime("%Y-%m-%d %-I:%M:%S %p PT")
+            for r in rows:
+                m = r.get("mom")
+                if not m:
+                    continue
+                sym, stt = r["sym"], m.get("st")
+                prev = self.last.get(sym, "__none__")
+                if prev == stt:
+                    continue
+                x = by.get(sym) or {}
+                out.append({"change_id": f"{sym}-{ns}", "symbol": sym, "state": stt,
+                            "prev_state": None if prev == "__none__" else prev, "raw_state": m.get("raw"),
+                            "since_ep": m.get("t"), "since_pt": m.get("since_pt"), "held": m.get("held"),
+                            "prov": m.get("prov"), "first": prev == "__none__", "t_pt": tpt,
+                            "detector_as_of_pt": md.get("as_of_pt"), "src": md.get("writer") or "momentum",
+                            "schema_version": "v1", "event_ts_ns": ns, "event_ts_iso": iso, "ingest_ts_ns": ns,
+                            "ingest_ts_iso": iso, "writer": self.WRITER})
+                self.last[sym] = stt
+            if out:
+                with open(self.path, "a") as fh:
+                    fh.write("".join(json.dumps(o, separators=(",", ":")) + "\n" for o in out))
+                self.rows += len(out)
+        except Exception as e:
+            self.errors += 1
+            log(f"momstate log error: {type(e).__name__}")
+
+
+MOMLOG = MomStateLog()
+
+
 class Walls:
     def __init__(self):
         self.by, self.loaded_at, self.lock = {}, 0, threading.Lock()
@@ -1716,6 +1791,7 @@ class Engine:
                 if pv and now - (pv.get("ep") or 0) <= 60:
                     m["prov"] = pv.get("kind")
                 r["mom"] = m
+            MOMLOG.note(rows, by, md, now)  # MOMSTATE: archive on change
             mom_top = {"market": md.get("market"), "as_of_pt": md.get("as_of_pt"),
                        "age_s": round(now - md["as_of"]) if md.get("as_of") else None,
                        "recent": MOMENTUM.events(now), "quiet_s": MOM_QUIET_S, "pair_s": MOM_PAIR_S}

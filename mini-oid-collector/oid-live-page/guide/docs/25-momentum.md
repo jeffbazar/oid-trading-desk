@@ -49,5 +49,6 @@
 ## Data and limits
 
 - **Source files:** `~/oid-desk/state/momentum/current.json` and `events-YYYYMMDD.jsonl`; the page refreshes them with its normal live updates.
+- **State archive (new 10/20, 6:26 PM PT):** every change of the state shown on the page is logged to `~/oid-data/archive/momentum_state/` (90 days JSONL, Parquet forever; columns on [29](29-how-data-is-saved.md)). The [chart](30-chart.md) draws it as a ribbon under the score lane; 10/20 regular hours are derived from the engine's bar-close events.
 - **Lag:** the history is only one-minute bars, so the bar-close lag is up to about 60 s.
 - **Provisional flags:** these aren't tested yet. The job stores 15-second price samples (`ticks-YYYYMMDD.jsonl`) so they can be tested later.

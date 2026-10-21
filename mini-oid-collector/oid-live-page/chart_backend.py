@@ -37,6 +37,11 @@ STORE = {"core": HOME / "oid-desk/desk/cache/bars/store", "wide": HOME / "oid-qu
 SCORE_DIR = HOME / "oid-data/score"
 CP_DIR = {"core": HOME / "oid-optflow/data/cp-history", "wide": HOME / "oid-optflow/data/cp-history-wide"}
 WALL_HIST = HOME / "oid-data/walls-history"
+MOM_LOG = HOME / "oid-data/archive/momentum_state"            # MOMSTATE: live page change log (JSONL, 90 days)
+MOM_PQ = HOME / "oid-data/archive/parquet/momentum_state"     # MOMSTATE: Parquet copy (forever)
+MOM_EV = HOME / "oid-desk/state/momentum"                     # momentum engine events-YYYYMMDD.jsonl (derive fallback)
+MOM_CODE = {"accelerate": 3, "resume": 2, "decelerate": 1, "quiet": 0}
+MOM_QUIET_S = 600   # same rule as the live page: no new flag for 10 min -> quiet
 IV_S = {"15s": 15, "1m": 60, "5m": 300, "15m": 900, "1h": 3600, "1d": 86400}
 RANGE_D = {"1D": 0, "1W": 6, "1M": 30, "3M": 91, "YTD": None, "1Y": 365}
 MAX_BARS = int(os.environ.get("OID_CHART_MAX_BARS", "4000"))
@@ -443,6 +448,85 @@ def score_series(kind, sym, dates):
     return pts, walls, used
 
 
+def _mom_init():
+    return {}
+
+
+def _mom_fold(d, st):
+    sym, stt, ns = d.get("symbol"), d.get("state"), d.get("event_ts_ns")
+    if not sym or stt not in MOM_CODE or ns is None:
+        return
+    st.setdefault(sym, []).append((ns / 1e9, MOM_CODE[stt], d.get("since_ep")))
+
+
+def _momev_fold(d, st):
+    if d.get("basis") != "bar_close" or d.get("kind") not in ("accelerate", "resume", "decelerate"):
+        return
+    sym = d.get("symbol")
+    if not sym or sym == "MARKET":
+        return
+    try:
+        t = datetime.strptime(d["time_pt"], "%Y-%m-%d %I:%M:%S %p PT").replace(tzinfo=ZoneInfo("America/Los_Angeles")).timestamp()
+    except Exception:
+        return
+    st.setdefault(sym, []).append((t, MOM_CODE[d["kind"]], t))
+
+
+def _mom_derived(sym, d):
+    """Derived from the engine's bar-close events: state = last event kind, quiet after 10 min, quiet from the 9:30 ET open."""
+    ev = MOM_EV / f"events-{d.replace('-', '')}.jsonl"
+    if not ev.exists():
+        return None
+    st = tail(ev, _momev_fold, _mom_init) or {}
+    e = sorted(st.get(sym, []))
+    out = [(day_bounds(d)[0] + 9.5 * 3600, 0, None)]   # 9:30 AM ET open
+    for i, x in enumerate(e):
+        out.append(x)
+        nxt = e[i + 1][0] if i + 1 < len(e) else None
+        if nxt is None or nxt - x[0] > MOM_QUIET_S:
+            out.append((x[0] + MOM_QUIET_S, 0, x[0] + MOM_QUIET_S))
+    return out
+
+
+def mom_series(sym, dates):
+    """MOMSTATE. Per day: live change log (JSONL, else its Parquet copy) from its first row on; before the first logged
+    row (e.g. 10/20, logging began after the close) the state is derived from the engine's bar-close events."""
+    pts, used = [], []
+    for d in dates:
+        got, lab = [], None
+        dj = MOM_LOG / f"date={d}"
+        parts = sorted(dj.glob("part-*.jsonl")) if dj.exists() else []
+        for f in parts:
+            st = tail(f, _mom_fold, _mom_init)
+            if st and sym in st:
+                got += st[sym]
+        if got:
+            lab = "live change log"
+        else:
+            pq = MOM_PQ / f"date={d}"
+            if pq.exists() and any(pq.glob("*.parquet")):
+                try:
+                    rows = DB.execute("SELECT event_ts_ns, state, since_ep FROM read_parquet(?) WHERE symbol = ? ORDER BY event_ts_ns",
+                                      [str(pq / "*.parquet"), sym]).fetchall()
+                    got = [(r[0] / 1e9, MOM_CODE[r[1]], r[2]) for r in rows if r[1] in MOM_CODE]
+                    lab = "Parquet change log" if got else None
+                except Exception as e:
+                    log(f"mom parquet {d}: {type(e).__name__}")
+        got.sort(key=lambda x: x[0])
+        first = got[0][0] if got else None
+        der = _mom_derived(sym, d)
+        if der and (first is None or der[0][0] < first):
+            der = [x for x in der if first is None or x[0] < first]
+            if der:
+                pts += der
+                used.append(f"{d}: derived from engine events (bar closes)" + (f" until {datetime.fromtimestamp(first, ZoneInfo('America/Los_Angeles')):%-I:%M %p} PT" if first else ""))
+        if got:
+            pts += got
+            used.append(f"{d}: {lab}")
+    pts.sort(key=lambda x: x[0])
+    return pts, used
+
+
 def _cp_init():
     return {}
 
@@ -649,6 +733,11 @@ def build(req):
     cal60 = align_steps(bars, [(p[0], p[2], p[4]) for p in cpts if p[2] is not None], span, lambda p: p[1])
     cp = [None if (a is None and c is None) else [a[0][1] if a else None, c[0][1] if c else None,
                                                     a[0][2] if a else None, c[0][2] if c else None] for a, c in zip(cal15, cal60)]
+    mom, mom_used = [None] * len(bars), []
+    if tier == "core":
+        mpts, mom_used = mom_series(sym, sdates)
+        mal = align_steps(bars, mpts, span, lambda p: p[1])
+        mom = [None if a is None else [a[0][1], round(a[0][2], 1) if a[0][2] else None, a[3], a[1], a[2]] for a in mal]
     ev, wsrc = wall_events(sym, tier, sdates, req.get("cur_walls"), sw_all)
     wg = walls_on_grid(bars, ev, span)
     since = req.get("since")
@@ -672,9 +761,10 @@ def build(req):
         "from": frm, "to": last_day, "want_from": want_from, "avail": av, "today": today,
         "bars": out_b, "i0": i0, "n_total": len(bars),
         "score": {kk: v[i0:] for kk, v in lanes.items()},
-        "cp": cp[i0:], "walls": wg[i0:],
+        "cp": cp[i0:], "walls": wg[i0:], "mom": mom[i0:],
         "wall_events": [[round(e[0], 1), e[1], e[2], e[3], e[4]] for e in ev if e[0] >= t0 - WALL_MAX_AGE][-200:],
-        "sources": {"bars": sorted(srcs), "score": score_used, "cp": cp_used, "walls": wsrc},
+        "sources": {"bars": sorted(srcs), "score": score_used, "cp": cp_used, "walls": wsrc,
+                    "mom": mom_used if tier == "core" else ["momentum engine covers core names only"]},
         "notes": notes, "gen_ms": round((time.time() - t_start) * 1000, 1),
     }
     return data

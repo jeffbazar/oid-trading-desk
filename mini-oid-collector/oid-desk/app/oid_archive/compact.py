@@ -21,7 +21,7 @@ from .pq import parquet_keys, read_parquet_rows, write_table
 from .rollup import rollup
 from .schemas import KEYS, schema_json
 
-GENERIC = ("volume_5s", "surges", "fetch_log")
+GENERIC = ("volume_5s", "surges", "fetch_log", "momentum_state")  # MOMSTATE 10/20
 MAIN_SESS, POST_SESS = {"pre", "rth"}, {"post"}
 RTH_BUCKETS_FULL, RTH_BUCKETS_HALF = 4680, 2520
 

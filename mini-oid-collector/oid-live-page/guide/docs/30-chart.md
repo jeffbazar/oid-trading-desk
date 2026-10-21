@@ -17,9 +17,10 @@ Deep link (handy for bookmarks): `http://127.0.0.1:8791/#chart=NVDA/1m/1D` (also
 
 | Lane | What it shows | Colors |
 |---|---|---|
-| Price | Candles (OHLC) for the interval. **Call wall, put wall, flip as step lines** that change when the wall level changed, plus dashed lines with axis labels for the **live** levels the page shows right now. | green / red candles; call wall green, put wall red, flip amber dashed. Grey candles = pre/post 15 s bars priced from VWAP only, or "no trades" bars |
+| Price | Candles (OHLC) for the interval. **Call wall, put wall, flip as step lines** that change when the wall level changed, plus dashed lines with axis labels for the **live** levels the page shows right now. Walls do **not** stretch the price scale (see Price scale and walls). | green / red candles; call wall green, put wall red, flip amber dashed. Grey candles = pre/post 15 s bars priced from VWAP only, or "no trades" bars |
 | Volume | Shares per bar | green = close ≥ open, red = close < open |
 | Score | **Raw direction score** (−3…+3) as a step line, colored by the whole-number score. Core names: the core score. Sector watch names: **light** (dashed) and **full** (solid) | +3 dark green … 0 grey … −3 dark red; grid lines at 0 and ±2 |
+| Momentum | Thin ribbon under the score: momentum state at each bar's close (core names only; see below) | ACCEL dark green, RESUME light green, DECEL amber, quiet grey |
 | C/P | Aggressor C/P **15 s** (purple) and **1 m** (blue), log scale, line at 1.0. Only drawn when C/P history exists for the name and range | |
 
 **How lanes line up with price.** Every lane is put on the same bar grid as the candles: the value on a bar is **the last value known at that bar's close** (no look-ahead). The tooltip also shows the **range of scores inside the bar** and how many score changes happened in it, so nothing is hidden when several changes fall in one bar. Example: NVDA +1 → +2 at 7:00:01 AM (Field Guide page 29) shows on the 7:00 one-minute bar as "+2, range in bar +1…+2, 1 change".
@@ -39,6 +40,7 @@ The score and C/P are only drawn in **regular hours** (that's the only time they
 | **Center** | Put the latest candle in the middle of the chart, same zoom |
 | Drag | Pan. The chart is **not pinned to the right edge**: drag left to pull the last candle toward the middle (as on Robinhood); drag right to go back in time |
 | **Shift + drag**, or **⬚ Box zoom** then drag | Zoom to the dragged time span |
+| **Fit walls** | Off (default): the price scale fits the candles and off-screen walls show as edge markers. On: walls and flip are included in the scale |
 | **Last hour** | Zoom to the last 60 minutes, plus the ~2 h of future axis on the right |
 | **Reset** | Show the whole range again, with the default right-side space (see below) |
 | Crosshair tooltip | Time (PT), O/H/L/C, volume, score (whole number, raw, since when, range inside the bar), light/full for Sector watch, C/P 15 s and 1 m with print counts, call wall / put wall / flip at that bar |
@@ -62,6 +64,25 @@ The time axis **always runs about 2 hours of clock time past the latest candle**
 - **Why it didn't work before (6:01 PM PT report):** a Mac two-finger sideways swipe arrives as a wheel event. The chart library had wheel-scrolling off and read the swipe's small up/down part as **zoom**, so swiping zoomed instead of panning. Sideways-dominant swipes are now handled by the page and only pan. The axis also had no time points past the last bar, so it ended at the last candle.
 
 ![NVDA 5m 1D: Center puts the 4:55 PM PT candle in the middle; the axis runs on to 01:00](img/chart-preview-pan.png)
+
+## Price scale and walls (changed 10/20, 6:30 PM PT)
+
+**Before:** the call wall, put wall and flip lines were part of the price scale, so a far wall squashed the candles flat (CRWV at about 65 with walls at 70 and 60).
+
+**Now:**
+
+- The price scale **fits the candles** (plus a small margin: 6% top, 5% bottom). Wall and flip lines are still drawn where they are on screen, but they no longer stretch the scale.
+- A wall or flip **outside the visible price range** shows as a labelled marker at the **top or bottom edge** of the price lane, in the wall's color, with its distance from the last price: e.g. **▲ call wall 70.00 (+7.9%)** or **▼ put wall 60.00 (−7.6%)**. It uses the live level the page shows (else the last level in the wall history), and moves as you pan or zoom.
+- **Fit walls** (button, off by default, remembered) puts the walls back into the scale, so you can see all three with the candles.
+
+## Momentum lane (added 10/20, 6:30 PM PT)
+
+A thin color ribbon **under the score lane** shows the momentum state at each bar's close: **ACCEL** dark green, **RESUME** light green, **DECEL** amber, **quiet** grey (same colors as the page's Momentum chip, [25](25-momentum.md)). The tooltip adds "Momentum DECEL since 11:54:00 AM PT" and how many state changes fell inside the bar.
+
+![CRWV 1m: candles fill the lane, call wall 70 as a top-edge marker, momentum ribbon under the score](img/chart-walls-edge.png)
+
+- **Core names only** (the momentum engine doesn't run on Sector watch names). On a sector chart the tooltip says so and there is no ribbon.
+- **History:** from 10/20 6:26 PM PT the state comes from the new **momentum change log** ([29](29-how-data-is-saved.md)). Before that (10/20 regular hours) it is **derived from the engine's bar-close events**: state = last ACCEL / DECEL / RESUME flag, quiet after 10 min without a flag, quiet from the 9:30 ET open. The footer names the source per day. Bars with no history show no ribbon and the tooltip says "no momentum history for this bar".
 
 ## Live updating
 
