@@ -1,4 +1,4 @@
-# 19 · Sector groups and source tiles (heatmap, table, sector strip, VIX / IWM / WTI / Brent)
+# 19 · Sector groups and source tiles (heatmap, table, sector strip, rotation strip, VIX / IWM / WTI / Brent)
 [← Index](README.md)
 
 Tiles are grouped into sectors so rotation is easy to spot: for example semis hot and green while neoclouds sit grey and red.
@@ -7,6 +7,7 @@ Tiles are grouped into sectors so rotation is easy to spot: for example semis ho
 | Place | What you see |
 |---|---|
 | **Sector strip** (under the flow lean strip) | One chip per group: short name, average % change, average rvol (chip color = the same heat scale as tiles), and 🔥 count of hot tiles. Tap a chip to jump to that group. |
+| **Rotation strip** (row 2, directly under the sector strip; since 10/22 7:30 AM PT) | One chip per broad category, proxied by liquid ETFs: name, average % change, average rvol (same heat color), and 🔥 count of names at ≥3× rvol. Fixed order (growth/cyclical → defensive → macro), so positions never jump; read rotation from the colors and signs. Hover a chip for each ticker's raw % change and rvol. Chips don't click through (these ETFs have no tiles). See [Rotation strip](#rotation-strip-row-2) below. |
 | **Heatmap → Group by sector** (checkbox, **on by default**) | One section per group. Each section header shows the group summary (below). Tiles inside are ordered by the **Sort** dropdown (default Name A→Z). Untick to get the flat grid back. The page remembers the choice on that device. |
 | **Heatmap → sector sections** (since 10/20 7:45 PM PT) | After the core groups, one section per sector (16, from `wide-sectors.json`) with the 144 sector names as tiles. Grey card, dashed bar; header = count, avg % change, avg rvol, N surge, N move. **Click any group bar (core or sector) to fold it**; the page remembers folds on that device. See [4 · Sector-name tiles](04-tile-anatomy.md#sector-name-tiles). |
 | **Table view** | New **Group** column. With Group by sector on, rows are grouped with a summary row per group; the column you click sorts rows *inside* each group. |
@@ -45,6 +46,44 @@ flowchart LR
 | Every chip amber/red heat, all green % | Broad, heavy risk-on tape (index-led) |
 | Index chips grey, one group red heat | Sector-specific news; check X Summarizer/Research for the headline |
 | Group 15m net green but 5m net red | Call money earlier, last few minutes flipped to puts: early fade warning (soft) |
+
+## Rotation strip (row 2)
+The sector strip above covers the AI/tech groups the desk trades. Row 2 shows where money is going across the **whole market**, using one or two liquid ETFs per category. Config: the `"rotation"` list in `sectors.json` (order there = order on the page).
+
+| Chip | Ticker(s) | Data |
+|---|---|---|
+| Software | IGV | wide tier |
+| Banks | XLF, KBE | wide tier |
+| Regionals | KRE | wide tier |
+| Healthcare | XLV | wide tier |
+| Biotech | XBI | wide tier |
+| Energy | XLE | wide tier |
+| Utilities | XLU | wide tier |
+| Staples | XLP | wide tier |
+| Discretionary | XLY | wide tier |
+| Industrials | XLI | wide tier |
+| Materials | XLB | wide tier |
+| Real estate | XLRE | wide tier |
+| Comms | XLC | wide tier |
+| Small caps | IWM | wide tier (falls back to the 60 s IWM snapshot tile) |
+| Equal-weight | RSP | core stream |
+| Treasuries | TLT | wide tier |
+| Gold | GLD | wide tier |
+| Bitcoin | IBIT | wide tier |
+| Dollar | UUP | wide tier |
+
+**Where the numbers come from.** "Wide tier" = the collector's Alpaca SIP stream (trades + 1-min bars, no quotes), the same feed as the 144 sector names, read every 5 s. IGV, KBE, XLV, XLY, XLB, XLRE, XLC, UUP and IWM were added to `~/oid-quote/wide-allowlist.json` on 10/22 for this strip (same socket, no new data subscription). They're not in `wide-sectors.json`, so they don't add tiles or sector-watch alerts. RSP comes from the core rows (1 s).
+
+**Field by field.** % change = last vs the previous session close. rvol = 1-min live rvol (day rvol when the market is closed). A chip with two ETFs shows the plain mean of the two. Nothing is smoothed. A ticker with no data is left out of the mean; if none have data the chip shows `—`. A newly added ticker shows `—` until the collector builds its volume norms and prior close (a few minutes after it's added).
+
+**Reading it.**
+| Row 2 looks like | Read |
+|---|---|
+| Staples, Utilities, Healthcare, Treasuries green; Discretionary, Software, Small caps red | Defensive rotation (risk-off) |
+| Small caps, Regionals, Industrials, Discretionary green with high rvol; Treasuries red | Risk-on cyclical rotation |
+| Energy/Materials green, Treasuries red, Dollar up | Inflation/commodity trade |
+| Gold and Treasuries up, Bitcoin down | Flight to safety |
+| Equal-weight green while QQQ is red | Breadth is fine; the selling is concentrated in megacap tech |
 
 ## Current mapping (edit `sectors.json`)
 | Group | Tickers |

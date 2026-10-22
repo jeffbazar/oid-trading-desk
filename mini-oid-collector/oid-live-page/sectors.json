@@ -149,5 +149,142 @@
     "SPCX"
    ]
   }
- ]
+ ],
+ "rotation": [
+  {
+   "id": "r-software",
+   "name": "Software",
+   "tickers": [
+    "IGV"
+   ]
+  },
+  {
+   "id": "r-banks",
+   "name": "Banks",
+   "tickers": [
+    "XLF",
+    "KBE"
+   ]
+  },
+  {
+   "id": "r-regionals",
+   "name": "Regionals",
+   "tickers": [
+    "KRE"
+   ]
+  },
+  {
+   "id": "r-health",
+   "name": "Healthcare",
+   "tickers": [
+    "XLV"
+   ]
+  },
+  {
+   "id": "r-biotech",
+   "name": "Biotech",
+   "tickers": [
+    "XBI"
+   ]
+  },
+  {
+   "id": "r-energy",
+   "name": "Energy",
+   "tickers": [
+    "XLE"
+   ]
+  },
+  {
+   "id": "r-utilities",
+   "name": "Utilities",
+   "tickers": [
+    "XLU"
+   ]
+  },
+  {
+   "id": "r-staples",
+   "name": "Staples",
+   "tickers": [
+    "XLP"
+   ]
+  },
+  {
+   "id": "r-discretionary",
+   "name": "Discretionary",
+   "tickers": [
+    "XLY"
+   ]
+  },
+  {
+   "id": "r-industrials",
+   "name": "Industrials",
+   "tickers": [
+    "XLI"
+   ]
+  },
+  {
+   "id": "r-materials",
+   "name": "Materials",
+   "tickers": [
+    "XLB"
+   ]
+  },
+  {
+   "id": "r-realestate",
+   "name": "Real estate",
+   "tickers": [
+    "XLRE"
+   ]
+  },
+  {
+   "id": "r-comms",
+   "name": "Comms",
+   "tickers": [
+    "XLC"
+   ]
+  },
+  {
+   "id": "r-smallcaps",
+   "name": "Small caps",
+   "tickers": [
+    "IWM"
+   ]
+  },
+  {
+   "id": "r-equalwt",
+   "name": "Equal-weight",
+   "tickers": [
+    "RSP"
+   ]
+  },
+  {
+   "id": "r-treasuries",
+   "name": "Treasuries",
+   "tickers": [
+    "TLT"
+   ]
+  },
+  {
+   "id": "r-gold",
+   "name": "Gold",
+   "tickers": [
+    "GLD"
+   ]
+  },
+  {
+   "id": "r-bitcoin",
+   "name": "Bitcoin",
+   "tickers": [
+    "IBIT"
+   ]
+  },
+  {
+   "id": "r-dollar",
+   "name": "Dollar",
+   "tickers": [
+    "UUP"
+   ]
+  }
+ ],
+ "_rotation_note": "Row 2 of the sector strip (Rotation): broad categories via liquid ETF proxies, fixed order (risk-on -> defensive -> macro). Data from the collector wide tier (tickers must be in ~/oid-quote/wide-allowlist.json) or the core rows. A ticker may sit here AND in a group above (e.g. RSP). Edit + reload; Field Guide page 19."
 }

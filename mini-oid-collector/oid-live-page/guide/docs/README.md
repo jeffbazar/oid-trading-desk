@@ -71,7 +71,7 @@ flowchart LR
 | 15 | [Live trades](15-live-trades.md) | **retired** | Trader seats, marks, P&L, exits |
 | 16 | [Held option contracts](16-held-options.md) | **retired** | Volume printing in the contracts we hold |
 | 17 | [vol_surge events](17-vol-surge-events.md) | Logs (collapsed, bottom) | Log of every surge-and-break event |
-| 19 | [Sector groups & source tiles](19-sectors.md) | heatmap / table / strip | Tiles grouped by sector, group summaries, sector strip, editable mapping; VIX, IWM and WTI/Brent CME futures tiles |
+| 19 | [Sector groups & source tiles](19-sectors.md) | heatmap / table / strip | Tiles grouped by sector, group summaries, sector strip, rotation strip (row 2: broad categories via ETFs), editable mapping; VIX, IWM and WTI/Brent CME futures tiles |
 | 20 | [5m lean chip](20-lean5-chip.md) | tile chip | Last ~5 min of net call vs put premium (steps with each UW refresh) |
 | 21 | [15s / 1m C/P chips (live)](21-live-aggressor-chips.md) | tile chip | Live Alpaca OPRA aggressor call-buy ÷ put-buy premium, ~1 s behind the tape, with ▲/▼ momentum |
 | 22 | [C/P momentum spec](22-cp-momentum-spec.md) | tile chip | How the ▲ ▼ – arrow on the 15s/1m chips is computed |
@@ -93,6 +93,11 @@ flowchart LR
 | ? | [Glossary](glossary.md) | — | Short definitions |
 
 On a phone each sector card takes the full width with 3 tiles across, and the price is hidden to save space ([screenshot](img/page-phone.png)). The wall marks and chips stay; tap the edge scale for the wall tooltip.
+
+## What changed on 10/22/2026
+| Time (PT) | Change | Page |
+|---|---|---|
+| 7:30 AM | **Rotation strip**: a second row under the sector strip with 19 broad categories (Software, Banks, Regionals, Healthcare, Biotech, Energy, Utilities, Staples, Discretionary, Industrials, Materials, Real estate, Comms, Small caps, Equal-weight, Treasuries, Gold, Bitcoin, Dollar) via ETF proxies; same chip format, fixed order | [19](19-sectors.md#rotation-strip-row-2) |
 
 ## What changed on 10/20/2026 (evening)
 | Time (PT) | Change | Page |

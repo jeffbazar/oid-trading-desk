@@ -1249,6 +1249,7 @@ class WideWatch:
         self.flags = {}                     # sym -> (surge, mover) last tick (RTH crossings -> events)
         self.events = []                    # [{sym, sector, kind, t, time_pt, rvol, chg}]
         self.err = None
+        self.rq = {}                         # ROTATION: sym -> quick wide quote for the rotation strip
 
     def _sectors(self):
         try:
@@ -1549,6 +1550,30 @@ class WideWatch:
             rows.sort(key=lambda r: r["s"])
             groups.append({"id": g.get("id"), "name": g.get("name"), "rows": rows,
                            "n_sg": sum(1 for r in rows if r["sg"]), "n_mv": sum(1 for r in rows if r["mv"])})
+        try:  # ROTATION: quick quote for every rotation ticker on the wide tier (same rules as the rows above)
+            rq = {}
+            for g in rot_cfg():
+                for sym in g["tickers"]:
+                    v, ls = live.get(sym), last_s.get(sym) or {}
+                    if not v and not ls:
+                        continue
+                    use_live = bool(v) and (rth or v.get("day_date") == et_date or not ls)
+                    if use_live and not rth and ls and v.get("last") is None:
+                        use_live = False
+                    if use_live:
+                        last = v.get("last")
+                        prev = v.get("prev_close") or self._prev_close(sym, v.get("day_date") or et_date)
+                        rv, drv, mode = rnd(v.get("rvol_1m")), rnd(v.get("day_rvol")), "L"
+                    else:
+                        last = ls.get("close")
+                        prev = self._prev_close(sym, ls.get("date")) if ls.get("date") else None
+                        rv, drv, mode = None, rnd(ls.get("day_rvol")), "S"
+                    chg = rnd((last / prev - 1) * 100) if last and prev else None
+                    rq[sym] = {"p": rnd(last, 4), "c": chg, "r": rv, "dr": drv, "m": mode,
+                               "sg": bool(rth and rv is not None and rv >= WIDE_SURGE_RVOL)}
+            self.rq = rq
+        except Exception as e:
+            self.err = self.err or f"rotation error ({type(e).__name__})"
         if cross:
             self.events = (self.events + cross)[-200:]
         self.events = [e for e in self.events if now - e["t"] <= WIDE_BATCH_S]
@@ -1577,7 +1602,61 @@ class WideWatch:
         return True
 
 
+# ROTATION (2026-10-22): row 2 of the sector strip. Broad categories via ETF proxies from sectors.json "rotation".
+# Values come from the wide tier (collector SIP trades + 1-min bars, read every 5 s) or, for core names, the core rows.
+# Raw means only (no smoothing); a missing ticker is left out of the averages, never estimated.
+_ROT = {"m": None, "groups": []}
+
+
+def rot_cfg():
+    try:
+        m = SECTORS_FILE.stat().st_mtime
+    except OSError:
+        return []
+    if m != _ROT["m"]:
+        try:
+            d = json.loads(SECTORS_FILE.read_text())
+            _ROT["groups"] = [g for g in (d.get("rotation") or []) if isinstance(g, dict) and isinstance(g.get("tickers"), list)]
+        except Exception:
+            pass
+        _ROT["m"] = m
+    return _ROT["groups"]
+
+
+def build_rotation(rows, wq):
+    """[{id, name, n, chg, rv, hot, up, dn, t:[{s, p, c, r, src}]}] in config order. wq = WIDE.rq (sym -> wide quote)."""
+    core = {r.get("sym"): r for r in rows or []}
+    out = []
+    for g in rot_cfg():
+        ts = []
+        for sym in g["tickers"]:
+            w, r = (wq or {}).get(sym), core.get(sym)
+            if w and w.get("c") is not None:
+                ts.append({"s": sym, "p": w.get("p"), "c": w.get("c"), "r": w.get("r") if w.get("r") is not None else w.get("dr"),
+                           "hot": bool(w.get("sg")), "src": "wide" if w.get("m") == "L" else "wide-last"})
+            elif r and r.get("chg") is not None and not r.get("stale"):
+                rv = r.get("rvol") if r.get("rvol") is not None else r.get("day_rvol")
+                ts.append({"s": sym, "p": r.get("last"), "c": r.get("chg"), "r": rv, "hot": bool(r.get("hot")),
+                           "src": "core" if r.get("kind") != "ext" else "snapshot"})
+            else:
+                ts.append({"s": sym, "p": None, "c": None, "r": None, "hot": False, "src": None})
+        cs = [t["c"] for t in ts if t["c"] is not None]
+        rs = [t["r"] for t in ts if t["r"] is not None]
+        out.append({"id": g.get("id"), "name": g.get("name"), "n": len(cs),
+                    "chg": round(sum(cs) / len(cs), 2) if cs else None, "rv": round(sum(rs) / len(rs), 2) if rs else None,
+                    "hot": sum(1 for t in ts if t["hot"]), "up": sum(1 for c in cs if c > 0), "dn": sum(1 for c in cs if c < 0), "t": ts})
+    return out
+
+
 WIDE = WideWatch()
+
+
+def _safe_rotation(rows):
+    try:
+        return build_rotation(rows, WIDE.rq)
+    except Exception as e:
+        log(f"rotation error: {type(e).__name__}")
+        return []
 
 
 def vol_dir(v):
@@ -1958,6 +2037,7 @@ class Engine:
                 "ladder": LADDER.latest(10), "momentum": mom_top,
                 "walls": {k: self.walls.status.get(k) for k in ("last_pass_pt", "err", "reqs_today")},
                 "wide": WIDE.payload,
+                "rotation": _safe_rotation(rows),  # ROTATION
                 "dir_cfg": DIR_CFG,
                 "score_versions": SCOREV.get(),  # SCORENAMES
                 "vol_surge": {"mode": st.get("mode"), "gate": st.get("last_gate"), "updated_pt": st.get("updated_pt"),

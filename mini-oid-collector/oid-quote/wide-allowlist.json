@@ -147,6 +147,31 @@
   "USO",
   "ETHA",
   "LQD",
-  "IEF"
- ]
+  "IEF",
+  "IGV",
+  "KBE",
+  "XLV",
+  "XLY",
+  "XLB",
+  "XLRE",
+  "XLC",
+  "UUP",
+  "IWM"
+ ],
+ "rotation_added": {
+  "as_of_pt": "2026-10-22",
+  "symbols": [
+   "IGV",
+   "KBE",
+   "XLV",
+   "XLY",
+   "XLB",
+   "XLRE",
+   "XLC",
+   "UUP",
+   "IWM"
+  ],
+  "note": "Rotation strip (row 2 of the sector strip) ETF proxies not already in the wide tier. IWM is here because the core IWM tile is a 60 s snapshot (not on the core SIP stream), so this gives it live rvol. Same socket, trades + 1-min bars only, no new data subscription."
+ },
+ "symbols_n": 153
 }
