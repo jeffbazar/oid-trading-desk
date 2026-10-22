@@ -67,6 +67,34 @@ def iso_ep(s):
         return None
 
 
+def story_key(text):
+    """NEWSSORT: same-story key across sources (lowercase words, no punctuation/URLs, first 12 words)."""
+    w = re.sub(r"https?://\S+|[^a-z0-9 ]", " ", str(text or "").lower()).split()
+    return " ".join(w[:12])
+
+
+def newest_first(rows, text_key="headline"):
+    """NEWSSORT: strict newest-first by published UTC epoch `t` (tie-break id, so equal times never swap),
+    then drop the same story seen from another source (keeps the earliest publish, lists the other sources)."""
+    rows = sorted(rows, key=lambda r: (r.get("t") or 0, str(r.get("id"))))  # oldest first so the original wins
+    seen, out = {}, []
+    for r in rows:
+        k = story_key(r.get(text_key))
+        if k and k in seen:
+            o = seen[k]
+            src = r.get("source") or r.get("handle")
+            if src and src != (o.get("source") or o.get("handle")) and src not in o.setdefault("also", []):
+                o["also"].append(src)
+            continue
+        r = dict(r)
+        r.pop("also", None)
+        if k:
+            seen[k] = r
+        out.append(r)
+    out.sort(key=lambda r: (-(r.get("t") or 0), str(r.get("id"))))
+    return out
+
+
 def followed():
     try:
         d = json.loads(SECTORS.read_text())
@@ -248,14 +276,16 @@ class Feed:
             out.append(x)
             if len(out) >= KEEP_X:
                 break
-        return out
+        return newest_first(out, "text")  # NEWSSORT: pick the most-engaged posts, but list them newest first
 
     # ---- output
     def write(self):
         self._rollday()
         now = time.time()
-        allv = sorted(self.items.values(), key=lambda i: -i["t"])
+        allv = sorted(self.items.values(), key=lambda i: (-i["t"], str(i["id"])))  # NEWSSORT: published time, stable tie-break
         fol = [i for i in allv if i["followed"]]
+        panel_all = newest_first(allv)  # NEWSSORT: deduped copies for the panel only (badges/counts unchanged)
+        panel_fol = [i for i in panel_all if i["followed"]]
         by = {}
         for i in fol:
             for s in i["tickers"]:
@@ -286,7 +316,8 @@ class Feed:
                "source": "Alpaca news (Benzinga) websocket + REST backfill; X = x-on-surge archive (kept posts only)",
                "sentiment": {"method": NS.METHOD, "scale": "-2..+2 per ticker", "x_weight": X_WEIGHT, "window_min": 60},
                "status": self.st, "today": len(allv), "today_followed": len(fol),
-               "items": fol[:KEEP_FOLLOWED], "market": allv[:KEEP_MARKET], "x_top": self.x_top(), "by_sym": by,
+               "items": panel_fol[:KEEP_FOLLOWED], "market": panel_all[:KEEP_MARKET],
+               "order": "newest first by published time (t = UTC epoch seconds); same story across sources deduped", "x_top": self.x_top(), "by_sym": by,
                "followed": sorted(self.fol)}
         atomic(OUT / "latest.json", out)
         atomic(OUT / "status.json", dict(self.st, as_of_pt=out["as_of_pt"], today=len(allv), today_followed=len(fol)))

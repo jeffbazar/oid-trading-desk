@@ -149,6 +149,7 @@ section{margin-top:8px;padding:6px 8px}
 .nr{display:grid;grid-template-columns:58px 26px minmax(60px,max-content) 1fr auto;gap:0 6px;align-items:baseline;padding:2px 0;border-bottom:1px solid #eaeef2}
 .nr .tm{color:var(--mut);font-variant-numeric:tabular-nums}.nr a{color:var(--fg);text-decoration:none}.nr a:hover{text-decoration:underline;color:var(--blue)}
 .nr .so{color:var(--mut);font-size:10px;white-space:nowrap}.nr.fresh .tm{color:var(--blue);font-weight:700}
+.nr.nnew{animation:nnew 4s ease-out}@keyframes nnew{from{background:#fff8c5}to{background:transparent}}
 .tk{display:inline-block;font-size:9.5px;font-weight:700;padding:0 4px;margin-right:2px;border-radius:3px;border:1px solid var(--line);background:#fff;cursor:pointer}.tk.f{background:#ddf4ff;border-color:#54aeff88}
 .ss{display:inline-block;min-width:22px;text-align:center;font-size:10px;font-weight:800;padding:0 3px;border-radius:3px;border:1px solid #d0d7de;background:#f6f8fa;color:#59636e;font-variant-numeric:tabular-nums}
 .ss.p1{background:#dafbe1;color:#1a7f37;border-color:#1a7f3755}.ss.p2{background:#1a7f37;color:#fff;border-color:#116329}.ss.m1{background:#ffebe9;color:#cf222e;border-color:#cf222e55}.ss.m2{background:#cf222e;color:#fff;border-color:#a40e26}
@@ -346,15 +347,31 @@ function tks(list,fol){return (list||[]).slice(0,5).map(s=>`<span class="tk${fol
 function nTab(t){nT=t;try{localStorage.lvNewsTab=t}catch(e){}renderNews();}
 function nFilter(s){nSym=nSym===s?null:s;renderNews();}
 function nMin(){const n=$('news');n.classList.toggle('min');$('nminb').textContent=n.classList.contains('min')?'show':'hide';try{localStorage.lvNewsMin=n.classList.contains('min')?'1':'0'}catch(e){}}
+/* NEWSSORT (2026-10-22): one UTC epoch per item -> strict newest first (tie-break id), same story deduped,
+   time shown in PT from the epoch, and the list keeps your scroll spot when new items land above it. */
+const nPT=new Intl.DateTimeFormat('en-US',{timeZone:'America/Los_Angeles',hour:'numeric',minute:'2-digit'});
+const nPTf=new Intl.DateTimeFormat('en-US',{timeZone:'America/Los_Angeles',month:'short',day:'numeric',hour:'numeric',minute:'2-digit',second:'2-digit'});
+function nEp(i){let v=+i.t;if(v>1e15)v/=1e9;else if(v>1e11)v/=1e3;if(!(v>0)){const s=i.created_at||i.published_at;v=s?Date.parse(s)/1000:0;}return v>0?v:0;}
+function nTm(i){const v=nEp(i);return v?`<span class="tm" title="${E(nPTf.format(new Date(v*1000))+' PT · published')}">${E(nPT.format(new Date(v*1000)))}</span>`:'<span class="tm">—</span>';}
+function nKey(s){return String(s||'').toLowerCase().replace(/https?:\/\/\S+|[^a-z0-9 ]/g,' ').split(/\s+/).filter(Boolean).slice(0,12).join(' ');}
+function nSort(L,tk){const ids=new Set(),ks=new Set(),out=[];
+ [...(L||[])].sort((a,b)=>(nEp(a)-nEp(b))||String(a.id).localeCompare(String(b.id))).forEach(i=>{const id=String(i.id),k=nKey(i[tk]);if(ids.has(id)||(k&&ks.has(k)))return;ids.add(id);if(k)ks.add(k);out.push(i);});
+ return out.sort((a,b)=>(nEp(b)-nEp(a))||String(a.id).localeCompare(String(b.id)));}
+let nSeen=null,nSeenTab=null;
 function renderNews(){['f','a','x'].forEach(k=>$('nb'+k.toUpperCase()).className=nT===k?'on':'');
  if(!NW){$('nmeta').textContent='news feed not running';$('nlist').innerHTML='';return;}
  const S=NW.status||{};const age=NW.as_of?Math.round(Date.now()/1000-NW.as_of):null;const fol=new Set(NW.followed||[]);
  $('nmeta').innerHTML=`${NW.today_followed||0} followed / ${NW.today||0} today · Alpaca (Benzinga) ${S.ws==='connected'?'<span style="color:#1a7f37">live</span>':'<b style="color:#9a6700">'+E(S.ws||'?')+'</b>'}${age!=null&&age>60?' · <b style="color:#9a6700">'+ago(age)+' old</b>':''} · sentiment ${E((NW.sentiment||{}).method||'?')} · X ${(NW.x_top||[]).length}`;
  $('nflt').innerHTML=nSym?`filter <span class="tk f" onclick="nFilter('${E(nSym)}')">${E(nSym)} ✕</span>`:'';
  const now=Date.now()/1000;let rows;
- if(nT==='x'){rows=(NW.x_top||[]).filter(x=>!nSym||(x.tickers||[]).includes(nSym)).map(x=>`<div class="nr${now-x.t<=1800?' fresh':''}"><span class="tm">${E(x.time_pt)}</span>${sChip(x.sent,'sentiment ('+(x.sent_method||'')+', raw '+x.sent_raw+')')}<span>${tks(x.tickers,fol)}</span><a href="${E(x.url)}" target="_blank" rel="noopener noreferrer"><span class="xt">X</span>${E(x.text)}</a><span class="so">@${E(x.handle)} · ${E(x.tier||'')} · ♥${x.eng}</span></div>`);}
- else{const L=nT==='a'?(NW.market||[]):(NW.items||[]);rows=L.filter(i=>!nSym||(i.symbols||[]).includes(nSym)).map(i=>`<div class="nr${now-i.t<=1800?' fresh':''}"><span class="tm">${E(i.time_pt)}</span>${sChip(i.sent,'sentiment ('+(i.sent_method||'')+', raw '+i.sent_raw+')')}<span>${tks(nT==='a'?i.symbols:(i.tickers&&i.tickers.length?i.tickers:i.symbols),fol)}</span><a href="${E(i.url)}" target="_blank" rel="noopener noreferrer">${E(i.headline)}</a><span class="so">${E(i.source)}${i.via==='ws'?' · live':''}</span></div>`);}
- $('nlist').innerHTML=rows.join('')||'<div class="mut">No items'+(nSym?' for '+E(nSym):'')+' yet today.</div>';}
+ const box=$('nlist'),tabKey=nT+'|'+(nSym||''),old=nSeenTab===tabKey?nSeen:null,cur=new Set();let anc=null,ancTop=0;
+ if(box.scrollTop>0){const br=box.getBoundingClientRect();for(const el of box.children){const r=el.getBoundingClientRect();if(r.bottom>br.top+1&&el.dataset.id){anc=el.dataset.id;ancTop=r.top-br.top;break;}}}
+ const nc=id=>{cur.add(id);return old&&!old.has(id)?' nnew':'';};
+ if(nT==='x'){rows=nSort(NW.x_top,'text').filter(x=>!nSym||(x.tickers||[]).includes(nSym)).map(x=>`<div class="nr${now-nEp(x)<=1800?' fresh':''}${nc('x'+x.id)}" data-id="x${E(x.id)}">${nTm(x)}${sChip(x.sent,'sentiment ('+(x.sent_method||'')+', raw '+x.sent_raw+')')}<span>${tks(x.tickers,fol)}</span><a href="${E(x.url)}" target="_blank" rel="noopener noreferrer"><span class="xt">X</span>${E(x.text)}</a><span class="so">@${E(x.handle)} · ${E(x.tier||'')} · ♥${x.eng}</span></div>`);}
+ else{const L=nSort(nT==='a'?NW.market:NW.items,'headline');rows=L.filter(i=>!nSym||(i.symbols||[]).includes(nSym)).map(i=>`<div class="nr${now-nEp(i)<=1800?' fresh':''}${nc('n'+i.id)}" data-id="n${E(i.id)}">${nTm(i)}${sChip(i.sent,'sentiment ('+(i.sent_method||'')+', raw '+i.sent_raw+')')}<span>${tks(nT==='a'?i.symbols:(i.tickers&&i.tickers.length?i.tickers:i.symbols),fol)}</span><a href="${E(i.url)}" target="_blank" rel="noopener noreferrer">${E(i.headline)}</a><span class="so">${E(i.source)}${i.also&&i.also.length?' +'+E(i.also.join(', ')):''}${i.via==='ws'?' · live':''}</span></div>`);}
+ box.innerHTML=rows.join('')||'<div class="mut">No items'+(nSym?' for '+E(nSym):'')+' yet today.</div>';
+ if(anc){const el=box.querySelector(`[data-id="${CSS.escape(anc)}"]`);if(el){const br=box.getBoundingClientRect();box.scrollTop+=(el.getBoundingClientRect().top-br.top)-ancTop;}}
+ nSeen=cur;nSeenTab=tabKey;}
 function loadNews(){return fetch('news.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(d=>{NW=d;renderNews();}).catch(()=>{NW=null;renderNews();});}
 function newsBadge(r){const n=r.news;if(!n)return '';const fresh=n.n30>0;const net=n.net60;if(!fresh&&!(n.n60>0)&&!(n.x60>0))return '';
  const cls=net>=1?'pos':net<=-1?'neg':'';const t=`News: ${n.n30||0} headline(s) last 30 min, ${n.n60||0} last 60 min${n.x60?', '+n.x60+' X post(s)':''} · 60-min net sentiment ${net>0?'+':''}${net} (headlines ±2 each, X ×0.5)${n.h?' · latest '+n.t+' ('+(n.src||'')+', '+(n.s>0?'+':'')+n.s+'): '+n.h:''}`;

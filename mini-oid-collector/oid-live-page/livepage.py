@@ -1230,6 +1230,48 @@ class NewsFeed:
 NEWS = NewsFeed()
 
 
+def _news_epoch(r):
+    """NEWSSORT: one UTC epoch (seconds) per item, whatever the source wrote: t, created_ns, created_at/published_at ISO."""
+    for k in ("t", "ts", "published_t"):
+        v = r.get(k)
+        if isinstance(v, (int, float)) and v > 0:
+            return float(v) / (1e9 if v > 1e15 else 1e3 if v > 1e11 else 1)
+    if isinstance(r.get("created_ns"), (int, float)) and r["created_ns"] > 0:
+        return r["created_ns"] / 1e9
+    for k in ("published_at", "created_at", "time", "date"):
+        s = r.get(k)
+        if isinstance(s, str) and s:
+            try:
+                s2 = s.strip().replace("Z", "+00:00")
+                m = re.match(r"^(.*?T\d\d:\d\d:\d\d)(\.\d+)?(.*)$", s2)
+                if m:
+                    s2 = m.group(1) + (m.group(2) or "")[:7] + (m.group(3) or "")
+                d = datetime.fromisoformat(s2)
+                if d.tzinfo is None:
+                    d = d.replace(tzinfo=timezone.utc)
+                return d.timestamp()
+            except Exception:
+                pass
+    return 0.0
+
+
+def news_sorted(rows):
+    """NEWSSORT: strict newest-first by published time, stable tie-break on id, duplicate ids dropped."""
+    out, seen = [], set()
+    for r in rows or []:
+        if not isinstance(r, dict):
+            continue
+        k = str(r.get("id") or r.get("url") or "")
+        if k and k in seen:
+            continue
+        seen.add(k)
+        r = dict(r)
+        r["t"] = round(_news_epoch(r), 3)
+        out.append(r)
+    out.sort(key=lambda r: (-r["t"], str(r.get("id"))))
+    return out
+
+
 class WideWatch:
     """WIDE: sector-watch rows from the collector's wide tier (read-only). Compact payload, refreshed every 5 s."""
 
@@ -2542,7 +2584,9 @@ class H(BaseHTTPRequestHandler):
             if not d:
                 return self._send(503, json.dumps({"error": "news feed not running (com.oid.desk.news)"}), "application/json")
             body = {k: d.get(k) for k in ("as_of_pt", "as_of", "source", "sentiment", "status", "today", "today_followed",
-                                           "items", "market", "x_top", "followed")}
+                                           "items", "market", "x_top", "followed", "order")}
+            for k in ("items", "market", "x_top"):  # NEWSSORT: never trust producer order
+                body[k] = news_sorted(body.get(k))
             return self._send(200, json.dumps(body), "application/json")
         if path in ("/chart.js", "/chart.css"):  # CHART: page-side chart code (static, read-only)
             try:

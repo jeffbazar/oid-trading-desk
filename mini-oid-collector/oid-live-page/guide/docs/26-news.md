@@ -9,13 +9,17 @@
 | Source | How | Delay |
 |---|---|---|
 | **Alpaca news (Benzinga)** | Real-time websocket `v1beta1/news`, subscribed to everything and filtered to the names on this page. Today's headlines are backfilled from REST on startup, and REST is polled every 60 s as a safety net. | Seconds |
-| **X posts** | Read from the x-on-surge archive (posts fetched when a ticker surges). Only posts that passed the spam filter are shown, deduped by cluster and text, most-engaged first. | When a fetch ran |
+| **X posts** | Read from the x-on-surge archive (posts fetched when a ticker surges). Only posts that passed the spam filter are shown, deduped by cluster and text. The 25 most-engaged posts are picked, then listed newest first. | When a fetch ran |
 
 "Followed" means the tickers in `sectors.json` plus SPY and QQQ, minus WDC, STX, SNDK and the VIX/WTI/BRENT tiles.
 
 ## The panel (under the header)
 
 - **Followed / All market / X posts** tabs. Followed is the default. All market shows every headline today, including names that are not on the page.
+- **Order (all three tabs): strictly newest first by the time the story was published**, not when the mini fetched it. Every source is turned into one UTC timestamp first (Alpaca/Benzinga `created_at`, X post time), then sorted; equal times keep a fixed order, so rows never swap places. A headline the REST safety net catches a minute late slots in at its real publish time, which can be below newer rows.
+- **Same story, two sources:** if the same headline arrives from more than one source (for example Benzinga and fiscal.ai), it is shown once, at its earliest publish time, with the other source listed after it (`+fiscal.ai`). Tile badges and counts are not changed by this.
+- **Refresh (every 20 s) does not jump:** if you have scrolled down, the row you are reading stays where it is when new items land above it. New rows flash pale yellow for a few seconds.
+- The time is shown in PT, computed from that one timestamp. Hover the time to see the full date and seconds.
 - Each row shows the time (PT), the **sentiment chip**, ticker chips, the headline (click to open the source), and the source. Blue time = in the last 30 minutes.
 - Click a **ticker chip** to filter to that name; click it again (✕) to clear. **hide** collapses the panel and the page remembers that choice.
 
