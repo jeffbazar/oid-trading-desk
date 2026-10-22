@@ -32,6 +32,19 @@ svg{display:block;width:100%;font-size:10px}.lg{display:flex;gap:10px;flex-wrap:
 <span class="tabs" style="margin-left:auto"><a href="/">Live page</a> <a href="guide/">Field Guide</a> <a href="guide/research/">Research</a> <a href="credit" class="on">Credit &amp; Betas</a></span></header>
 <div id="err" class="pill bad" style="display:none;margin-top:8px"></div>
 
+<section id="dg"><h2>De-grossing gauge <span class="mut" style="font-weight:400">· is the hedge-fund de-grossing still on? · built to Research Bot's 10/22 backtest (detection caught 32 of 33 unwinds since 2017) · raw daily values, never smoothed · research only</span></h2>
+<div class="cards" id="dgc"></div>
+<div class="pill warn" style="display:block;white-space:normal;margin-top:8px;padding:5px 9px;border-radius:6px" id="dgcav"></div>
+<h2 style="margin-top:10px">Down-day check <span class="mut" style="font-weight:400">· last 5 SPY-down days: did GVIP (hedge-fund top holdings) beat SPY? Two ✓ in a row after the first trigger = exhaustion flag (<b>UNTESTED</b>)</span></h2>
+<div class="tw"><table id="dgd"></table></div>
+<h2 style="margin-top:10px">10-day sums, 6 months <span class="mut" style="font-weight:400">· dashed = trigger lines · red shading = armed (de-grossing episode) · raw values</span></h2>
+<div class="lg" id="dglg"></div>
+<svg id="dgch" viewBox="0 0 1000 240" preserveAspectRatio="none" style="height:240px"></svg>
+<h2 style="margin-top:10px">Supporting readings <span class="mut" style="font-weight:400">· other feeds on the mini · <b>not in the backtest and not used by the badge</b></span></h2>
+<div class="cards" id="dgs"></div>
+<h2 style="margin-top:10px">Last 20 sessions</h2>
+<div class="tw"><table id="dgt"></table></div><div class="fn" id="dgf" style="margin-top:6px"></div></section>
+
 <section><h2>Today's credit regime</h2><div class="cards" id="cards"></div></section>
 
 <section id="nc"><h2>Company credit <span class="mut" style="font-weight:400">· 5y CDS and bonds per name · <span class="pill ok">firsthand</span> DTCC public swap reports and FINRA TRACE bond prints · <span class="pill warn">secondhand · X</span> levels quoted in X posts (check the link) · NVDA and GOOGL are tagged <b>backer</b> to compare with CRWV</span></h2>
@@ -125,6 +138,46 @@ document.getElementById('dropb').onclick=e=>{DROP=!DROP;e.target.classList.toggl
 document.getElementById('expall').onclick=e=>{const all=CATS.every(([c])=>OPEN.has(c));CATS.forEach(([c])=>all?OPEN.delete(c):OPEN.add(c));localStorage.setItem('credOpen',JSON.stringify([...OPEN]));e.target.textContent=all?'Expand all':'Collapse all';table()};
 if(/[#&]open/.test(location.hash))CATS.forEach(([c])=>OPEN.add(c));if(/[#&]drop/.test(location.hash)){DROP=true;document.getElementById('dropb').classList.add('on')}
 if(/[#&]x\b/.test(location.hash)){XQ=true;document.getElementById('xq').classList.add('on')}  // /credit#x opens with QQQ removed
+// DEGROSS 10/22: de-grossing gauge (Research Bot spec; raw values from ~/oid-data/degross/latest.json; spec fields are decimals)
+function dg(J){const g=J.gauge,T=J.thresholds_10d,P=x=>x==null?'—':((x>0?'+':'')+(x*100).toFixed(2)+'%');
+ const cd=(k,v,s)=>`<div class="cd"><div class="k">${k}</div><div class="v">${v}</div><div class="k">${s}</div></div>`;
+ const bc=g.badge==='DE-GROSSING'?'widening':g.badge==='CLEAR'?'narrowing':'flat';
+ const line=(k,lbl,trig)=>{const v=g[k],t=T[k],hit=v!=null&&v<=t;return cd(lbl,P(v),`trigger ${P(t)} · ${hit?'<span class="pill bad">past the line</span>':'<span class="pill ok">inside</span>'}${trig?'':' · display only, not a trigger'} · today ${P(g[k.replace('_10d','')])}`)};
+ document.getElementById('dgc').innerHTML=
+  cd(`Badge (${E(J.date)})`,`<span class="reg ${bc}">${E(g.badge)}</span>`,g.armed?`episode day ${g.days_since_first_trigger} since first trigger ${E(g.first_trigger_date)} · triggered by ${E((g.triggered_by||[]).join(', ')||'none today')}`:'no trigger in the last 20 sessions')+
+  cd('Severity',g.severity==null?'—':(g.severity*100).toFixed(0)+'%',`MTUM−USMV 10-day sum vs its record low ${P(J.record_mtum_usmv_10d)} (2026-07)`)+
+  line('mtum_usmv_10d','MTUM − USMV, 10 days (headline)',1)+line('gvip_spy_10d','GVIP − SPY, 10 days',1)+line('cvu_10d','Crowded − uncrowded, 10 days',0)+line('mtum_spy_10d','MTUM − SPY, 10 days',1)+
+  cd('Selling-ending hint <span class="pill warn">UNTESTED</span>',g.badge==='EXHAUSTION FLAG'?'flag up':'no flag',g.flag_date?`flag fired ${E(g.flag_date)}${g.relapsed_since_flag?' · selling relapsed since':''}`:`GVIP ≥ SPY streak on down days: ${g.downdays_gvip_nonneg_streak}/2 · since ${E(J.episode_downdays.since||'—')}: GVIP beat SPY on ${J.episode_downdays.gvip_beat_spy} of ${J.episode_downdays.n} down days`);
+ document.getElementById('dgcav').textContent='Caveat: '+J.caveat;
+ document.getElementById('dgd').innerHTML='<tr><th>SPY-down day</th><th>SPY</th><th>GVIP</th><th>GVIP − SPY</th><th>GVIP beat SPY?</th></tr>'+J.downday_check.map(r=>`<tr><td>${E(r.date)}</td><td class="neg">${P(r.spy_ret)}</td><td class="${r.gvip_ret<0?'neg':''}">${P(r.gvip_ret)}</td><td class="${r.gvip_spy<0?'neg':''}">${P(r.gvip_spy)}</td><td style="text-align:center">${r.gvip_beat_spy?'<b style="color:var(--green)">✓</b>':'<b class="neg">✗</b>'}</td></tr>`).join('');
+ // chart
+ const Hh=J.history.slice(-126),n=Hh.length,X0=46,X1=992,Y0=8,Y1=216,K=[['mtum_usmv_10d','MTUM − USMV','#cf222e'],['gvip_spy_10d','GVIP − SPY','#0969da'],['cvu_10d','Crowded − uncrowded','#8250df']];
+ const all=K.flatMap(k=>Hh.map(r=>r[k[0]]).filter(x=>x!=null)).concat(K.map(k=>T[k[0]])),lo=Math.min(...all),hi=Math.max(0,...all);
+ const xs=scale(0,n-1,X0,X1),ys=scale(lo*100,hi*100,Y1,Y0),w=(X1-X0)/(n-1||1);let s='';
+ Hh.forEach((r,i)=>{if(r.armed)s+=`<rect x="${(xs(i)-w/2).toFixed(1)}" y="${Y0}" width="${(w+0.3).toFixed(2)}" height="${Y1-Y0}" fill="#ffebe9"/>`});
+ const dts=Hh.map(r=>r.date);let lm='';
+ ticks(lo*100,hi*100,6).forEach(v=>{const y=ys(v);s+=`<line x1="${X0}" x2="${X1}" y1="${y}" y2="${y}" stroke="#d0d7de" stroke-width="0.6"/><text x="${X0-4}" y="${y+3}" text-anchor="end" fill="#59636e">${v}%</text>`});
+ dts.forEach((d,i)=>{const m=d.slice(0,7);if(m!==lm){s+=`<text x="${xs(i)}" y="${Y1+12}" text-anchor="middle" fill="#59636e">${m}</text>`}lm=m});
+ s+=`<line x1="${X0}" x2="${X1}" y1="${ys(0)}" y2="${ys(0)}" stroke="#59636e" stroke-width="0.8"/>`;
+ K.forEach(k=>{s+=`<line x1="${X0}" x2="${X1}" y1="${ys(T[k[0]]*100)}" y2="${ys(T[k[0]]*100)}" stroke="${k[2]}" stroke-width="0.8" stroke-dasharray="5 4" opacity="0.7"/>`;
+  s+=`<path d="${path(Hh.map(r=>r[k[0]]==null?null:r[k[0]]*100),xs,ys)}" fill="none" stroke="${k[2]}" stroke-width="1.4"/>`});
+ document.getElementById('dgch').innerHTML=s;
+ document.getElementById('dglg').innerHTML=K.map(k=>`<span><span class="sw" style="background:${k[2]}"></span>${k[1]} (last ${P(g[k[0]])}, line ${P(T[k[0]])})</span>`).join('')+'<span>pale red = armed</span>';
+ // supporting
+ document.getElementById('dgs').innerHTML=
+  cd('Desk basket: crowded AI − laggards',P(g.desk_cvu),`crowded ${P(g.desk_crowded_ret)} · uncrowded ${P(g.desk_uncrowded_ret)} · ${E(J.baskets.desk_crowded.join(' '))} vs ${E(J.baskets.desk_uncrowded.join(' '))}`)+
+  cd('Desk crowded − SMH',P(g.desk_crowded_minus_smh),`SMH ${P(g.smh_ret)} · ${g.desk_names_worse_than_smh}/12 names worse than SMH`)+
+  cd('VIX / VIX3M',`${f(g.vix,2)} / ${f(g.vix3m,2)}`,`ratio ${f(g.vix_vix3m,3)} · ${g.vix_inverted==null?'—':g.vix_inverted?'<span class="pill bad">inverted</span>':'<span class="pill ok">not inverted</span>'}`)+
+  cd('25Δ put skew, QQQ / SMH',`${f(g.qqq_skew25_volpts,2)} / ${f(g.smh_skew25_volpts,2)}`,`vol pts, put − call (UW) · expiry ${E(g.skew_expiry)}`)+
+  cd('Short-volume ratio, desk crowded',`${f(g.shortvol_ratio_pct,2)}%`,`FINRA ${E(g.shortvol_date)} · prior 20-day mean ${f(g.shortvol_prior20_mean_pct,2)}% · market-maker shorts included`)+
+  cd('SOXL creations / redemptions',g.soxl_shares_change==null?'—':sg(g.soxl_shares_change/1e6,2)+'M sh',`${E(g.soxl_flow_date)} · ≈ $${g.soxl_flow_usd==null?'—':f(g.soxl_flow_usd/1e6,0)+'M'} · + = inflow`)+
+  cd('Borrow fee, desk crowded (mean)',g.borrow_fee_mean_pct==null?'—':f(g.borrow_fee_mean_pct,3)+'%','UW borrow archive');
+ const H=J.history.slice(-20).reverse(),c=x=>`<td class="${x!=null&&x<0?'neg':''}">${P(x)}</td>`;
+ let h='<tr><th>Date</th><th>Badge</th><th>Trig</th><th>SPY</th><th>QQQ</th><th>GVIP−SPY</th><th>MTUM−SPY</th><th>MTUM−USMV</th><th>Cr−Unc</th><th>MTUM−USMV 10d</th><th>GVIP−SPY 10d</th><th>MTUM−SPY 10d</th><th>Cr−Unc 10d</th><th>Sev</th><th>VIX/VIX3M</th></tr>';
+ for(const r of H)h+=`<tr><td>${E(r.date)}</td><td><span class="pill ${r.badge==='DE-GROSSING'?'bad':r.badge==='CLEAR'?'ok':'warn'}">${E(r.badge)}</span></td><td style="text-align:center">${r.trigger?'●':''}${r.exhaust_flag?' ⚑':''}</td>${c(r.spy_ret)}${c(r.qqq_ret)}${c(r.gvip_spy)}${c(r.mtum_spy)}${c(r.mtum_usmv)}${c(r.cvu)}${c(r.mtum_usmv_10d)}${c(r.gvip_spy_10d)}${c(r.mtum_spy_10d)}${c(r.cvu_10d)}<td>${r.severity==null?'—':(r.severity*100).toFixed(0)+'%'}</td><td>${f(r.vix_vix3m,3)}</td></tr>`;
+ document.getElementById('dgt').innerHTML=h;
+ document.getElementById('dgf').innerHTML=`<b>Rules.</b> ${J.rules.map(E).join(' ')}<br><b>Validation.</b> ${E(J.validation.detection)}. Exhaustion flag: ${E(J.validation.exhaustion_flag)}. <b>Survivorship:</b> ${E(J.validation.survivorship)}.<br><b>Baskets.</b> ${E(J.baskets.note)} Spec crowded today: ${E(g.crowded_members||'—')} (${g.universe_eligible} eligible).<br>${J.notes.map(E).join(' ')} Episode numbers count from the start of the mini's data window, not the study's. Sources: bars ${E(J.sources.bars)}; VIX ${E(J.sources.vix)}, VIX3M ${E(J.sources.vix3m)}; ${E(J.sources.skew)}; ${E(J.sources.short_volume)}; ${E(J.sources.soxl_flow)}. Files <code>~/oid-data/degross/degrossing_gauge.csv</code> (append-only), <code>degross-YYYYMMDD.json</code>, <code>latest.json</code> · job <code>com.oid.desk.degross</code> (Mon–Fri 13:50 and 17:45 PT) · ${J.rows} sessions ${E(J.first_date)}…${E(J.date)} · <a href="guide/">Field Guide 38</a>.<br><b>Last updated:</b> ${E(J.built_pt)} (data through ${E(J.date)}).`}
+fetch('degross.json',{cache:'no-store'}).then(r=>r.ok?r.json():Promise.reject(r.status)).then(dg).catch(e=>{document.getElementById('dgc').innerHTML='<div class="cd">De-grossing gauge unavailable: '+E(e)+'</div>'});
 // NAMECREDIT 10/21: company credit section (raw values from ~/oid-data/research/name-credit/latest.json)
 function nc(N){const O=['CRWV','NVDA','GOOGL','ORCL','META','AMZN','MSFT','NBIS','IREN','APLD','WULF','CIFR','CORZ'];
  const KEY={CRWV:['21873SAB4','21873SAC2','21873SAK4']};let h=`<tr><th>Name</th><th>Role</th><th>DTCC 5y CDS (bp)</th><th>prev</th><th>method</th><th>X print (bp) <span class="pill warn">secondhand</span></th><th>refers to</th><th>author</th><th>Bonds (FINRA TRACE)</th></tr>`;

@@ -2672,6 +2672,11 @@ class H(BaseHTTPRequestHandler):
                 return self._send(200, (Path.home() / "oid-data/research/name-credit/latest.json").read_bytes(), "application/json")
             except OSError:
                 return self._send(404, json.dumps({"error": "no name-credit data yet (com.oid.desk.name-credit)"}), "application/json")
+        if path == "/degross.json":  # DEGROSS 10/22: selloff gauge for /credit
+            try:
+                return self._send(200, (Path.home() / "oid-data/degross/latest.json").read_bytes(), "application/json")
+            except OSError:
+                return self._send(404, json.dumps({"error": "no selloff-gauge data yet (com.oid.desk.degross)"}), "application/json")
         if path in ("/research", "/research/"):  # RESEARCHTAB
             self.send_response(302)
             self.send_header("Location", "/guide/research/")

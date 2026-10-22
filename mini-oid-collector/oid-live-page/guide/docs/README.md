@@ -89,6 +89,7 @@ flowchart LR
 | 34 | [Chart-pattern detector](34-pattern-detector.md) | shadow | Live 1m/5m/30m pattern detection, backtest base rates, nightly grading, chart markers and the Patterns column <!-- PATTERNS-1021 --> |
 | 36 | [Credit & Betas tab](36-credit-betas.md) | Credit & Betas button | Credit regime (HYG/IEF terciles, HY/IG OAS), 20/60/120d category beta and correlation to QQQ, SMH, megacaps, NVDA and LRCX, charts <!-- CREDITTAB -->
 | 37 | [Company credit](37-company-credit.md) | Credit & Betas → Company credit | Per-name 5y CDS (DTCC public trades, firsthand; X prints, secondhand) and FINRA bond yields; NVDA/GOOGL tagged backer <!-- NAMECREDIT -->
+| 38 | [De-grossing gauge](38-degrossing-gauge.md) | Credit & Betas → De-grossing gauge | DE-GROSSING / EXHAUSTION FLAG (untested) / CLEAR badge, severity, MTUM−USMV, GVIP−SPY and crowded−uncrowded 10-day sums vs trigger lines, down-day check <!-- DEGROSS -->
 | ★ | [Signal walkthroughs](18-walkthroughs.md) | — | Call-lean surge vs put-lean surge vs conflict, with examples |
 | ? | [Glossary](glossary.md) | — | Short definitions |
 
