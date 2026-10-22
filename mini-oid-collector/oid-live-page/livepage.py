@@ -2543,6 +2543,11 @@ class H(BaseHTTPRequestHandler):
                 return self._send(200, credit_payload(), "application/json")
             except Exception as e:
                 return self._send(404, json.dumps({"error": f"no spread-corr data yet (com.oid.desk.spread-corr): {type(e).__name__}"}), "application/json")
+        if path == "/name-credit.json":  # NAMECREDIT 10/21: company credit (DTCC CDS, X CDS prints, FINRA bond yields) for /credit
+            try:
+                return self._send(200, (Path.home() / "oid-data/research/name-credit/latest.json").read_bytes(), "application/json")
+            except OSError:
+                return self._send(404, json.dumps({"error": "no name-credit data yet (com.oid.desk.name-credit)"}), "application/json")
         if path in ("/research", "/research/"):  # RESEARCHTAB
             self.send_response(302)
             self.send_header("Location", "/guide/research/")

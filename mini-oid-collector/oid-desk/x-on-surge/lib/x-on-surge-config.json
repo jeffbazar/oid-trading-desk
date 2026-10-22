@@ -57,7 +57,9 @@
   "big_move_reserve_usd": 0.75,
   "big_move_bps": 50,
   "reserve_release_pt": "12:30",
-  "kill_file": "~/oid-data/state/x/STOP"
+  "kill_file": "~/oid-data/state/x/STOP",
+  "reserve_other_usd": 0.3,
+  "reserve_other_note": "NAMECREDIT 10/21: kept out of x-on-surge's daily allowance for com.oid.desk.name-credit (own cap $0.30/day; ledger state/x/name_credit_budget.json)"
  },
  "stages_by_share_of_today_allowance": [
   {

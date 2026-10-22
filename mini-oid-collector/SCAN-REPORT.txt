@@ -4,6 +4,6 @@ scrubbed (file -> placeholder): 0
 HARD findings (fail): 0
 soft findings (review; long hex/base64): 4
   oid-live-page/guide/research/files/spread-corr-daily-20261021.md:29 long base64 (>=40) <masked 53 chars>
-  oid-live-page/guide/docs/36-credit-betas.md:26 long base64 (>=40) <masked 53 chars>
+  oid-live-page/guide/docs/36-credit-betas.md:27 long base64 (>=40) <masked 53 chars>
   oid-live-page/vendor/lightweight-charts.standalone.production.js:7 long base64 (>=40) <masked 45 chars>
   oid-live-page/vendor/lightweight-charts.standalone.production.js:7 long base64 (>=40) <masked 45 chars>

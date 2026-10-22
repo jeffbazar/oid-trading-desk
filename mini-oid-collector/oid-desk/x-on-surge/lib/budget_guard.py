@@ -5,17 +5,25 @@ actual estimate (fetch_log.est_cost_usd = n_posts*0.005 + n_users*0.010)."""
 import json, os
 H=os.path.dirname(os.path.abspath(__file__)); CFG=json.load(open(H+'/x-on-surge-config.json'))
 P=CFG['pricing_assumption']; C=CFG['caps']
+def _ext_month():
+    try:
+        import datetime as _dt
+        d=json.load(open(os.path.expanduser("~/oid-data/state/x/name_credit_budget.json")))
+        return float(d.get("month_spent") or 0) if d.get("month")==_dt.datetime.now().strftime("%Y-%m") else 0.0
+    except Exception: return 0.0
 class Guard:
     def __init__(s, month_spent=0.0, trading_days_left=22):
         s.last_fetch={}     # symbol -> (ns, fetch_id), for skipped:recent
         s.month_spent=month_spent; s.days_left=max(1,trading_days_left); s.day_spent=0.0; s.surges=0; s.requests=0; s.sweep_spent=0.0
-        s.allow=min(C['x_daily_usd_cap'], (C['x_monthly_usd_cap']-month_spent)/s.days_left)*C['safety_margin']
+        # NAMECREDIT 10/21: other X jobs (name_credit.py) get reserve_other_usd/day kept out of this allowance, and their
+        # month spend (ledger ~/oid-data/state/x/name_credit_budget.json) counts toward the monthly pacing.
+        s.ext_month=_ext_month(); s.allow=min(C['x_daily_usd_cap'], (C['x_monthly_usd_cap']-month_spent-s.ext_month)/s.days_left)*C['safety_margin']-float(C.get('reserve_other_usd',0))
     def enabled(s): return bool(CFG.get('fetch_enabled', False))        # v0.3: fetching OFF until Jeffrey/Rose switch it on after the seal
     def recent(s, sym, now_ns):
         """v1.1 x_fetch_status skipped:recent: same symbol fetched within dedupe.reuse_if_last_fetch_within_s -> reuse that fetch_id."""
         lf=s.last_fetch.get(sym)
         return lf[1] if lf and now_ns-lf[0] <= CFG['dedupe']['reuse_if_last_fetch_within_s']*1e9 else None
-    def stopped(s): return os.path.exists(os.path.expanduser(C['kill_file'])) or s.month_spent>=C['x_monthly_usd_cap']*C['safety_margin'] or s.day_spent>=s.allow
+    def stopped(s): return os.path.exists(os.path.expanduser(C['kill_file'])) or s.month_spent+getattr(s,'ext_month',0)>=C['x_monthly_usd_cap']*C['safety_margin'] or s.day_spent>=s.allow
     def stage(s):
         share=s.day_spent/s.allow if s.allow>0 else 1
         for st in CFG['stages_by_share_of_today_allowance'][:-1]:

@@ -17,8 +17,8 @@ import optflow as OF
 PT = ZoneInfo("America/Los_Angeles")
 OUT = H / "oid-data/research/spread-corr"; (OUT / "fred").mkdir(parents=True, exist_ok=True)
 START_FETCH, START_OUT = "2023-06-01", "2024-10-01"
-WINS = (20, 60, 120); BENCH = ["QQQ", "SMH", "META", "MSFT", "GOOGL", "AMZN", "ORCL", "LRCX"]
-HYPER = ["META", "MSFT", "GOOGL", "AMZN", "ORCL"]  # also get QQQ-removed (residual) beta/corr: xbeta/xcorr
+WINS = (20, 60, 120); BENCH = ["QQQ", "SMH", "META", "MSFT", "GOOGL", "NVDA", "AMZN", "ORCL", "LRCX"]  # NVDA 10/21: CRWV backer (stake + capacity backstop)
+HYPER = ["META", "MSFT", "GOOGL", "NVDA", "AMZN", "ORCL"]  # also get QQQ-removed (residual) beta/corr: xbeta/xcorr
 # ---- categories: reuse the read-through/catbeta membership; heavy-debt = desk list (catbeta's SEC split + CORZ)
 try:
     CAT = json.loads((H / "oid-data/patterns/catbeta-20261021.json").read_text())["categories"]; CAT_SRC = "catbeta-20261021.json"
