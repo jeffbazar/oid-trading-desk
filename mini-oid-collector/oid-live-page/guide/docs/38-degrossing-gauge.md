@@ -3,8 +3,6 @@
 
 > Added **Thu 10/22/2026, 3:05 PM PT**. Shown as the **De-grossing gauge** section at the top of the `/credit` tab ([36](36-credit-betas.md)). Data endpoint: `/degross.json`. Built to Research Bot's 10/22 backtest and spec (copy in `~/oid-score/research/degross-study/`). Research only, not an order signal.
 
-Jump to: [Plain-English lessons](#plain-english-lessons-what-these-numbers-mean) · the same lessons are in the **How to read this** panel on `/credit`.
-
 ## Plain-English lessons: what these numbers mean
 
 <!-- DGTUT 10/22 -->
