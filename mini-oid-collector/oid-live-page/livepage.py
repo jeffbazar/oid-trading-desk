@@ -2337,6 +2337,45 @@ def chart_query(qs):
     return 200, rep["data"]
 
 
+
+# CREDITTAB (2026-10-21): Credit & Betas tab. Read-only view of ~/oid-data/research/spread-corr (com.oid.desk.spread-corr).
+CREDIT_DIR = Path.home() / "oid-data/research/spread-corr"
+CREDIT_SERIES = ["date", "regime", "hyg_ief", "hyg_ief_chg20_pct", "hy_oas", "neocloud__META__beta20", "memory__META__beta20",
+                 "neocloud__QQQ__beta20", "memory__QQQ__beta20"]
+_CREDIT_CACHE = {"key": None, "body": None}
+
+
+def credit_payload():
+    """latest.json + the chart columns of spread_corr_daily.csv (raw values, no smoothing); cached on file mtimes."""
+    import csv as _csv
+    from datetime import date as _date
+    lj, cv = CREDIT_DIR / "latest.json", CREDIT_DIR / "spread_corr_daily.csv"
+    key = (lj.stat().st_mtime, cv.stat().st_mtime)
+    if _CREDIT_CACHE["key"] == key:
+        return _CREDIT_CACHE["body"]
+    latest = json.loads(lj.read_text())
+    ser = {c: [] for c in CREDIT_SERIES}
+    with open(cv, newline="") as f:
+        for row in _csv.DictReader(f):
+            for c in CREDIT_SERIES:
+                v = row.get(c, "")
+                if c in ("date", "regime"):
+                    ser[c].append(v or None)
+                else:
+                    try:
+                        ser[c].append(float(v))
+                    except ValueError:
+                        ser[c].append(None)
+    sp = latest.get("spreads") or {}
+    stale = None
+    try:
+        stale = (_date.fromisoformat(latest["date"]) - _date.fromisoformat(sp["hy_oas_obs_date"])).days
+    except Exception:
+        pass
+    body = json.dumps({"latest": latest, "series": ser, "fred_stale_days": stale}, separators=(",", ":"))
+    _CREDIT_CACHE.update(key=key, body=body)
+    return body
+
 class H(BaseHTTPRequestHandler):
     server_version = "oid-livepage/1.0"
 
@@ -2488,6 +2527,22 @@ class H(BaseHTTPRequestHandler):
                 return self._send(200, json.dumps(body), "application/json")
             except Exception:
                 return self._send(404, json.dumps({"error": "no patterns live.json yet (com.oid.desk.patterns)"}), "application/json")
+        if path == "/credit":  # CREDITTAB: Credit & Betas tab
+            try:
+                return self._send(200, (HERE / "credit.html").read_bytes(), "text/html; charset=utf-8")
+            except OSError:
+                return self._send(404, "no credit.html", "text/plain")
+        if path == "/credit/":
+            self.send_response(302)
+            self.send_header("Location", "/credit")
+            self.send_header("Content-Length", "0")
+            self.end_headers()
+            return
+        if path == "/credit.json":  # CREDITTAB: spread-corr latest + chart series
+            try:
+                return self._send(200, credit_payload(), "application/json")
+            except Exception as e:
+                return self._send(404, json.dumps({"error": f"no spread-corr data yet (com.oid.desk.spread-corr): {type(e).__name__}"}), "application/json")
         if path in ("/research", "/research/"):  # RESEARCHTAB
             self.send_response(302)
             self.send_header("Location", "/guide/research/")
