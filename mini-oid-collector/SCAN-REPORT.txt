@@ -2,6 +2,7 @@ known secret values loaded: 12 (from 6 secret stores; values never printed)
 binary files checked for known values: 33
 scrubbed (file -> placeholder): 0
 HARD findings (fail): 0
-soft findings (review; long hex/base64): 2
+soft findings (review; long hex/base64): 3
+  oid-live-page/guide/research/files/spread-corr-daily-20261021.md:29 long base64 (>=40) <masked 53 chars>
   oid-live-page/vendor/lightweight-charts.standalone.production.js:7 long base64 (>=40) <masked 45 chars>
   oid-live-page/vendor/lightweight-charts.standalone.production.js:7 long base64 (>=40) <masked 45 chars>
