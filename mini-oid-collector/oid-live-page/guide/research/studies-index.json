@@ -1,18 +1,29 @@
 {
  "schema": "oid-studies-index/1",
- "updated_pt": "2026-10-20 PT (LEARN-1021)",
+ "updated_pt": "2026-10-21 6:53 PM PT",
  "note": "Append a study by adding one object (newest first is not required; the page sorts by date). status: planned | promising | mixed | adopted | not-supported | insufficient | ongoing | rejected. Use only real numbers from the study file.",
  "research_bot": "https://swift-dune-cs3e.here.now/#research",
  "studies": [
   {
+   "id": "overnight-hold",
+   "date": "2026-10-21",
+   "title": "Overnight hold: 12:55 PM \u2192 next open, shares vs 45-DTE calls (core 61, 60 nights)",
+   "status": "mixed",
+   "question": "Most gains came overnight. Does buying at 12:55 PM PT and selling at the 6:30 open (or 6:45) beat buy-and-hold and intraday after costs, as shares or 45-DTE calls?",
+   "method": "Alpaca SIP 5-min + daily bars, 61 core tickers, entries 7/28\u201310/20. Shares with 3\u20134 bp round-trip cost. 45-DTE ATM and 0.35\u0394 calls modelled with Black-Scholes, real 10/21 OPRA IV and bid-ask (constant IV, wider open spread assumed). Earnings nights from Unusual Whales. Filters: close in top 25% of range, score / C/P lean (2 nights only), earnings.",
+   "result": "EW basket shares \u2192 6:30: +8.39% net (Sharpe 1.29, max DD \u221210.8%) vs buy-and-hold +8.28% (1.05, \u221215.3%) and intraday \u22123.20%. Top 5 of 60 nights = 210% of P&L. Ex-earnings +8.24%. 45-DTE calls lose after spread: \u221219% (ATM) to \u221230% (0.35\u0394) of premium per night across all names; liquid 9: \u22120.8% to \u22126.4% per night; mid to mid +0.6% to +1.2%.",
+   "verdict": "Shares overnight \u2248 buy-and-hold with less drawdown and beats intraday, but the drift sits in a few nights and is in-sample. Options do not pay after spread. Not a trading change.",
+   "file": "files/overnight-hold-20261021.md"
+  },
+  {
    "id": "score-learning-plan",
    "date": "2026-10-20",
-   "title": "Score learning plan (feature registry → labels → shadow models)",
+   "title": "Score learning plan (feature registry \u2192 labels \u2192 shadow models)",
    "status": "built",
    "question": "How do we archive every input and its result so the scores can be retrained and get better as data sources are added?",
    "method": "Inspection of the score change/episode logs, oid_archive tables, replay and scorecard code, C/P, walls, momentum and news archives on the mini.",
-   "result": "Plan only. Every score change already stores its inputs and context; missing are a fixed 15 s feature table, a label table (15 s to 30 min best/worst move, direction hit, wall touch), an experiment log and drop-one replays. Models go hand weights → logistic regression → small trees, walk-forward by day, shadow first, promoted only after beating the current score on 10+ days. Steps 1–4 need nothing paid.",
-   "verdict": "Steps 1–4 built 10/20 evening (feature registry, 15 s score_features, nightly score_labels, experiments log + drop-one/add-one replays). Steps 5–8 (shadow challengers, promotion) not built.",
+   "result": "Plan only. Every score change already stores its inputs and context; missing are a fixed 15 s feature table, a label table (15 s to 30 min best/worst move, direction hit, wall touch), an experiment log and drop-one replays. Models go hand weights \u2192 logistic regression \u2192 small trees, walk-forward by day, shadow first, promoted only after beating the current score on 10+ days. Steps 1\u20134 need nothing paid.",
+   "verdict": "Steps 1\u20134 built 10/20 evening (feature registry, 15 s score_features, nightly score_labels, experiments log + drop-one/add-one replays). Steps 5\u20138 (shadow challengers, promotion) not built.",
    "file": "files/score-learning-plan-20261020.md"
   },
   {
@@ -21,9 +32,9 @@
    "title": "Light score on the 144 sector names (5 s replay of 10/20)",
    "status": "promising",
    "question": "Does the light score (trend + volume + market only) call direction on the sector names, and where?",
-   "method": "score_replay_wide.py re-ran 10/20 every 5 s for 144 names (light-v1.0-20261021): 15,090 holds. Graded on 1-minute bars (no sector 5 s bars). Scorecard sections: score alone, × surge, held-before-acting, × sector.",
-   "result": "±3 came up 683 times and was right 43% at once. Holding ±3 for 5 minutes before acting: right 54.3% (219 holds). ±3 with a volume surge, held 5 minutes: right 67.5% (40 holds). Best sectors for ±3: Energy 52.9% (34), Materials/Mining 51.1% (45), Financials 50% (42). All nonzero scores: 38.8%.",
-   "verdict": "Promising for held ±3, but one day and 1-minute bars only. Keep logging.",
+   "method": "score_replay_wide.py re-ran 10/20 every 5 s for 144 names (light-v1.0-20261021): 15,090 holds. Graded on 1-minute bars (no sector 5 s bars). Scorecard sections: score alone, \u00d7 surge, held-before-acting, \u00d7 sector.",
+   "result": "\u00b13 came up 683 times and was right 43% at once. Holding \u00b13 for 5 minutes before acting: right 54.3% (219 holds). \u00b13 with a volume surge, held 5 minutes: right 67.5% (40 holds). Best sectors for \u00b13: Energy 52.9% (34), Materials/Mining 51.1% (45), Financials 50% (42). All nonzero scores: 38.8%.",
+   "verdict": "Promising for held \u00b13, but one day and 1-minute bars only. Keep logging.",
    "file": "files/scorecard-wide-20261020-replay.md"
   },
   {
@@ -33,8 +44,8 @@
    "status": "mixed",
    "question": "If we only act when a score has held for W seconds, is it right more often?",
    "method": "score_replay_changes.py re-ran 10/20 every 5 s for the core names (13,094 holds, median hold 40 s), graded on 5-second bars with no look-ahead; daily_scorecard.py held-before-acting table (W = 0/15/30/60/120/300 s).",
-   "result": "All nonzero scores were right 38% of the time. ±2 went from 37% at once to 43.2% after a 30 s wait (782 holds). ±2 with a volume surge held 2 minutes: 61.5% of 26 holds. ±3 did not improve (34.8% → 22.2% at 30 s, 27 holds).",
-   "verdict": "Waiting helps ±2 a little; the surge row is a small sample. Not enough to act on.",
+   "result": "All nonzero scores were right 38% of the time. \u00b12 went from 37% at once to 43.2% after a 30 s wait (782 holds). \u00b12 with a volume surge held 2 minutes: 61.5% of 26 holds. \u00b13 did not improve (34.8% \u2192 22.2% at 30 s, 27 holds).",
+   "verdict": "Waiting helps \u00b12 a little; the surge row is a small sample. Not enough to act on.",
    "file": "files/scorecard-20261020-replay5s.md"
   },
   {
@@ -43,7 +54,7 @@
    "title": "Does live C/P agreeing with the score help? (same 10/20 replay)",
    "status": "not-supported",
    "question": "Is the core score right more often when the 1-minute C/P points the same way?",
-   "method": "Same 5 s replay and scorecard, section 'score × C/P agrees'.",
+   "method": "Same 5 s replay and scorecard, section 'score \u00d7 C/P agrees'.",
    "result": "When C/P agreed: right 41.8% (4,210 holds). When C/P disagreed: 46% (845 holds). When C/P was missing (thin): 30.6%.",
    "verdict": "Not supported on 10/20: agreement did not help. Having any C/P reading at all did.",
    "file": "files/scorecard-20261020-replay5s.md"
@@ -51,10 +62,10 @@
   {
    "id": "momentum-x-score",
    "date": "2026-10-20",
-   "title": "Score × momentum state (same 10/20 replay)",
+   "title": "Score \u00d7 momentum state (same 10/20 replay)",
    "status": "mixed",
    "question": "Does the momentum engine's state change how often the core score is right?",
-   "method": "Same 5 s replay and scorecard, section 'score × momentum state'.",
+   "method": "Same 5 s replay and scorecard, section 'score \u00d7 momentum state'.",
    "result": "DECEL: right 46.7% (2,131 holds). Quiet: 34.8% (5,554). RESUME: 39.6% (260). ACCEL: 31.3% (163).",
    "verdict": "Unexpected (decelerating did best, accelerating worst). One day; recheck before using.",
    "file": "files/scorecard-20261020-replay5s.md"
@@ -65,8 +76,8 @@
    "title": "Wall magnet: is price pulled to the call or put wall?",
    "status": "not-supported",
    "question": "Above the call wall price gets pulled into it; above the put wall into that; otherwise it sits in limbo unless volume picks up. True?",
-   "method": "82,190 ticker-minutes over 325 ticker-days (9/25–10/20), FlashAlpha walls harvested from 1,045 stored snapshots (latest earlier the same day, no look-ahead), 1-minute SIP bars, compared with a no-magnet chance rate.",
-   "result": "Just above the call wall, price touched it 46.9% within 5 min vs 44.9% by chance; just above the put wall 9.2% vs 9.9%. No extra 'limbo' away from walls. A 1-minute rvol of 3× or more roughly triples breakout odds everywhere: away from walls, 15-minute breakouts go from 8.7% to 26.7%.",
+   "method": "82,190 ticker-minutes over 325 ticker-days (9/25\u201310/20), FlashAlpha walls harvested from 1,045 stored snapshots (latest earlier the same day, no look-ahead), 1-minute SIP bars, compared with a no-magnet chance rate.",
+   "result": "Just above the call wall, price touched it 46.9% within 5 min vs 44.9% by chance; just above the put wall 9.2% vs 9.9%. No extra 'limbo' away from walls. A 1-minute rvol of 3\u00d7 or more roughly triples breakout odds everywhere: away from walls, 15-minute breakouts go from 8.7% to 26.7%.",
    "verdict": "Mostly not supported. Volume is the real switch.",
    "file": "files/wall-magnet-20261020.md"
   },
@@ -76,8 +87,8 @@
    "title": "Where the FlashAlpha calls go",
    "status": "adopted",
    "question": "Which jobs use the 2,500-a-day FlashAlpha quota, and will the full-day wall refresh fit?",
-   "method": "Rebuilt from mini logs and X-RateLimit-Remaining after each call (quota day 5 PM–5 PM PT).",
-   "result": "About 2,122 of 2,500 calls used by 4:32 PM PT: VIX ~700 (33%), oil futures 450 (21%), walls 325 (15%, started 11:20 AM), agent routines ~650 (31%). A full wall day projects to ~2,850, over the cap. Free changes could save 1,300–1,500 calls a day.",
+   "method": "Rebuilt from mini logs and X-RateLimit-Remaining after each call (quota day 5 PM\u20135 PM PT).",
+   "result": "About 2,122 of 2,500 calls used by 4:32 PM PT: VIX ~700 (33%), oil futures 450 (21%), walls 325 (15%, started 11:20 AM), agent routines ~650 (31%). A full wall day projects to ~2,850, over the cap. Free changes could save 1,300\u20131,500 calls a day.",
    "verdict": "Walls were not the big user; VIX and futures were. Free savings listed; nothing bought.",
    "file": "files/wall-data-sources-20261020.md"
   },
@@ -98,8 +109,8 @@
    "title": "Sector options universe (which 144 names to add)",
    "status": "adopted",
    "question": "Which liquid option names in each sector should the live page scan?",
-   "method": "Unusual Whales stock screener ~12:55 PM PT 10/20; 30-day average option volume, core ≥ 20k contracts/day.",
-   "result": "270 rows screened, 197 core; starter list of 144 names (≤10 per sector) across 16 sectors. WDC, STX and SNDK excluded.",
+   "method": "Unusual Whales stock screener ~12:55 PM PT 10/20; 30-day average option volume, core \u2265 20k contracts/day.",
+   "result": "270 rows screened, 197 core; starter list of 144 names (\u226410 per sector) across 16 sectors. WDC, STX and SNDK excluded.",
    "verdict": "Adopted: these are the sector names in the Table view.",
    "file": "files/sector-options-universe-20261020.md"
   },
@@ -108,9 +119,9 @@
    "date": "2026-10-20",
    "title": "Direction score first look (15-minute grading, live 10/20)",
    "status": "insufficient",
-   "question": "Does the −3…+3 score line up with forward returns at 5 minutes to the close?",
+   "question": "Does the \u22123\u2026+3 score line up with forward returns at 5 minutes to the close?",
    "method": "1,610 live score rows on 10/20 (61 tickers, config v1-20261019) graded at +5 m to the close; 10/19 replayed as a backfill.",
-   "result": "On 10/20 the score ran opposite to forward returns: nonzero hit rate 34% at 5 m, 32% at 1 h, 27.5% at the close; correlation of raw score with the close return −0.39. One session of correlated tickers. Research Bot's DS1 check: INSUFFICIENT_DATA.",
+   "result": "On 10/20 the score ran opposite to forward returns: nonzero hit rate 34% at 5 m, 32% at 1 h, 27.5% at the close; correlation of raw score with the close return \u22120.39. One session of correlated tickers. Research Bot's DS1 check: INSUFFICIENT_DATA.",
    "verdict": "An anecdote, not evidence. Led to the 5 s change log and hold-based grading.",
    "file": "files/score-study-20261020-sanity.md"
   },
@@ -121,16 +132,16 @@
    "status": "not-supported",
    "question": "Jeffrey saw MU's 15 s C/P lead price. Does it predict the next minute?",
    "method": "Alpaca historical OPRA trades sided with the tick rule, 15 s windows, MU and CRWV full session 10/19; checked against the live chip (77% side agreement).",
-   "result": "C/P moves with price in the same minute (correlation about 0.4–0.6) but not the next minute (MU −0.008, CRWV −0.01). Ratio > 1 then next minute up: MU 48% vs a 46% base. CRWV's big ratios were mostly thin data (15% of windows had $0 put buys).",
+   "result": "C/P moves with price in the same minute (correlation about 0.4\u20130.6) but not the next minute (MU \u22120.008, CRWV \u22120.01). Ratio > 1 then next minute up: MU 48% vs a 46% base. CRWV's big ratios were mostly thin data (15% of windows had $0 put buys).",
    "verdict": "Confirmation, not a lead.",
    "file": "files/mu-cp15-vs-price-20261019.md"
   },
   {
    "id": "aggressor-design",
    "date": "2026-10-19",
-   "title": "Real-time options aggressor at 10–15 s: how to build it",
+   "title": "Real-time options aggressor at 10\u201315 s: how to build it",
    "status": "adopted",
-   "question": "How can we see call/put buying and selling live, every 10–15 s, without a new subscription?",
+   "question": "How can we see call/put buying and selling live, every 10\u201315 s, without a new subscription?",
    "method": "Vendor and API review; Alpaca OPRA limits; published accuracy of the quote rule.",
    "result": "Use the Alpaca OPRA feed already paid for (one websocket, up to 1,000 quoted contracts). Quote rule is right about 83% on trades it can classify (~80% over all trades).",
    "verdict": "Adopted: this is the live 15 s / 1 m C/P chip.",
@@ -142,7 +153,7 @@
    "title": "Live page: options vs Robinhood latency",
    "status": "adopted",
    "question": "How far behind Robinhood is the mini's live page?",
-   "method": "Loopback sampling on the mini 11:00–11:16 AM PT 10/19, compared with the Robinhood connector (read-only).",
+   "method": "Loopback sampling on the mini 11:00\u201311:16 AM PT 10/19, compared with the Robinhood connector (read-only).",
    "result": "The options table was not slow but frozen: the OPRA websocket had 0 subscribed contracts since 8:48:11 AM PT.",
    "verdict": "Problem found: the options feed was frozen, not slow. See the file for the details.",
    "file": "files/mini-options-latency-20261019.md"
@@ -152,8 +163,8 @@
    "date": "2026-10-19",
    "title": "Ladder-scalp dry run: do surges into a thin book reach the next wall?",
    "status": "insufficient",
-   "question": "Volume surge + thin order book on the move side → price runs to the next resting wall?",
-   "method": "Robinhood L2 snapshots at surge time (10/19–10/20, 72 real snapshots), graded on 1-minute bars: wall reached vs $0.50 stop. Stock moves only.",
+   "question": "Volume surge + thin order book on the move side \u2192 price runs to the next resting wall?",
+   "method": "Robinhood L2 snapshots at surge time (10/19\u201310/20, 72 real snapshots), graded on 1-minute bars: wall reached vs $0.50 stop. Stock moves only.",
    "result": "Thin book: wall reached 6 of 14 (43%). Not thin: 26 of 58 (45%).",
    "verdict": "No edge from 'thin' so far; small sample. Still collecting.",
    "file": "files/ladder-dryrun-20261019.md"
@@ -165,7 +176,7 @@
    "status": "ongoing",
    "question": "When the desk says 60% sure, is it right 60% of the time?",
    "method": "Every decision logs a stated probability; weekly report scores it (Brier, reliability buckets). Report 2026-42.",
-   "result": "178 decided, 118 scored: mean confidence 36% vs hit rate 34%, Brier 0.224. Overconfident in the 0.5–0.6 bucket (said 52%, hit 38%, n = 8). Rose: said 41%, hit 22% (n = 18, small sample).",
+   "result": "178 decided, 118 scored: mean confidence 36% vs hit rate 34%, Brier 0.224. Overconfident in the 0.5\u20130.6 bucket (said 52%, hit 38%, n = 8). Rose: said 41%, hit 22% (n = 18, small sample).",
    "verdict": "Roughly calibrated overall; a bit overconfident above 50%. Weekly, scorekeeping only.",
    "file": "files/calibration-2026-42.md",
    "extra": [
@@ -182,7 +193,7 @@
    "status": "rejected",
    "question": "Could RohOnChain's Jev crypto buy/sell model help OID?",
    "method": "Review of the design and independent paper tests.",
-   "result": "Direction calls near random: AUC 0.46–0.49. Speed is not OID's bottleneck.",
+   "result": "Direction calls near random: AUC 0.46\u20130.49. Speed is not OID's bottleneck.",
    "verdict": "Rejected. Started the confidence log instead.",
    "file": "files/jev-crypto-model-20261011.md"
   },
@@ -200,11 +211,11 @@
   {
    "id": "labels-backfill-20261019-20",
    "date": "2026-10-20",
-   "title": "First score_labels: how often the score's direction was right (10/19–10/20 replays)",
+   "title": "First score_labels: how often the score's direction was right (10/19\u201310/20 replays)",
    "status": "done",
    "question": "With every 15 s snapshot labelled, how often did each score size point the right way 1, 5 and 15 minutes later?",
    "method": "score_learn.py labels on the 10/19 and 10/20 replay snapshots (core 61 names on 5 s closes; light 144 sector names on 1-min closes). Weekly scorecard 2026-W43.",
-   "result": "Core: |S|=2 right 53.5% at 5 m and 55.7% at 15 m (14,703 snapshots); |S|=1 47.9% at 5 m. Light: |S|=3 right 59.2% at 5 m and 64.8% at 15 m (20,130 snapshots); |S|=1–2 about 45–46%. Calibration: core +2.0 raw 58.0% at 5 m, −2.5 raw 33.0%.",
+   "result": "Core: |S|=2 right 53.5% at 5 m and 55.7% at 15 m (14,703 snapshots); |S|=1 47.9% at 5 m. Light: |S|=3 right 59.2% at 5 m and 64.8% at 15 m (20,130 snapshots); |S|=1\u20132 about 45\u201346%. Calibration: core +2.0 raw 58.0% at 5 m, \u22122.5 raw 33.0%.",
    "verdict": "Replay days only (10/19 core uses the 15-min backfill rows). Live labels start 10/21; needs 10+ days.",
    "file": "files/scorecard-model-2026-W43.md"
   },
@@ -215,7 +226,7 @@
    "status": "done",
    "question": "Does the core score do better without the options C/P input?",
    "method": "score_replay_changes.py 10/20 (5 s steps) baseline vs --drop flow; every change to a non-zero score checked 1 m and 5 m later on 5 s closes.",
-   "result": "Score changes 8,108 → 5,578. ±2 changes right after 5 m: 50.3% → 55.8% (1,552 → 1,034 changes). ±3: 54.3% → 42.9% (46 → 14). All non-zero: 47.6% → 49.2%.",
+   "result": "Score changes 8,108 \u2192 5,578. \u00b12 changes right after 5 m: 50.3% \u2192 55.8% (1,552 \u2192 1,034 changes). \u00b13: 54.3% \u2192 42.9% (46 \u2192 14). All non-zero: 47.6% \u2192 49.2%.",
    "verdict": "One day only: logged, no settings change. Repeat over 10+ live days.",
    "file": "files/score-learning-plan-20261020.md"
   },
@@ -225,8 +236,8 @@
    "title": "Add-one test: core score plus news tone (10/20)",
    "status": "done",
    "question": "Does adding the 60-min news tone (the score-config 'news' rule, currently OFF) help the core score?",
-   "method": "score_replay_changes.py 10/20 --add news (c = net 60-min tone / 4, X posts ×0.5, weight 0.5, only when the ticker had news) vs baseline.",
-   "result": "Little change: ±2 right after 5 m 50.4% vs 50.3%; all non-zero 46.9% vs 47.6%; 243 fewer changes.",
+   "method": "score_replay_changes.py 10/20 --add news (c = net 60-min tone / 4, X posts \u00d70.5, weight 0.5, only when the ticker had news) vs baseline.",
+   "result": "Little change: \u00b12 right after 5 m 50.4% vs 50.3%; all non-zero 46.9% vs 47.6%; 243 fewer changes.",
    "verdict": "No evidence for news yet; stays OFF (needs Jeffrey's OK anyway).",
    "file": "files/score-learning-plan-20261020.md"
   }
