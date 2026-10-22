@@ -34,8 +34,8 @@ svg{display:block;width:100%;font-size:10px}.lg{display:flex;gap:10px;flex-wrap:
 
 <section><h2>Today's credit regime</h2><div class="cards" id="cards"></div></section>
 
-<section><h2>Category beta and correlation <span class="mut" style="font-weight:400">· equal-weight baskets, benchmark left out of its own basket · yellow = 20-day differs from 120-day by &gt;0.5 (beta) or &gt;0.3 (corr)</span></h2>
-<div class="ctl" style="margin-bottom:6px"><button data-k="beta" class="on">Beta</button> <button data-k="corr">Correlation</button> <button data-k="both">Both</button></div>
+<section><h2>Category beta and correlation <span class="mut" style="font-weight:400">· equal-weight baskets, benchmark left out of its own basket · <b>QQQ removed</b> = residual β/ρ to the hyperscalers after taking QQQ out of both · yellow = 20-day differs from 120-day by &gt;0.5 (beta) or &gt;0.3 (corr)</span></h2>
+<div class="ctl" style="margin-bottom:6px"><button data-k="beta" class="on">Beta</button> <button data-k="corr">Correlation</button> <button data-k="both">Both</button> <span class="mut" style="margin:0 4px">|</span> <button id="xq" title="QQQ removed: within each window the basket and the hyperscaler are both regressed on QQQ, then β/ρ are taken on the residuals. Hyperscaler benchmarks only.">QQQ removed</button></div>
 <div class="tw"><table id="tb"></table></div></section>
 
 <section><h2>HYG/IEF, 2 years <span class="mut" style="font-weight:400">· red shading = widening regime days</span></h2>
@@ -51,7 +51,7 @@ const E=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;
 const f=(x,d=2)=>x==null||x===''||isNaN(x)?'—':(+x).toFixed(d);
 const sg=(x,d=2)=>x==null||x===''||isNaN(x)?'—':((+x>0?'+':'')+(+x).toFixed(d));
 const CATS=[['chip_equip','Chip equipment'],['memory','Memory'],['gpu_logic','GPU / logic'],['neocloud','Neoclouds'],['neocloud_heavy_debt','Neoclouds, heavy debt'],['neocloud_low_debt','Neoclouds, low debt']];
-let D=null,MODE='beta';
+let D=null,MODE='beta',XQ=false;
 function days(a,b){return Math.round((new Date(b)-new Date(a))/864e5)}
 function cards(){
  const L=D.latest,s=L.spreads,st=D.fred_stale_days;
@@ -65,12 +65,12 @@ function cards(){
  `<div class="cd"><div class="k">ORCL − QQQ, 20 days</div><div class="v">${sg(s.orcl_minus_qqq_20d_pct,2)}%</div><div class="k"><span class="pill warn">equity proxy, not credit</span></div></div>`;
 }
 function table(){
- const L=D.latest,B=L.benchmarks,W=L.windows,ks=MODE==='both'?['beta','corr']:[MODE];
+ const L=D.latest,B=XQ?(L.hyperscalers_qqq_removed||[]):L.benchmarks,W=L.windows,ks=(MODE==='both'?['beta','corr']:[MODE]).map(k=>XQ?'x'+k:k);
  let h=`<tr><th rowspan="2">Category</th>`+B.map(b=>`<th class="g" colspan="${W.length*ks.length}">${E(b)}</th>`).join('')+`</tr><tr>`;
- h+=B.map(()=>ks.map(k=>W.map((w,i)=>`<th class="${i===0&&k===ks[0]?'g':''}" style="${i===0&&k===ks[0]?'border-left:1px solid var(--line)':''}">${k==='beta'?'β':'ρ'}${w}</th>`).join('')).join('')).join('')+`</tr>`;
+ h+=B.map(()=>ks.map(k=>W.map((w,i)=>`<th class="${i===0&&k===ks[0]?'g':''}" style="${i===0&&k===ks[0]?'border-left:1px solid var(--line)':''}">${k.startsWith('x')?'x':''}${k.endsWith('beta')?'β':'ρ'}${w}</th>`).join('')).join('')).join('')+`</tr>`;
  for(const [c,lbl] of CATS){const r=L.rolling[c];if(!r)continue;
   h+=`<tr><td title="${E((L.categories[c]||[]).join(', '))}">${E(lbl)} <span class="mut">(${(L.categories[c]||[]).length})</span></td>`;
-  for(const b of B){const x=r[b]||{};ks.forEach((k,ki)=>{const thr=k==='beta'?0.5:0.3;const a=x[k+'20'],z=x[k+'120'];const flag=a!=null&&z!=null&&Math.abs(a-z)>thr;
+  for(const b of B){const x=r[b]||{};ks.forEach((k,ki)=>{const thr=k.endsWith('beta')?0.5:0.3;const a=x[k+'20'],z=x[k+'120'];const flag=a!=null&&z!=null&&Math.abs(a-z)>thr;
    W.forEach((w,i)=>{const v=x[k+w];h+=`<td class="${i===0&&ki===0?'g0 ':''}${flag&&(w===20||w===120)?'hl ':''}${v!=null&&v<0?'neg':''}" ${flag?`title="${k} 20d ${f(a,3)} vs 120d ${f(z,3)}: diff ${sg(a-z,3)}"`:''}>${f(v,2)}</td>`})})}
   h+=`</tr>`}
  document.getElementById('tb').innerHTML=h;
@@ -90,7 +90,7 @@ function charts(){
   g+=axes(null,X0,X1,Y0,Y1,ticks(lo-pad,hi+pad,5),S.date,xs,ys);
   g+=`<path d="${path(S.hyg_ief,xs,ys)}" fill="none" stroke="#0969da" stroke-width="1.4"/>`;
   document.getElementById('c1').innerHTML=g}
- {const Y0=8,Y1=216,K=[['neocloud__META__beta20','neocloud vs META','#cf222e',''],['memory__META__beta20','memory vs META','#8250df',''],['neocloud__QQQ__beta20','neocloud vs QQQ','#cf222e','4 3'],['memory__QQQ__beta20','memory vs QQQ','#8250df','4 3']];
+ {const Y0=8,Y1=216,K=[['neocloud__META__beta20','neocloud vs META','#cf222e',''],['memory__META__beta20','memory vs META','#8250df',''],['neocloud__QQQ__beta20','neocloud vs QQQ','#cf222e','4 3'],['memory__QQQ__beta20','memory vs QQQ','#8250df','4 3'],['neocloud__META__xbeta20','X: neocloud vs META, QQQ removed','#bf8700','']];
   const all=K.flatMap(k=>S[k[0]].filter(x=>x!=null)),lo=Math.min(0,...all),hi=Math.max(...all);
   const xs=scale(0,n-1,X0,X1),ys=scale(lo,hi,Y1,Y0);let g='';const w=(X1-X0)/(n-1||1);
   S.regime.forEach((r,i)=>{if(r==='widening')g+=`<rect x="${(xs(i)-w/2).toFixed(1)}" y="${Y0}" width="${(w+0.3).toFixed(2)}" height="${Y1-Y0}" fill="#fff5f4"/>`});
@@ -100,10 +100,12 @@ function charts(){
   document.getElementById('lg2').innerHTML=K.map(k=>`<span><svg width="18" height="6" style="display:inline;width:18px;vertical-align:1px"><line x1="0" x2="18" y1="3" y2="3" stroke="${k[2]}" stroke-width="2" ${k[3]?`stroke-dasharray="${k[3]}"`:''}/></svg> ${k[1]} (last ${f(S[k[0]][n-1],2)})</span>`).join('')+`<span>pale red = widening</span>`}
 }
 function foot(){const L=D.latest;document.getElementById('fn').innerHTML=
- `<b>Source and method.</b> Alpaca SIP daily bars (adjustment=all) and FRED ICE BofA OAS (BAMLH0A0HYM2, BAMLC0A0CM; forward-filled from the last observation; the job runs without FRED when it is down). Baskets are equal-weight daily close-to-close returns of members with data that day (membership from the read-through study; heavy-debt includes CORZ). β and ρ = rolling OLS slope and Pearson correlation over 20/60/120 sessions; a value needs ≥75% of the window. Regime = the 20-session % change in HYG/IEF against its trailing-252-session terciles (bottom = widening, top = narrowing); HY OAS ±15 bp over 20 days is a cross-check only. CRWV/ORCL − QQQ is an equity proxy, not credit. Raw values, no smoothing. Research only, not an order signal. `+
+ `<b>Source and method.</b> Alpaca SIP daily bars (adjustment=all) and FRED ICE BofA OAS (BAMLH0A0HYM2, BAMLC0A0CM; forward-filled from the last observation; the job runs without FRED when it is down). Baskets are equal-weight daily close-to-close returns of members with data that day (membership from the read-through study; heavy-debt includes CORZ). β and ρ = rolling OLS slope and Pearson correlation over 20/60/120 sessions; xβ/xρ (QQQ removed, META/MSFT/GOOGL/AMZN/ORCL only) = the same on the residuals after regressing both the basket and the hyperscaler on QQQ inside each window; a value needs ≥75% of the window. Regime = the 20-session % change in HYG/IEF against its trailing-252-session terciles (bottom = widening, top = narrowing); HY OAS ±15 bp over 20 days is a cross-check only. CRWV/ORCL − QQQ is an equity proxy, not credit. Raw values, no smoothing. Research only, not an order signal. `+
  `Files: <code>~/oid-data/research/spread-corr/spread_corr_daily.csv</code>, <code>latest.json</code> · job <code>com.oid.desk.spread-corr</code> (Mon–Fri 13:30 PT) · ${L.rows} sessions ${E(L.first_date)}…${E(L.date)}.<br><b>Last updated:</b> ${E(L.built_pt)} (data through ${E(L.date)}).`;
  document.getElementById('asof').textContent=`data through ${L.date} · built ${L.built_pt}`}
-document.querySelectorAll('.ctl button').forEach(b=>b.onclick=()=>{MODE=b.dataset.k;document.querySelectorAll('.ctl button').forEach(x=>x.classList.toggle('on',x===b));table()});
+document.querySelectorAll('.ctl button[data-k]').forEach(b=>b.onclick=()=>{MODE=b.dataset.k;document.querySelectorAll('.ctl button[data-k]').forEach(x=>x.classList.toggle('on',x===b));table()});
+document.getElementById('xq').onclick=e=>{XQ=!XQ;e.target.classList.toggle('on',XQ);table()};
+if(location.hash==='#x'){XQ=true;document.getElementById('xq').classList.add('on')}  // /credit#x opens with QQQ removed
 fetch('credit.json',{cache:'no-store'}).then(r=>r.ok?r.json():r.json().then(j=>Promise.reject(j.error||r.status))).then(j=>{D=j;cards();table();charts();foot()})
  .catch(e=>{const x=document.getElementById('err');x.style.display='inline-block';x.textContent='Credit data unavailable: '+e});
 </script></body></html>

@@ -2341,7 +2341,7 @@ def chart_query(qs):
 # CREDITTAB (2026-10-21): Credit & Betas tab. Read-only view of ~/oid-data/research/spread-corr (com.oid.desk.spread-corr).
 CREDIT_DIR = Path.home() / "oid-data/research/spread-corr"
 CREDIT_SERIES = ["date", "regime", "hyg_ief", "hyg_ief_chg20_pct", "hy_oas", "neocloud__META__beta20", "memory__META__beta20",
-                 "neocloud__QQQ__beta20", "memory__QQQ__beta20"]
+                 "neocloud__QQQ__beta20", "memory__QQQ__beta20", "neocloud__META__xbeta20"]
 _CREDIT_CACHE = {"key": None, "body": None}
 
 

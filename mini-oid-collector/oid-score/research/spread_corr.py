@@ -17,7 +17,8 @@ import optflow as OF
 PT = ZoneInfo("America/Los_Angeles")
 OUT = H / "oid-data/research/spread-corr"; (OUT / "fred").mkdir(parents=True, exist_ok=True)
 START_FETCH, START_OUT = "2023-06-01", "2024-10-01"
-WINS = (20, 60, 120); BENCH = ["QQQ", "SMH", "META", "MSFT", "GOOGL", "AMZN", "LRCX"]
+WINS = (20, 60, 120); BENCH = ["QQQ", "SMH", "META", "MSFT", "GOOGL", "AMZN", "ORCL", "LRCX"]
+HYPER = ["META", "MSFT", "GOOGL", "AMZN", "ORCL"]  # also get QQQ-removed (residual) beta/corr: xbeta/xcorr
 # ---- categories: reuse the read-through/catbeta membership; heavy-debt = desk list (catbeta's SEC split + CORZ)
 try:
     CAT = json.loads((H / "oid-data/patterns/catbeta-20261021.json").read_text())["categories"]; CAT_SRC = "catbeta-20261021.json"
@@ -111,6 +112,7 @@ def main():
     cols = ["date", "hy_oas", "hy_oas_obs_date", "ig_oas", "hy_oas_chg20_bp", "hyg_ief", "hyg_lqd", "hyg_ief_chg20_pct", "hyg_lqd_chg20_pct",
             "regime", "regime_p33", "regime_p67", "regime_hy_check", "crwv_minus_qqq_20d_pct", "orcl_minus_qqq_20d_pct"]
     cols += [f"{c}__{b}__{k}{w}" for c in CAT for b in BENCH for w in WINS for k in ("beta", "corr")]
+    cols += [f"{c}__{b}__{k}{w}" for c in CAT for b in HYPER for w in WINS for k in ("xbeta", "xcorr")]
     rows = []
     for i, d in enumerate(days):
         if d < START_OUT: continue
@@ -137,6 +139,20 @@ def main():
                 be, co = stats([p[0] for p in pr], [p[1] for p in pr]) if len(pr) >= max(10, int(0.75 * w)) else (None, None)
                 row[f"{c}__{b}__beta{w}"] = round(be, 3) if be is not None else None
                 row[f"{c}__{b}__corr{w}"] = round(co, 3) if co is not None else None
+                if b in HYPER:  # QQQ-removed: regress basket and benchmark on QQQ within the window, then beta/corr of the residuals
+                    xb = xc = None
+                    tr = [(R["QQQ"][j], R[b][j], y[j]) for j in range(max(1, i - w + 1), i + 1) if R["QQQ"][j] is not None and R[b][j] is not None and y[j] is not None]
+                    if len(tr) >= max(10, int(0.75 * w)):
+                        q = [t[0] for t in tr]
+                        def resid(v):
+                            bb, _ = stats(q, v)
+                            if bb is None: return None
+                            mq, mv = sum(q) / len(q), sum(v) / len(v)
+                            return [vi - (mv + bb * (qi - mq)) for qi, vi in zip(q, v)]
+                        ex, ey = resid([t[1] for t in tr]), resid([t[2] for t in tr])
+                        if ex and ey: xb, xc = stats(ex, ey)
+                    row[f"{c}__{b}__xbeta{w}"] = round(xb, 3) if xb is not None else None
+                    row[f"{c}__{b}__xcorr{w}"] = round(xc, 3) if xc is not None else None
         rows.append(row)
     tmp = OUT / "spread_corr_daily.csv.tmp"
     with open(tmp, "w", newline="") as f:
@@ -149,12 +165,14 @@ def main():
               "spreads": {k: L[k] for k in cols[1:15]},
               "fred_status": {"BAMLH0A0HYM2": hy_st, "BAMLC0A0CM": ig_st},
               "categories": CAT, "category_source": CAT_SRC + " (+CORZ in heavy-debt per desk list)", "benchmarks": BENCH, "windows": WINS,
-              "rolling": {c: {b: {f"{k}{w}": L[f"{c}__{b}__{k}{w}"] for w in WINS for k in ("beta", "corr")} for b in BENCH} for c in CAT},
+              "rolling": {c: {b: {f"{k}{w}": L[f"{c}__{b}__{k}{w}"] for w in WINS for k in (("beta", "corr", "xbeta", "xcorr") if b in HYPER else ("beta", "corr"))} for b in BENCH} for c in CAT},
+              "hyperscalers_qqq_removed": HYPER,
               "notes": ["Basket = equal-weight daily close-to-close return of members with data that day; the benchmark is excluded from its own basket (e.g. chip_equip vs LRCX is ex-LRCX).",
                         "regime: 20-session % change in HYG/IEF vs its trailing-252-session terciles (min 60 obs). Bottom tercile = widening, top = narrowing. HYG/IEF falls when spreads widen.",
                         "regime_hy_check: HY OAS 20-session change (>=+15bp widening, <=-15bp narrowing) vs regime: agree/partial/disagree/na. FRED is optional; OAS is forward-filled from its last observation (hy_oas_obs_date).",
                         "AI-debt proxy is equity, not credit: CRWV and ORCL 20-session return minus QQQ (no free CDS/bond feed).",
                         "Bars: Alpaca SIP daily, adjustment=all (HYG/LQD/IEF ratios are total-return-ish, not price-only). Rows need >=75% of the window with data; newer listings (CRWV, SNDK, etc.) start later.",
+                        "xbeta/xcorr (QQQ removed, hyperscaler benchmarks only): within each window, regress the basket's and the benchmark's daily returns on QQQ (OLS), then take the OLS beta and correlation of basket residuals on benchmark residuals.",
                         "Before rolling numbers fill: 20d needs 15 obs, 60d 45, 120d 90."],
               "columns": cols, "csv": str(OUT / "spread_corr_daily.csv"), "elapsed_s": round(time.time() - t0, 1)}
     (OUT / "latest.json.tmp").write_text(json.dumps(latest, indent=1)); (OUT / "latest.json.tmp").replace(OUT / "latest.json")
