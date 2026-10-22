@@ -3,6 +3,78 @@
 **Status:** research only. No trading changes. In-sample. Raw returns (not market-adjusted).
 **Data:** Alpaca SIP daily bars (split/dividend-adjusted) from 1/1/2023 to 10/20/2026 for 205 symbols; first 30-minute RTH bar on 176 reaction days; extended-hours snapshot at about 4:59 PM PT on 10/21. Earnings dates come from Unusual Whales `get_earnings_history` (15 bellwethers, 15–16 events each, 227 events; GOOG uses GOOGL dates). Scripts: `~/oid-score/research/{rt_fetch,readthrough,catbeta}.py`. Outputs: `~/oid-data/patterns/{readthrough,catbeta}-20261021.json`.
 
+**Update 10/21 7:50 PM PT (v2).** Adds Research Bot's macro-shock exclusions, debt split and timing check, plus a cross-check against Chart Bot and Macro Bot betas, a 120-day window, and an out-of-sample test.
+
+**Sources and credit**
+- **Research Bot:** `/workspace/research-bot/studies/category-beta-20261021/` on the box.
+  - 20 sourced macro-shock nights (10/2024–10/2026), in `macro_shock_exclusions_2024-10_2026-10.csv`.
+  - Neocloud debt split from SEC filings, in `neocloud_debt_split.csv`.
+  - Tonight's 5-minute timing check (Robinhood bars), in `tonight_timing_windows.csv`.
+  - Copies are in `~/oid-data/patterns/` on the mini.
+- **Chart Bot:** 60/120-day betas vs SMH and QQQ as of 10/20, in `chart-bot/scenarios/betas/betas_asof_2026-10-20.csv`. CRWV is missing.
+- **Macro Bot:** 60-day betas vs QQQ, relayed by the parent agent.
+- **This study:** Alpaca SIP bars and Unusual Whales earnings dates.
+
+## 0. Robustness: do the tradeable-looking results survive? (`research/rt_robust.py` → `readthrough-robust-20261021.json`)
+
+**Event-clustered statistics.** Average all peers within one earnings event first, then average across events; t = mean / (sd / √n events). Linked peers are the top 10 core peers by close→close correlation.
+
+**Variants**
+- **full:** 227 events.
+- **ex20:** drop events whose reaction session or next session is one of Research Bot's 20 macro-shock sessions. That removes 5 events: AVGO 6/4/26, MU 12/19/24, ORCL 6/12/25, ORCL 3/11/26, SMCI 11/5/24.
+- **ex16:** same, but keep the 4 uncertain nights. That removes 4 events.
+  - The 4 uncertain nights are 3/11/26 and 3/26/26 (Research Bot notes "confirm date"), 10/8/26 (secondary source) and 10/21/26 (tonight, overlapping the earnings). The README has no explicit list of 4, so these are inferred from the CSV notes.
+- **OOS (out of sample):** links and betas are fit only on events before 10/21/2025 (166 events), then tested on events from 10/21/2025 on (61 events), with no refit.
+
+**1) After a bellwether drop of 4% or more** (raw peer returns, event-clustered bp, t, events / observations)
+
+| Variant | Gap | Open→30m | Open→close | Next day |
+|---|---|---|---|---|
+| full (58 ev / 576 obs) | −93 (t −4.8) | −17 (−1.2) | **−70 (−2.3)** | +45 (+1.0) |
+| ex20 (56 / 556) | −89 (−4.6) | −14 (−1.0) | **−75 (−2.4)** | +62 (+1.5) |
+| ex16 (56 / 556) | −89 (−4.6) | −14 (−1.0) | −75 (−2.4) | +62 (+1.5) |
+| OOS train (38 / 378) | −126 (−4.9) | −14 (−1.1) | −101 (−3.1) | +35 (+0.9) |
+| **OOS test (20 / 200)** | −13 (−0.3) | +8 (+0.2) | **+45 (+0.7)** | +20 (+0.2) |
+
+- The open→close continuation survives the macro exclusions but **fails out of sample**: it flips to +45 bp, n = 20 events.
+- The next-day bounce is never significant (t ≤ 1.5).
+- **Verdict: does not survive.**
+
+**After a rise of 4% or more**, for symmetry:
+- Full (73 ev): gap +214 (t 9.0), open→close +35 (t 1.4), next day −20 (t −0.6).
+- OOS test (19 ev): open→close −51 (t −0.9), next day −96 (t −1.3).
+- Not significant either.
+
+**2) Gap hold or fade** (linked peers gapping ≥1%, signed in the gap direction; event-clustered bp, t)
+
+| Variant | Events / obs | Open→30m | Open→close | Next day |
+|---|---|---|---|---|
+| full | 214 / 1,192 | −1 (−0.1) | +5 (+0.4) | −3 (−0.2) |
+| ex20 | 208 / 1,178 | −3 (−0.3) | +8 (+0.5) | −10 (−0.5) |
+| ex16 | 209 / 1,181 | −3 (−0.3) | +6 (+0.4) | −7 (−0.3) |
+| OOS test | 61 / 382 | +14 (+0.7) | +56 (+1.7) | +16 (+0.3) |
+
+- The per-observation means (+16 bp open→close) shrink to about 0 once events are weighted equally.
+- **Verdict: no hold and no fade edge, in any variant.**
+
+**3) "Opened short of implied, catches up"** (gap in the implied direction but under 75% of a leave-one-out implied move of at least 1%; signed toward the implied move; event-clustered bp, t)
+
+| Variant | Events / obs | Open→30m | Open→close | Next day |
+|---|---|---|---|---|
+| full | 117 / 302 | +18 (+1.4) | +31 (+1.4) | −45 (−1.2) |
+| ex20 | 120 / 299 | +12 (+0.9) | +32 (+1.4) | −71 (−1.7) |
+| ex16 | 121 / 296 | +12 (+0.8) | +30 (+1.3) | −66 (−1.6) |
+| OOS train | 89 / 246 | +23 (+1.9) | +57 (+2.3) | −5 (−0.2) |
+| **OOS test** | 32 / 79 | −59 (−1.9) | **−56 (−1.2)** | −251 (−3.4) |
+
+- v1 reported +51 bp from per-observation means; event-clustered it is +31 bp (t 1.4), and out of sample it reverses.
+- Over-reacters (gap above 125% of implied): full 104 ev, open→close +25 (t 0.9), next day −30 (t −0.7). OOS test 29 ev: −36 (t −0.5), next day +96 (t 1.1). Nothing there either.
+- **Verdict: does not survive.**
+
+**Bottom line.** None of the after-the-open read-through patterns survive an out-of-sample test. The only robust fact is the overnight gap itself: peers gap in the bellwether's direction, which is not tradeable after the open.
+
+**Caveat.** The OOS year (10/2025–10/2026) contains most of the macro shocks (the Iran war, the Fed hikes), so the regime differs from the training years.
+
 ## 1. Category beta table (the short version)
 
 How many times the category basket moves for each 1.0 move in the driver. Equal-weight baskets; R² and n in brackets.
@@ -13,13 +85,38 @@ How many times the category basket moves for each 1.0 move in the driver. Equal-
 | Memory (MU, SKHY, DRAM, SNDK) | **3.1×** (.46) | 2.8× (.48) | **1.8×** (.62) | 1.6× (.65) | **3.5×** (.62) | 0.14× (.09); close→close 0.38× (.32) | 0.08× (.05) |
 | GPU/logic (NVDA, AMD, AVGO, MRVL, INTC, ARM) | **2.2×** (.74) | 2.4× (.77) | **1.2×** (.86) | 1.3× (.90) | **2.3×** (.76) | 0.16× (.30) | 0.08× (.06) |
 | Neoclouds/AI builders (NBIS, CRWV, IREN, WULF, CIFR, APLD, CORZ) | **2.7×** (.40) | 3.6× (.52) | **1.45×** (.45) | 2.0× (.60) | **3.0×** (.70) | 0.14× (.09) | 0.12× (.07) |
-| Neoclouds, heavy debt (CRWV, APLD, CORZ, WULF, CIFR) | **2.6×** (.39) | 3.4× (.49) | **1.4×** (.44) | 1.85× (.57) | **2.95×** (.69) | 0.14× (.08) | 0.12× (.06) |
+| Neoclouds, heavy debt (CRWV, APLD, WULF, CIFR; Research Bot split) | **2.75×** (.38) | 3.5× (.49) | **1.46×** (.42) | 1.9× (.57) | **3.1×** (.68) | 0.13× (.06) | 0.13× (.06) |
+| Neoclouds, low debt (NBIS, IREN) | **3.0×** (.36) | 4.1× (.50) | **1.57×** (.40) | 2.25× (.58) | **3.2×** (.61) | 0.15× (.10) | 0.12× (.07) |
+
+**120-day betas (basket vs QQQ / vs SMH):**
+- Chip equipment: 2.26 / 1.25.
+- Memory: 3.31 / 1.77.
+- GPU/logic: 2.39 / 1.22.
+- Neoclouds: 2.61 / 1.32.
+- Heavy debt: 2.51 / 1.28.
+- Low debt: 3.05 / 1.51.
+
+**Excluding the 20 macro-shock sessions** (n 238 for 1y, 56 for 60d), betas barely move:
+- Vs QQQ 1y: chip equipment 2.13, memory 3.16, GPU 2.21, neoclouds 2.82, heavy debt 2.85, low debt 3.08.
+- Overnight vs QQQ: chip equipment 2.66, memory 3.60, GPU 2.40, neoclouds 3.06.
+- Earnings-night betas are unchanged, because no equipment or capex print fell on an excluded session.
 
 Event-night betas leave the reporting company out of its own basket. "Overnight-only" means the basket's close→next-open return regressed on QQQ's close→next-open return.
 
 **Watch only (WDC, STX).** Overnight beta vs QQQ is 3.1×; beta on LRCX-type prints is 0.17×. Per name, vs QQQ 1y: WDC 2.45× (R² .36), STX 2.05× (.29). No trading in WDC, STX or SNDK; research only.
 
-**How the heavy-debt group was tagged.** Latest-quarter balance sheet from Unusual Whales. Debt includes leases. Net debt = debt − cash. EV = market cap + net debt. A name is heavy-debt if net debt / EV ≥ 25%.
+**How the heavy-debt group was tagged (v2: Research Bot's split, now used).**
+- Definition: (debt including converts and finance leases − unrestricted cash) / market cap. HIGH if ≥ 0.25. Source: latest SEC filings, Robinhood market caps as of 10/21.
+  - HIGH: CRWV 0.87, APLD 0.55, WULF 0.41, CIFR 1.24.
+  - LOWER: IREN 0.17, NBIS 0.01.
+- Research Bot doesn't cover CORZ, so CORZ is in the neocloud basket but in neither debt basket. On UW data, CORZ would be high: net debt / EV 0.35, negative equity.
+- Research Bot's post-quarter notes:
+  - CRWV: $2.6B delayed-draw facility.
+  - NBIS: $5.75B converts, which add to both debt and cash.
+  - CIFR: $850M converts.
+- The heavy and low baskets have the same betas within noise; low debt is even slightly higher. **Debt does not add beta** (agrees with Research Bot).
+
+v1 used a UW-based tag, kept below for reference: net debt including all leases / EV ≥ 25%.
 
 | Ticker | Debt $B | Cash $B | Mkt cap $B | Debt/mkt cap | Net debt/EV | Heavy? |
 |---|---|---|---|---|---|---|
@@ -31,7 +128,33 @@ Event-night betas leave the reporting company out of its own basket. "Overnight-
 | IREN | 7.84 | 5.90 | 10.1 | 0.78 | 0.16 | no (large cash pile) |
 | NBIS | 10.06 | 8.04 | 48.1 | 0.21 | 0.04 | no |
 
-Under the looser rule (debt / market cap ≥ 25%), IREN also counts. The heavy-debt basket behaves almost the same as the whole neocloud basket, so on these betas leverage adds no separate effect.
+UW and SEC figures differ mainly in lease treatment: UW includes operating leases, which is why CRWV shows $51.6B vs $35.3B.
+
+### Cross-check vs Chart Bot (as of 10/20) and Macro Bot (60d vs QQQ)
+
+| Name | Mine 60d QQQ | Chart 60d QQQ | Macro 60d QQQ | Mine 120d QQQ | Chart 120d QQQ | Mine 60d SMH | Chart 60d SMH |
+|---|---|---|---|---|---|---|---|
+| NBIS | 4.18 | 4.26 | 4.1 | **3.03** | **4.08** | 2.25 | 2.23 |
+| IREN | 4.04 | 4.02 | 4.0 | **3.07** | **3.72** | 2.24 | 2.18 |
+| CRWV | 3.86 | — (missing) | 3.9 | 2.36 | — | 1.99 | — |
+| WULF | 3.15 | — | 3.2 | 2.34 | — | 1.76 | — |
+| LRCX | 2.60 | 2.68 | 2.5–2.7 | 2.65 | 2.59 | 1.57 | 1.59 |
+| MU | 2.56 | 2.64 | 2.5–2.7 | **3.11** | **2.65** | 1.49 | 1.52 |
+| AMD | 2.49 | 2.54 | 2.5–2.7 | 2.74 | 2.52 | 1.37 | 1.39 |
+| INTC | 2.78 | 2.80 | 2.5–2.7 | 2.77 | 2.89 | 1.53 | 1.52 |
+| NVDA | 1.28 | 1.26 | 1.3 | 1.16 | 1.29 | 0.73 | 0.70 |
+| KLAC | 1.89 | 1.98 | — | **2.37** | **1.90** | 1.20 | 1.24 |
+| ASML | 1.22 | 1.26 | — | **1.66** | **1.29** | 0.83 | 0.84 |
+| SMH | 1.73 | 1.76 | 1.7 | 1.92 | 1.78 | 1.00 | 1.00 |
+
+Other names (60d vs QQQ, mine vs Chart Bot) all agree within 0.11: TSM 1.38/1.39, ARM 3.46/3.47, MRVL 2.82/2.91, AVGO 1.49/1.47, SKHY 2.59/2.67, SNDK 3.25/3.36, WDC 1.92/1.94, STX 1.56/1.64.
+
+**Gaps flagged**
+- **60-day betas agree** across all three sources, within about 0.1 for every name. Mine are through 10/21; ending at 10/20, mine match Chart Bot to about 0.05 (for example NBIS 4.30 vs 4.26, MU 2.65 vs 2.64).
+- **Chart Bot's 120-day betas do not look like 120 sessions.** Re-running mine over 60–120 sessions ending 10/20, Chart's "120d" values match a window of about 70 sessions: NBIS 4.21, IREN 3.80, KLAC 1.87, ASML 1.25, MU 2.68. A true 120-session window gives NBIS 3.02, IREN 3.08, KLAC 2.36, ASML 1.66, MU 3.11.
+  - This should go to Chart Bot. Possibly a short history or a window bug.
+  - Practical effect: the neoclouds' beta to QQQ is about 4× over the last 3 months but about 3× over 6 months to 1 year.
+- **CRWV:** missing from Chart Bot. Mine (3.86) agrees with Macro Bot (3.9).
 
 ### Per-name betas (R², n)
 
@@ -72,7 +195,34 @@ Drivers after hours: QQQ −0.79%, LRCX −7.41%, META +2.17%, SMH −1.69%.
 | Neoclouds, heavy debt | −2.18% | −2.34% (+0.16) | −1.04% (−1.14) | +0.26% (−2.44) | **QQQ** |
 | Watch only: WDC −1.19, STX −1.49 | −1.34% | −2.47% (+1.13) | −1.26% (−0.08) | +0.20% (−1.54) | LRCX |
 
-**In plain words.**
+### v2: window-by-window attribution with Research Bot's timing check
+
+Research Bot's 5-minute Robinhood bars, measured from the 1:00 PM PT close to 7:30 PM PT. Each cell is the basket move, with the implied move and residual in brackets. Betas as in the table above: QQQ = overnight beta, LRCX = equipment-print beta. Baskets are limited to the names Research Bot tracked.
+
+Drivers by window:
+- a, 1:00–1:35 PM (the print): QQQ −0.04%, LRCX −6.06%, META +3.83%.
+- b+c, 1:35–5:35 PM (the calls): QQQ −0.69%, LRCX −0.97%, META −1.78%.
+- d, 5:35–7:30 PM (the Saudi order and the Asia open): QQQ −0.30%, LRCX −0.60%, META −0.63%.
+- Total: QQQ −1.03%, LRCX −7.53%, META +1.34%.
+
+| Basket | a: print (LRCX-implied) | b+c: calls (QQQ-implied) | d: after 5:35 PM (QQQ-implied) | Total | Total, QQQ + LRCX implied (resid) |
+|---|---|---|---|---|---|
+| Chip equipment (KLAC) | −2.37 (−1.94, −0.43) | +0.17 (−1.68, +1.85) | −0.96 (−0.73, −0.23) | −3.15 | −4.91 (+1.77) |
+| Memory (MU, SNDK) | −0.26 (−0.85, **+0.59**) | −1.14 (−2.40, **+1.27**) | −1.18 (−1.05, −0.13) | −2.56 | −4.64 (+2.09) |
+| GPU/logic (NVDA, AMD, INTC) | −0.04 (−0.97, **+0.93**) | −1.51 (−1.58, +0.07) | −0.96 (−0.69, −0.27) | −2.49 | −3.56 (+1.07) |
+| Neoclouds (NBIS, CRWV, IREN) | +0.20 (−0.85, **+1.05**) | −2.83 (−2.07, **−0.75**) | −1.34 (−0.91, −0.43) | −3.94 | −4.15 (+0.21) |
+| Heavy debt (CRWV) | −0.02 (−0.79, +0.77) | −2.86 (−2.12, −0.74) | −1.07 (−0.93, −0.14) | −3.91 | −4.15 (+0.23) |
+| Low debt (NBIS, IREN) | +0.31 (−0.91, +1.22) | −2.81 (−2.19, −0.62) | −1.48 (−0.96, −0.52) | −3.95 | −4.40 (+0.45) |
+
+**What the timing adds**
+- **At the print** (window a), LRCX's −6% transmitted only to equipment: KLAC −2.37% vs −1.94% implied. Memory, GPU and neoclouds were flat and did not take the 0.14–0.16× historical read-through. So far, that read-through is something that happens at the next open, not in the after-hours print.
+- **During the calls** (window b+c), GPU moved exactly with QQQ (residual +0.07). Neoclouds fell an extra 0.6–0.75 pt beyond their QQQ beta, mostly 3:00–3:45 PM. Memory and equipment held up by +1.3 and +1.85 pt.
+- **After 5:35 PM** (window d), every basket moved roughly with its QQQ beta, plus 0.1–0.5 pt extra on the downside. That fits Research Bot's macro / Asia read.
+- **Totals:** neoclouds −3.9% ≈ QQQ + LRCX implied −4.2%. GPU −2.5% ≈ QQQ-implied −2.4%. Equipment −3.15% sits between the QQQ-implied and LRCX-implied moves. Memory fell less than any model implies.
+- Debt makes no difference: heavy (CRWV) −3.91% vs low (NBIS, IREN) −3.95%.
+- Thin liquidity after 5:35 PM: KLAC traded 2.5k shares, SMH 3k (Research Bot).
+
+**In plain words (4:59 PM snapshot table above).**
 - LRCX's drop explains chip equipment, with about −0.5 pt of extra weakness left over.
 - GPU/logic and the neoclouds moved like a normal high-beta night: their QQQ beta times the QQQ move matches almost exactly.
 - Memory fell less than its QQQ beta implies (+0.9 pt held up).
@@ -80,11 +230,13 @@ Drivers after hours: QQQ −0.79%, LRCX −7.41%, META +2.17%, SMH −1.69%.
 
 **Caveat.** QQQ's after-hours move is not independent. It already contains LRCX, semis, TSLA (−3.3%) and META, so "QQQ explains it" partly means "the whole AI/semis complex sold off together". TSLA, TXN and META also reported tonight.
 
-The Research Bot timing check (1:05 PM, during the calls, or the 5:38 PM Saudi order) had not arrived by the time this was written, so it is not included.
+The v1 snapshot table runs only to about 4:59 PM PT. It misses Research Bot's window d (5:35–7:30 PM: the Saudi order and the Asia open), which added another 27–49% to the non-equipment moves.
 
 ## 3. Read-through map (per bellwether, top linked peers)
 
 Slope = peer move per 1.0 bellwether move. co = close→next open; cc = close→next close; hit = share of events where the peer moved the same way. The full map is in the JSON; heatmaps are below.
+
+**Macro-shock exclusion** changes none of these five maps. The 5 excluded events belong to AVGO, MU, ORCL and SMCI.
 
 | Bellwether (events) | Peer | cc slope | cc r | cc hit | co slope | co r | co hit | n |
 |---|---|---|---|---|---|---|---|---|
@@ -123,7 +275,7 @@ Slope = peer move per 1.0 bellwether move. co = close→next open; cc = close→
 ![Read-through heatmap, close→next open](/guide/research/files/readthrough-heatmap-co-20261021.png)
 ![Read-through heatmap, close→next close](/guide/research/files/readthrough-heatmap-cc-20261021.png)
 
-## 4. Is it tradeable? (in-sample)
+## 4. Is it tradeable? (in-sample, per-observation; see section 0 for the event-clustered and out-of-sample versions, which supersede this)
 
 "Linked peers" are each bellwether's top 10 core (AI/semis list) peers by cc correlation, n ≥ 8. Observations within one event are correlated, so the effective n is closer to the number of events.
 

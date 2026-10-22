@@ -7,12 +7,12 @@
   {
    "id": "bellwether-readthrough",
    "date": "2026-10-21",
-   "title": "Bellwether earnings read-through and category betas",
+   "title": "Bellwether earnings read-through and category betas (v2: macro-shock exclusions, out-of-sample test, Research Bot timing and debt split, Chart/Macro Bot cross-check)",
    "status": "done (research only)",
    "question": "When LRCX/AMAT/KLAC/ASML/TSM/MU/NVDA/AMD/AVGO/META/MSFT/GOOG/AMZN/ORCL/SMCI report, how much do peers and categories move, is it tradeable, and what explains tonight (10/21) after LRCX -7.4% after hours?",
    "method": "227 earnings events since 2023 (UW dates), Alpaca SIP daily and first-30m bars, peer slope/corr/hit on close-to-open and close-to-close, leave-one-out implied moves, equal-weight category baskets regressed on QQQ/SMH (60d, 1y, overnight-only) and on equipment and capex print nights, tonight attribution vs QQQ, LRCX and META.",
-   "result": "Equipment basket moves 0.33x the reporter on equipment prints (R2 .66); memory, GPU and neocloud groups only 0.14-0.16x (R2 <= .30). Capex prints barely move any group (about 0.1x, R2 <= .18). Daily QQQ beta: equipment 2.1x, GPU 2.2x, neocloud 2.7x, memory 3.1x. Tonight: LRCX explains equipment; QQQ explains GPU and neoclouds; META explains nothing. Peers gap about 0.75x their implied move; under-reacters drift +51 bp open-to-close. After a bellwether drop of 4% or more, peers fall another 70 bp open-to-close and bounce +46 bp the next day (58 events).",
-   "verdict": "Useful as a map, not a signal. Gaps neither hold nor fade on average; about 15 events per bellwether; in-sample; no trading changes.",
+   "result": "Robustness (event-clustered): after a bellwether drop of 4% or more, peers kept falling open-to-close (-70 bp, t -2.3, 58 events; -75 bp excluding macro shocks) but out of sample it flips to +45 bp (20 events). Gap hold/fade is about 0 in every variant. Opened-short-of-implied catch-up is +31 bp (t 1.4) in-sample and -56 bp OOS (32 events). Nothing survives. Betas vs QQQ 1y: equipment 2.1x, GPU 2.2x, neocloud 2.7x, memory 3.1x; equipment moves 0.33x on equipment prints (R2 .66), other groups about 0.15x; capex prints about 0.1x. Debt (Research Bot SEC split) adds no beta. Tonight: at the print LRCX moved only equipment; GPU tracked QQQ; neoclouds fell an extra 0.6-0.75 pt during the calls. 60-day betas agree with Chart and Macro Bot within 0.1; Chart Bot's 120d looks like about 70 sessions (flagged).",
+   "verdict": "A map of overnight gaps, not an after-the-open signal: no read-through pattern survives out of sample. Research only; no trading changes.",
    "file": "files/bellwether-readthrough-20261021.md"
   },
   {

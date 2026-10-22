@@ -1,5 +1,5 @@
 """Research only: category betas + tonight's attribution. Output ~/oid-data/patterns/catbeta-20261021.json"""
-import json, math, statistics as st
+import json, math, statistics as st, os, csv
 from pathlib import Path
 H = Path.home(); P = H / "oid-data/patterns"
 X = json.loads((P / "readthrough-data-20261021.json").read_text())
@@ -10,6 +10,10 @@ days = sorted(D["QQQ"]); S = X["snap"]
 CAT = {"chip_equip": ["LRCX", "AMAT", "KLAC", "ASML"], "memory": ["MU", "SKHY", "DRAM", "SNDK"],
        "gpu_logic": ["NVDA", "AMD", "AVGO", "MRVL", "INTC", "ARM"], "neocloud": ["NBIS", "CRWV", "IREN", "WULF", "CIFR", "APLD", "CORZ"]}
 WATCH = ["WDC", "STX"]
+EXCL = os.environ.get("CB_EXCL", "")  # "ex20" -> drop Research Bot macro-shock sessions from daily and event regressions
+SH = list(csv.DictReader(open(P / "macro_shock_exclusions_2024-10_2026-10.csv")))
+EXD = {d for r in SH for d in r["sessions_to_exclude"].split(";")} if EXCL == "ex20" else set()
+SUFFIX = ("-" + EXCL) if EXCL else ""
 # ---- debt tag: net debt / EV with EV = mkt cap (10/21 close x shares) + net debt
 debt = {}
 for s, x in BS.items():
@@ -19,7 +23,10 @@ for s, x in BS.items():
     debt[s] = {"fiscal": x["fiscal_date_ending"], "debt_total_b": round(tot / 1e9, 2), "cash_b": round(cash / 1e9, 2), "mcap_b": round(mcap / 1e9, 1),
                "debt_to_mcap": round(tot / mcap, 3), "net_debt_to_ev": round(nd / (mcap + nd), 3)}
 heavy = sorted([s for s in debt if debt[s]["net_debt_to_ev"] >= 0.25], key=lambda s: -debt[s]["net_debt_to_ev"])
-CAT["neocloud_heavy_debt"] = heavy
+# Debt split: Research Bot (SEC filings), (debt incl. finance leases - cash) / mkt cap >= 0.25 -> HIGH. CORZ not covered by it.
+RB = {r["sym"]: r for r in csv.DictReader(open(P / "neocloud_debt_split.csv"))}
+heavy = [s for s in RB if RB[s]["class"] == "HIGH"]; low = [s for s in RB if RB[s]["class"] == "LOWER"]
+CAT["neocloud_heavy_debt"] = heavy; CAT["neocloud_low_debt"] = low
 def ret(s, d0, f0, d1, f1):
     a, b = D.get(s, {}).get(d0), D.get(s, {}).get(d1)
     x = (b[f1] / a[f0] - 1) if a and b else None
@@ -28,8 +35,9 @@ O, C = 1, 4
 def series(names, kind, win):
     """per-day EW returns over the last `win` sessions. kind cc or co"""
     out = {}
-    ds = days[-(win + 1):]
+    ds = days[-(win + 1):]  # excluded sessions are skipped below, so n drops
     for i in range(1, len(ds)):
+        if ds[i] in EXD: continue
         rs = [ret(s, ds[i - 1], C, ds[i], C if kind == "cc" else O) for s in names]
         rs = [r for r in rs if r is not None]
         if rs: out[ds[i]] = st.mean(rs)
@@ -44,7 +52,7 @@ def ols(x, y):
 def beta(names, bench, kind, win):
     y = series(names, kind, win); x = series([bench], kind, win)
     k = sorted(set(x) & set(y)); return ols([x[d] for d in k], [y[d] for d in k])
-EV = [e for e in RT["events"]]
+EV = [e for e in RT["events"] if e["d1"] not in EXD and e["d2"] not in EXD]
 EQ = {"LRCX", "AMAT", "KLAC", "ASML"}; CAPEX = {"META", "MSFT", "GOOG", "AMZN"}
 def ev_beta(names, group, w):
     x, y = [], []
@@ -56,15 +64,15 @@ def ev_beta(names, group, w):
         x.append(e[w]); y.append(st.mean(rs))
     return ols(x, y)
 def block(names):
-    return {"qqq_60d": beta(names, "QQQ", "cc", 60), "qqq_1y": beta(names, "QQQ", "cc", 252), "smh_60d": beta(names, "SMH", "cc", 60),
+    return {"qqq_120d": beta(names, "QQQ", "cc", 120), "smh_120d": beta(names, "SMH", "cc", 120), "qqq_60d": beta(names, "QQQ", "cc", 60), "qqq_1y": beta(names, "QQQ", "cc", 252), "smh_60d": beta(names, "SMH", "cc", 60),
             "smh_1y": beta(names, "SMH", "cc", 252), "qqq_overnight_1y": beta(names, "QQQ", "co", 252),
             "equip_prints_co": ev_beta(names, EQ, "co"), "equip_prints_cc": ev_beta(names, EQ, "cc"),
             "capex_prints_co": ev_beta(names, CAPEX, "co"), "capex_prints_cc": ev_beta(names, CAPEX, "cc")}
-out = {"categories": CAT, "watch_only": WATCH, "debt": debt, "heavy_rule": "net debt (debt incl. leases minus cash) / EV >= 25% (UW balance sheet, latest quarter; mkt cap at 10/21 close)",
+out = {"categories": CAT, "watch_only": WATCH, "debt": debt, "heavy_rule": "Research Bot split: (debt incl. finance leases - unrestricted cash) / mkt cap >= 0.25 from SEC filings (CORZ not covered; UW cross-check in debt)", "excl": EXCL, "n_excluded_sessions": len(EXD),
        "basket": {}, "names": {}}
 for c, names in CAT.items():
     out["basket"][c] = block(names)
-for s in sorted({x for v in CAT.values() for x in v} | set(WATCH)):
+for s in sorted({x for v in CAT.values() for x in v} | set(WATCH) | {"SMH", "TSM", "CORZ"}):
     out["names"][s] = block([s])
 # ---- tonight attribution
 def ah(s):
@@ -88,7 +96,7 @@ for c, names in list(CAT.items()) + [("watch_WDC_STX", WATCH)]:
     att["rows"][c] = {"names_used": nm, "n_with_ah": len(a), "actual_ah": actual, "betas": imp, "implied": impl, "residual": res, "best": best,
                       "per_name": {s: ah(s) for s in nm}}
 out["tonight"] = att
-(P / "catbeta-20261021.json").write_text(json.dumps(out, indent=1))
+(P / f"catbeta-20261021{SUFFIX}.json").write_text(json.dumps(out, indent=1))
 print(json.dumps(debt, indent=0)); print("heavy", heavy)
 f = lambda b: "—" if not b else f"{b['beta']} (R2 {b['r2']}, n {b['n']})"
 for c in CAT:
