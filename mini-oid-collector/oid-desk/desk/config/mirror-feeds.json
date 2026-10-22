@@ -81,6 +81,17 @@
     "market-data/latest/mini-status.json"
    ],
    "box_daemons": []
+  },
+  "degross": {
+   "files": [
+    "market-data/latest/degross/latest.json",
+    "market-data/latest/degross/degrossing_gauge.csv"
+   ],
+   "live_target": {
+    "market-data/latest/degross/latest.json": "../oid-shared/degross/latest.json",
+    "market-data/latest/degross/degrossing_gauge.csv": "../oid-shared/degross/degrossing_gauge.csv"
+   },
+   "box_daemons": []
   }
  },
  "desk_state": [

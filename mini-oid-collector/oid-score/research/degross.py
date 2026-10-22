@@ -304,6 +304,14 @@ def main():
                   history=[{k: v for k, v in r.items() if k not in ("crowded_members", "uncrowded_members")} for r in rows[-HIST_ROWS:]],
                   rows=len(rows), first_date=rows[0]["date"], csv=str(cp), csv_rows_appended=len(new), elapsed_s=round(time.time() - t0, 1))
     (OUT / "latest.json.tmp").write_text(json.dumps(latest, indent=1)); (OUT / "latest.json.tmp").replace(OUT / "latest.json")
+    # MIRROR 10/22: publish a copy into the desk data-API tree (catalog group "degross") so the box mirror_poller pulls it to /workspace/oid-shared/degross/
+    try:
+        import shutil
+        MD = H / "oid-desk/desk/market-data/latest/degross"; MD.mkdir(parents=True, exist_ok=True)
+        for src in (OUT / "latest.json", cp):
+            tmp = MD / ("." + src.name + ".tmp"); shutil.copyfile(src, tmp); tmp.replace(MD / src.name)
+    except Exception as e:  # noqa: BLE001 - never fail the gauge over the mirror copy
+        print(f"degross mirror copy failed: {type(e).__name__}: {e}", flush=True)
     pc = lambda x: "—" if x is None else f"{x*100:+.2f}%"
     print(f"[{now:%Y-%m-%d %H:%M %Z}] degross ok: {L['date']} {L['badge']} ep{L['episode_id']} day{L['days_since_first_trigger']} sev={L['severity']} "
           f"mtum_usmv_10d={pc(L['mtum_usmv_10d'])} gvip_spy_10d={pc(L['gvip_spy_10d'])} mtum_spy_10d={pc(L['mtum_spy_10d'])} cvu_10d={pc(L['cvu_10d'])} "
