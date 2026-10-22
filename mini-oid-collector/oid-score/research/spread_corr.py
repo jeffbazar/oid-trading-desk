@@ -160,6 +160,54 @@ def main():
         for row in rows: wr.writerow({k: ("" if row.get(k) is None else row[k]) for k in cols})
     tmp.replace(OUT / "spread_corr_daily.csv")
     L = rows[-1]
+    # PERCOMPANY 10/21: latest-day per-member beta/corr (same windows/benchmarks as the group) plus a drop-one group value
+    # (the category basket without that member), so a member that skews the group shows up. Raw values, no smoothing.
+    iL = days.index(L["date"])
+    def roll(y, b, w, i):
+        pr = [(R[b][j], y[j]) for j in range(max(1, i - w + 1), i + 1) if R[b][j] is not None and y[j] is not None]
+        be, co = stats([p[0] for p in pr], [p[1] for p in pr]) if len(pr) >= max(10, int(0.75 * w)) else (None, None)
+        xb = xc = None
+        if b in HYPER:
+            tr = [(R["QQQ"][j], R[b][j], y[j]) for j in range(max(1, i - w + 1), i + 1) if R["QQQ"][j] is not None and R[b][j] is not None and y[j] is not None]
+            if len(tr) >= max(10, int(0.75 * w)):
+                q = [t[0] for t in tr]
+                def resid(v):
+                    bb, _ = stats(q, v)
+                    if bb is None: return None
+                    mq, mv = sum(q) / len(q), sum(v) / len(v)
+                    return [vi - (mv + bb * (qi - mq)) for qi, vi in zip(q, v)]
+                ex, ey = resid([t[1] for t in tr]), resid([t[2] for t in tr])
+                if ex and ey: xb, xc = stats(ex, ey)
+        rd = lambda v: round(v, 3) if v is not None else None
+        return {"beta": rd(be), "corr": rd(co), "xbeta": rd(xb), "xcorr": rd(xc)}
+    members = {}
+    for c, names in CAT.items():
+        members[c] = {}
+        for s_ in names:
+            members[c][s_] = {}
+            for b in BENCH:
+                if s_ == b: continue
+                rest = [n for n in names if n != s_]
+                dy = basket(rest, b) if rest else None
+                for w in WINS:
+                    v = roll(R[s_], b, w, iL)
+                    d = roll(dy, b, w, iL) if dy else {}
+                    if b not in HYPER: v.pop("xbeta"); v.pop("xcorr"); d.pop("xbeta", None); d.pop("xcorr", None)
+                    for k, x in v.items(): members[c][s_].setdefault(b, {})[f"{k}{w}"] = x
+                    for k, x in d.items(): members[c][s_][b][f"drop_{k}{w}"] = x
+    tick_rows = []
+    for c, mm in members.items():
+        for s_, bb in mm.items():
+            for b, vals in bb.items():
+                tick_rows.append({"date": L["date"], "category": c, "ticker": s_, "bench": b, **vals})
+    tcols = ["date", "category", "ticker", "bench"] + [f"{p}{k}{w}" for p in ("", "drop_") for k in ("beta", "corr", "xbeta", "xcorr") for w in WINS]
+    tp = OUT / "spread_corr_tickers_daily.csv"; keep = []
+    if tp.exists():
+        with open(tp, newline="") as f: keep = [r for r in csv.DictReader(f) if r["date"] != L["date"]]
+    with open(str(tp) + ".tmp", "w", newline="") as f:
+        wr = csv.DictWriter(f, tcols); wr.writeheader()
+        for r in keep + tick_rows: wr.writerow({k: ("" if r.get(k) is None else r.get(k)) for k in tcols})
+    Path(str(tp) + ".tmp").replace(tp)
     latest = {"schema": "oid-spread-corr/1", "built_pt": now.strftime("%Y-%m-%d %-I:%M %p PT"), "date": L["date"], "rows": len(rows), "first_date": rows[0]["date"],
               "research_only": True,
               "spreads": {k: L[k] for k in cols[1:15]},
@@ -167,13 +215,15 @@ def main():
               "categories": CAT, "category_source": CAT_SRC + " (+CORZ in heavy-debt per desk list)", "benchmarks": BENCH, "windows": WINS,
               "rolling": {c: {b: {f"{k}{w}": L[f"{c}__{b}__{k}{w}"] for w in WINS for k in (("beta", "corr", "xbeta", "xcorr") if b in HYPER else ("beta", "corr"))} for b in BENCH} for c in CAT},
               "hyperscalers_qqq_removed": HYPER,
+              "members": members, "members_csv": str(OUT / "spread_corr_tickers_daily.csv"),
               "notes": ["Basket = equal-weight daily close-to-close return of members with data that day; the benchmark is excluded from its own basket (e.g. chip_equip vs LRCX is ex-LRCX).",
                         "regime: 20-session % change in HYG/IEF vs its trailing-252-session terciles (min 60 obs). Bottom tercile = widening, top = narrowing. HYG/IEF falls when spreads widen.",
                         "regime_hy_check: HY OAS 20-session change (>=+15bp widening, <=-15bp narrowing) vs regime: agree/partial/disagree/na. FRED is optional; OAS is forward-filled from its last observation (hy_oas_obs_date).",
                         "AI-debt proxy is equity, not credit: CRWV and ORCL 20-session return minus QQQ (no free CDS/bond feed).",
                         "Bars: Alpaca SIP daily, adjustment=all (HYG/LQD/IEF ratios are total-return-ish, not price-only). Rows need >=75% of the window with data; newer listings (CRWV, SNDK, etc.) start later.",
                         "xbeta/xcorr (QQQ removed, hyperscaler benchmarks only): within each window, regress the basket's and the benchmark's daily returns on QQQ (OLS), then take the OLS beta and correlation of basket residuals on benchmark residuals.",
-                        "Before rolling numbers fill: 20d needs 15 obs, 60d 45, 120d 90."],
+                        "Before rolling numbers fill: 20d needs 15 obs, 60d 45, 120d 90.",
+                        "members (latest day only; history in spread_corr_tickers_daily.csv, one row per date/category/ticker/benchmark): each member's own beta/corr (and xbeta/xcorr vs hyperscalers) on the same windows, plus drop_* = the category basket recomputed without that member. Group minus drop_ = how much that member moves the group number."],
               "columns": cols, "csv": str(OUT / "spread_corr_daily.csv"), "elapsed_s": round(time.time() - t0, 1)}
     (OUT / "latest.json.tmp").write_text(json.dumps(latest, indent=1)); (OUT / "latest.json.tmp").replace(OUT / "latest.json")
     print(f"[{now:%Y-%m-%d %H:%M %Z}] spread-corr ok: {len(rows)} rows {rows[0]['date']}..{L['date']} regime={L['regime']} hygief20={L['hyg_ief_chg20_pct']} "

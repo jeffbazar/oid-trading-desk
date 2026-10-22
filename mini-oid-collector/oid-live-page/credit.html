@@ -37,8 +37,8 @@ svg{display:block;width:100%;font-size:10px}.lg{display:flex;gap:10px;flex-wrap:
 <section id="nc"><h2>Company credit <span class="mut" style="font-weight:400">· 5y CDS and bonds per name · <span class="pill ok">firsthand</span> DTCC public swap reports and FINRA TRACE bond prints · <span class="pill warn">secondhand · X</span> levels quoted in X posts (check the link) · NVDA and GOOGL are tagged <b>backer</b> to compare with CRWV</span></h2>
 <div class="tw"><table id="nct"></table></div><div class="fn" id="ncf" style="margin-top:6px"></div></section>
 
-<section><h2>Category beta and correlation <span class="mut" style="font-weight:400">· equal-weight baskets, benchmark left out of its own basket · <b>QQQ removed</b> = residual β/ρ to the hyperscalers after taking QQQ out of both · yellow = 20-day differs from 120-day by &gt;0.5 (beta) or &gt;0.3 (corr)</span></h2>
-<div class="ctl" style="margin-bottom:6px"><button data-k="beta" class="on">Beta</button> <button data-k="corr">Correlation</button> <button data-k="both">Both</button> <span class="mut" style="margin:0 4px">|</span> <button id="xq" title="QQQ removed: within each window the basket and the hyperscaler are both regressed on QQQ, then β/ρ are taken on the residuals. Hyperscaler benchmarks only.">QQQ removed</button></div>
+<section><h2>Category beta and correlation <span class="mut" style="font-weight:400">· equal-weight baskets, benchmark left out of its own basket · <b>QQQ removed</b> = residual β/ρ to the hyperscalers after taking QQQ out of both · yellow = 20-day differs from 120-day by &gt;0.5 (beta) or &gt;0.3 (corr) · <b>▸ click a category</b> for its members: orange = member differs from the group by &gt;0.5 (β) / &gt;0.3 (ρ); <b>Drop-one</b> shows the group without that member, blue = it moves the group by &gt;0.2 (β) / &gt;0.1 (ρ); hover any cell for own, group and drop-one values</span></h2>
+<div class="ctl" style="margin-bottom:6px"><button data-k="beta" class="on">Beta</button> <button data-k="corr">Correlation</button> <button data-k="both">Both</button> <span class="mut" style="margin:0 4px">|</span> <button id="xq" title="QQQ removed: within each window the basket and the hyperscaler are both regressed on QQQ, then β/ρ are taken on the residuals. Hyperscaler benchmarks only.">QQQ removed</button> <span class="mut" style="margin:0 4px">|</span> <button id="dropb" title="Member rows show the category value recomputed without that company (drop-one). Blue = removing it moves the group by more than 0.2 (β) or 0.1 (ρ).">Drop-one</button> <button id="expall">Expand all</button></div>
 <div class="tw"><table id="tb"></table></div></section>
 
 <section><h2>HYG/IEF, 2 years <span class="mut" style="font-weight:400">· red shading = widening regime days</span></h2>
@@ -67,16 +67,29 @@ function cards(){
  `<div class="cd"><div class="k">CRWV − QQQ, 20 days</div><div class="v">${sg(s.crwv_minus_qqq_20d_pct,2)}%</div><div class="k"><span class="pill warn">equity proxy, not credit</span></div></div>`+
  `<div class="cd"><div class="k">ORCL − QQQ, 20 days</div><div class="v">${sg(s.orcl_minus_qqq_20d_pct,2)}%</div><div class="k"><span class="pill warn">equity proxy, not credit</span></div></div>`;
 }
+// PERCOMPANY 10/21: caret expands a category into its members (own β/ρ, distance from the group, drop-one group value)
+const OPEN=new Set(JSON.parse(localStorage.getItem('credOpen')||'[]'));let DROP=false;
 function table(){
- const L=D.latest,B=XQ?(L.hyperscalers_qqq_removed||[]):L.benchmarks,W=L.windows,ks=(MODE==='both'?['beta','corr']:[MODE]).map(k=>XQ?'x'+k:k);
- let h=`<tr><th rowspan="2">Category</th>`+B.map(b=>`<th class="g" colspan="${W.length*ks.length}">${E(b)}</th>`).join('')+`</tr><tr>`;
+ const L=D.latest,B=XQ?(L.hyperscalers_qqq_removed||[]):L.benchmarks,W=L.windows,ks=(MODE==='both'?['beta','corr']:[MODE]).map(k=>XQ?'x'+k:k),M=L.members||{};
+ let h=`<tr><th rowspan="2">Category${DROP?' <span class="mut">· member rows = group without that name</span>':''}</th>`+B.map(b=>`<th class="g" colspan="${W.length*ks.length}">${E(b)}</th>`).join('')+`</tr><tr>`;
  h+=B.map(()=>ks.map(k=>W.map((w,i)=>`<th class="${i===0&&k===ks[0]?'g':''}" style="${i===0&&k===ks[0]?'border-left:1px solid var(--line)':''}">${k.startsWith('x')?'x':''}${k.endsWith('beta')?'β':'ρ'}${w}</th>`).join('')).join('')).join('')+`</tr>`;
- for(const [c,lbl] of CATS){const r=L.rolling[c];if(!r)continue;
-  h+=`<tr><td title="${E((L.categories[c]||[]).join(', '))}">${E(lbl)} <span class="mut">(${(L.categories[c]||[]).length})</span></td>`;
+ for(const [c,lbl] of CATS){const r=L.rolling[c];if(!r)continue;const mem=M[c]||{},op=OPEN.has(c),names=L.categories[c]||[];
+  h+=`<tr class="cat" data-c="${E(c)}" style="cursor:pointer"><td title="${E(names.join(', '))}"><span class="car">${op?'▾':'▸'}</span> ${E(lbl)} <span class="mut">(${names.length})</span></td>`;
   for(const b of B){const x=r[b]||{};ks.forEach((k,ki)=>{const thr=k.endsWith('beta')?0.5:0.3;const a=x[k+'20'],z=x[k+'120'];const flag=a!=null&&z!=null&&Math.abs(a-z)>thr;
    W.forEach((w,i)=>{const v=x[k+w];h+=`<td class="${i===0&&ki===0?'g0 ':''}${flag&&(w===20||w===120)?'hl ':''}${v!=null&&v<0?'neg':''}" ${flag?`title="${k} 20d ${f(a,3)} vs 120d ${f(z,3)}: diff ${sg(a-z,3)}"`:''}>${f(v,2)}</td>`})})}
-  h+=`</tr>`}
+  h+=`</tr>`;
+  if(op)for(const s of names){const m=mem[s]||{};
+   h+=`<tr class="mem"><td style="padding-left:22px;background:#fff">${E(s)}</td>`;
+   for(const b of B){const x=m[b]||{},g=r[b]||{};ks.forEach((k,ki)=>{const thr=k.endsWith('beta')?0.5:0.3,sthr=k.endsWith('beta')?0.2:0.1;
+    W.forEach((w,i)=>{const own=x[k+w],dr=x['drop_'+k+w],gv=g[k+w];
+     if(s===b){h+=`<td class="${i===0&&ki===0?'g0':''} mut" style="background:#fff" title="${E(s)} is the benchmark">·</td>`;return}
+     const dist=own!=null&&gv!=null?own-gv:null,shift=dr!=null&&gv!=null?gv-dr:null;
+     const v=DROP?dr:own,far=DROP?(shift!=null&&Math.abs(shift)>sthr):(dist!=null&&Math.abs(dist)>thr);
+     const tip=`${s} vs ${b} ${k}${w}: own ${f(own,3)} · group ${f(gv,3)} (own − group ${sg(dist,3)}) · group without ${s} ${f(dr,3)} (${s} moves the group ${sg(shift,3)})`;
+     h+=`<td class="${i===0&&ki===0?'g0 ':''}${v!=null&&v<0?'neg':''}" style="background:${far?(DROP?'#ddf4ff':'#ffe2cc'):'#fff'};${far?'font-weight:700':''}" title="${E(tip)}">${f(v,2)}</td>`})})}
+   h+=`</tr>`}}
  document.getElementById('tb').innerHTML=h;
+ document.querySelectorAll('#tb tr.cat').forEach(tr=>tr.onclick=()=>{const c=tr.dataset.c;OPEN.has(c)?OPEN.delete(c):OPEN.add(c);localStorage.setItem('credOpen',JSON.stringify([...OPEN]));table()});
 }
 function scale(a,b,c,d){return v=>c+(v-a)*(d-c)/((b-a)||1)}
 function axes(svg,X0,X1,Y0,Y1,yt,dates,xs,ys){
@@ -108,7 +121,10 @@ function foot(){const L=D.latest;document.getElementById('fn').innerHTML=
  document.getElementById('asof').textContent=`data through ${L.date} · built ${L.built_pt}`}
 document.querySelectorAll('.ctl button[data-k]').forEach(b=>b.onclick=()=>{MODE=b.dataset.k;document.querySelectorAll('.ctl button[data-k]').forEach(x=>x.classList.toggle('on',x===b));table()});
 document.getElementById('xq').onclick=e=>{XQ=!XQ;e.target.classList.toggle('on',XQ);table()};
-if(location.hash==='#x'){XQ=true;document.getElementById('xq').classList.add('on')}  // /credit#x opens with QQQ removed
+document.getElementById('dropb').onclick=e=>{DROP=!DROP;e.target.classList.toggle('on',DROP);table()};
+document.getElementById('expall').onclick=e=>{const all=CATS.every(([c])=>OPEN.has(c));CATS.forEach(([c])=>all?OPEN.delete(c):OPEN.add(c));localStorage.setItem('credOpen',JSON.stringify([...OPEN]));e.target.textContent=all?'Expand all':'Collapse all';table()};
+if(/[#&]open/.test(location.hash))CATS.forEach(([c])=>OPEN.add(c));if(/[#&]drop/.test(location.hash)){DROP=true;document.getElementById('dropb').classList.add('on')}
+if(/[#&]x\b/.test(location.hash)){XQ=true;document.getElementById('xq').classList.add('on')}  // /credit#x opens with QQQ removed
 // NAMECREDIT 10/21: company credit section (raw values from ~/oid-data/research/name-credit/latest.json)
 function nc(N){const O=['CRWV','NVDA','GOOGL','ORCL','META','AMZN','MSFT','NBIS','IREN','APLD','WULF','CIFR','CORZ'];
  const KEY={CRWV:['21873SAB4','21873SAC2','21873SAK4']};let h=`<tr><th>Name</th><th>Role</th><th>DTCC 5y CDS (bp)</th><th>prev</th><th>method</th><th>X print (bp) <span class="pill warn">secondhand</span></th><th>refers to</th><th>author</th><th>Bonds (FINRA TRACE)</th></tr>`;
