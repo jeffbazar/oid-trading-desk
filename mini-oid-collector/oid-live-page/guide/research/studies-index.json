@@ -5,6 +5,17 @@
  "research_bot": "https://swift-dune-cs3e.here.now/#research",
  "studies": [
   {
+   "id": "bellwether-readthrough",
+   "date": "2026-10-21",
+   "title": "Bellwether earnings read-through and category betas",
+   "status": "done (research only)",
+   "question": "When LRCX/AMAT/KLAC/ASML/TSM/MU/NVDA/AMD/AVGO/META/MSFT/GOOG/AMZN/ORCL/SMCI report, how much do peers and categories move, is it tradeable, and what explains tonight (10/21) after LRCX -7.4% after hours?",
+   "method": "227 earnings events since 2023 (UW dates), Alpaca SIP daily and first-30m bars, peer slope/corr/hit on close-to-open and close-to-close, leave-one-out implied moves, equal-weight category baskets regressed on QQQ/SMH (60d, 1y, overnight-only) and on equipment and capex print nights, tonight attribution vs QQQ, LRCX and META.",
+   "result": "Equipment basket moves 0.33x the reporter on equipment prints (R2 .66); memory, GPU and neocloud groups only 0.14-0.16x (R2 <= .30). Capex prints barely move any group (about 0.1x, R2 <= .18). Daily QQQ beta: equipment 2.1x, GPU 2.2x, neocloud 2.7x, memory 3.1x. Tonight: LRCX explains equipment; QQQ explains GPU and neoclouds; META explains nothing. Peers gap about 0.75x their implied move; under-reacters drift +51 bp open-to-close. After a bellwether drop of 4% or more, peers fall another 70 bp open-to-close and bounce +46 bp the next day (58 events).",
+   "verdict": "Useful as a map, not a signal. Gaps neither hold nor fade on average; about 15 events per bellwether; in-sample; no trading changes.",
+   "file": "files/bellwether-readthrough-20261021.md"
+  },
+  {
    "id": "overnight-hold",
    "date": "2026-10-21",
    "title": "Overnight hold: 12:55 PM \u2192 next open, shares vs 45-DTE calls (core 61, 60 nights)",
