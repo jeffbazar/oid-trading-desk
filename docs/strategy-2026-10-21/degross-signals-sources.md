@@ -2,6 +2,10 @@
 
 Research run on the evening of 2026-10-22. Nine research sheets are in `degross-signals/` (four situation sheets: the tape, the de-grossing reads, the calendar, and the 10/22 session reconstruction written after that close; five lenses: positioning and flow, volatility and options, breadth and tape, credit and funding, the skeptic). Each sheet ends with its own source list. No sheet could open a news or market-data page from the sandbox; every market figure is a search-snippet extract of the named outlet.
 
+## The completeness pass
+
+After the first draft, one agent critiqued the note and filled its top gaps with fresh research (English, Korean, Japanese and Chinese sources). Its report is `degross-signals/critic-and-gapfill.md`; the four corrections it forced and the material it added are listed in the note's section 8.
+
 ## The ten claims that were checked
 
 Each claim went to two independent checkers (one reading for the primary source, one searching for contradicting evidence). The checkers faced the same network policy, so a refuted verdict mostly means unconfirmed. The corrections below were applied to the main document.
