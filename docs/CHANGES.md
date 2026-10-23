@@ -61,3 +61,9 @@ Implementation status for each item is recorded in `changes.json`. Verification 
 - Added `docs/strategy-2026-10-21/model-plan-sources.md` (eight checked claims, four corrected) and `docs/strategy-2026-10-21/model-plan/` (the research sheets and draft plans behind it).
 - Added `docs/strategy-2026-10-21/mockups/`: the three UI mockups from section 9 of the strategy report as design artboards.
 - Review only. No model was deployed, no daemon installed, no API key created, no order authority changed.
+
+## 2026-10-22: De-grossing signals note for the 10/23 session
+
+- Added `docs/DEGROSS-SIGNALS-20261023.md`: for the owner's question about predictive edge during a hedge-fund de-grossing, a dated reconstruction of the 10/12 to 10/22 tape, every published prime-broker and positioning read with its date, an exhaustion scorecard split into real-time metrics and lagged ones (with what the credit page can and cannot say intraday), a three-window plan for Friday 10/23, the options-buyer hazards in this regime, and a list of what has no edge. Every market figure is a search-snippet extract because the sandbox cannot open news or data pages; the note says so on every number.
+- Added `docs/strategy-2026-10-21/degross-signals-sources.md` (ten checked claims, two checkers each) and `docs/strategy-2026-10-21/degross-signals/` (the eight research sheets).
+- Research only. Nothing in the desk's configuration, bots, feeds or order authority changed.
