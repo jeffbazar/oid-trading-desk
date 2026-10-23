@@ -164,12 +164,13 @@ class Feed:
 
     def _logged_x(self):
         sp = OUT / f"sentiment-{self.day}.jsonl"
-        s = set()
+        s = {}
         if sp.exists():
             for ln in sp.read_text(errors="replace").splitlines():
                 if '"kind":"x"' in ln:
                     try:
-                        s.add(json.loads(ln)["id"])
+                        r = json.loads(ln)
+                        s[str(r["id"])] = r
                     except Exception:
                         pass
         return s
@@ -252,7 +253,11 @@ class Feed:
                 t = (r.get("created_ns") or 0) / 1e9
                 text = html.unescape(" ".join(str(r.get("text") or "").split()))
                 eng = int(r.get("like_count") or 0) + 2 * int(r.get("repost_count") or 0) + int(r.get("reply_count") or 0) + int(r.get("quote_count") or 0)
-                doc, per, raw, m = NS.score(text[:500], tick)
+                prev = logged.get(pid)
+                if prev and "doc" in prev:
+                    doc, per, raw, m = prev["doc"], prev.get("sent") or {s: prev["doc"] for s in tick}, prev.get("raw", 0.0), prev.get("method", NS.METHOD)
+                else:
+                    doc, per, raw, m = NS.score(text[:500], tick)
                 x = {"id": pid, "t": round(t, 3), "time_pt": pt_label(t), "text": text[:280], "handle": r.get("author_handle"),
                      "followers": r.get("author_followers"), "tier": k.get("credibility_tier"), "cluster": k.get("cluster_id"),
                      "eng": eng, "likes": r.get("like_count"), "reposts": r.get("repost_count"), "tickers": tick,
@@ -264,11 +269,11 @@ class Feed:
                                                "weight": X_WEIGHT, "source": "x:@" + str(r.get("author_handle")), "headline": text[:200],
                                                "writer": VERSION})
                 self.dirty = True
-        self.st["x_posts"] = len(self.x)
+        self.st["x_posts"] = sum(1 for x in self.x.values() if (x.get("sent") or 0) != 0)
 
     def x_top(self):
         seen_c, seen_t, out = set(), set(), []
-        for x in sorted(self.x.values(), key=lambda x: (-x["eng"], -x["t"])):
+        for x in sorted((x for x in self.x.values() if (x.get("sent") or 0) != 0), key=lambda x: (-x["eng"], -x["t"])):
             norm = re.sub(r"https?://\S+|[^a-z0-9 ]", "", x["text"].lower())[:80]
             if (x["cluster"] and x["cluster"] in seen_c) or norm in seen_t:
                 continue
@@ -276,38 +281,46 @@ class Feed:
             out.append(x)
             if len(out) >= KEEP_X:
                 break
-        return newest_first(out, "text")  # NEWSSORT: pick the most-engaged posts, but list them newest first
+        return newest_first(out, "text")  # NEWSSORT + NOZERO (2026-10-23): non-zero sentiment only, newest first
 
     # ---- output
     def write(self):
         self._rollday()
         now = time.time()
-        allv = sorted(self.items.values(), key=lambda i: (-i["t"], str(i["id"])))  # NEWSSORT: published time, stable tie-break
+        allv = sorted((i for i in self.items.values() if (i.get("sent") or 0) != 0), key=lambda i: (-i["t"], str(i["id"])))  # NEWSSORT + NOZERO (2026-10-23): drop sent==0 from live feed
         fol = [i for i in allv if i["followed"]]
         panel_all = newest_first(allv)  # NEWSSORT: deduped copies for the panel only (badges/counts unchanged)
         panel_fol = [i for i in panel_all if i["followed"]]
         by = {}
         for i in fol:
             for s in i["tickers"]:
+                si = i["sent_by"].get(s, i["sent"])
+                if not si:
+                    continue
                 b = by.setdefault(s, {"n30": 0, "n60": 0, "net60": 0.0, "n_today": 0, "last_t": None, "heads": []})
                 b["n_today"] += 1
                 age = now - i["t"]
                 if b["last_t"] is None:
                     b.update(last_t=i["t"], last_time_pt=i["time_pt"], last_headline=i["headline"][:160], last_url=i["url"],
-                             last_sent=i["sent_by"].get(s, i["sent"]), last_source=i["source"])
+                             last_sent=si, last_source=i["source"])
                 if age <= 1800:
                     b["n30"] += 1
                 if age <= 3600:
                     b["n60"] += 1
-                    b["net60"] += i["sent_by"].get(s, i["sent"])
+                    b["net60"] += si
                     if len(b["heads"]) < 2:
                         b["heads"].append({"time_pt": i["time_pt"], "headline": i["headline"][:160], "source": i["source"],
-                                           "sent": i["sent_by"].get(s, i["sent"]), "url": i["url"]})
+                                           "sent": si, "url": i["url"]})
         for x in self.x.values():
+            if not (x.get("sent") or 0):
+                continue
             if now - x["t"] <= 3600:
                 for s in x["tickers"]:
+                    sx = x["sent_by"].get(s, x["sent"])
+                    if not sx:
+                        continue
                     b = by.setdefault(s, {"n30": 0, "n60": 0, "net60": 0.0, "n_today": 0, "last_t": None, "heads": []})
-                    b["net60"] += X_WEIGHT * x["sent_by"].get(s, x["sent"])
+                    b["net60"] += X_WEIGHT * sx
                     b["x60"] = b.get("x60", 0) + 1
         for b in by.values():
             b["net60"] = round(b["net60"], 1)
@@ -427,6 +440,8 @@ async def main():
     log(f"{VERSION} start; sentiment={m}")
     feed = Feed()
     feed._rollday()
+    feed.scan_x()
+    feed.write()
     key, sec = creds()
     hdr = {"APCA-API-KEY-ID": key, "APCA-API-SECRET-KEY": sec}
     async with aiohttp.ClientSession() as sess:

@@ -205,12 +205,32 @@ section{margin-top:8px;padding:6px 8px}
 #bestnow .bi.up{border-color:#1a7f37}#bestnow .bi.dn{border-color:#cf222e}#bestnow .bi.edge.up{background:#dafbe1}#bestnow .bi.edge.dn{background:#ffebe9}
 #bestnow .bi .a{font-weight:800}#bestnow .bi.up .a{color:#1a7f37}#bestnow .bi.dn .a{color:#cf222e}#bestnow .bi .w{color:var(--mut);font-size:11px}#bestnow .bi .be{font-size:10px;font-weight:700}
 #bestnow .bi .be.y{color:#1a7f37}#bestnow .bi .be.n{color:#9a6700}
+#moverstrip:empty{display:none}#moverstrip{margin:3px 0 5px;padding:5px 8px;border:1px solid var(--line);border-radius:7px;background:var(--panel);font-size:11.5px;display:flex;flex-direction:column;gap:4px}
+#moverstrip .mvh{display:flex;flex-wrap:wrap;gap:4px 8px;align-items:center;font-size:11px}
+#moverstrip .mvh b.t{font-size:12px;color:var(--fg)}
+#moverstrip .mvb{display:inline-flex;flex-wrap:wrap;gap:3px;align-items:center}
+#moverstrip button{background:#fff;border:1px solid var(--line);border-radius:5px;padding:1px 6px;font-size:10.5px;cursor:pointer;color:var(--fg);font-weight:600}
+#moverstrip button.on{background:#0969da;border-color:#0969da;color:#fff}
+#moverstrip .mvr{display:flex;flex-wrap:wrap;gap:4px 5px;padding:1px 0;align-items:center}
+#moverstrip .mvl{flex:0 0 92px;font-size:10.5px;font-weight:800;white-space:nowrap}
+#moverstrip .mvl.up{color:#1a7f37}#moverstrip .mvl.dn{color:#cf222e}#moverstrip .mvl.ac{color:#0969da}
+#moverstrip .mp{flex:0 0 auto;display:inline-flex;gap:4px;align-items:baseline;padding:2px 7px;border-radius:6px;border:1px solid var(--line);background:#fff;cursor:pointer;white-space:nowrap;font-variant-numeric:tabular-nums;font-size:11px}
+#moverstrip .mp.up{border-color:#1a7f3766;background:#f4fbf6}#moverstrip .mp.up.hi{border-color:#1a7f37;background:#dafbe1}
+#moverstrip .mp.dn{border-color:#cf222e66;background:#fff7f6}#moverstrip .mp.dn.hi{border-color:#cf222e;background:#ffebe9}
+#moverstrip .mp.ac{border-color:#9a670066;background:#fffdf3}#moverstrip .mp.ac.hi{border-color:#cf222e;background:#fff8c5}
+#moverstrip .mp .s{font-weight:800;color:var(--fg)}
+#moverstrip .mp .c.up{color:#1a7f37;font-weight:800}#moverstrip .mp .c.dn{color:#cf222e;font-weight:800}
+#moverstrip .mp .p{color:#424a53;font-size:10.5px}
+#moverstrip .mp .rv1{font-weight:800;color:var(--fg)}#moverstrip .mp .rv1.hot{color:#cf222e}#moverstrip .mp .rv1.warm{color:#9a6700}
+#moverstrip .mp .rvd{color:var(--mut);font-size:10px}
+#moverstrip .mp .mk{font-size:9.5px;font-weight:800;padding:0 3px;border-radius:3px;background:#eaeef2;color:#424a53}
+#moverstrip .mp .mk.acc,#moverstrip .mp .mk.res{background:#1a7f37;color:#fff}#moverstrip .mp .mk.dec{background:#fff1c2;color:#9a6700}
 </style><link rel="stylesheet" href="chart.css?v=20261021-patterns"></head><body>
 <header><h1>OID live volume</h1><span id="clock" class="pill">connecting…</span><span id="mkt" class="pill"></span><span id="vsmode" class="pill"></span>
 <span class="tabs" style="margin-left:auto"><button id="bh" class="on" onclick="view('heat')">Heatmap</button> <button id="bt" onclick="view('table')">Table</button> <button id="bc" onclick="openLastChart()" title="Open the stock chart (last ticker). Tip: click any tile, table row or Sector watch row to chart that ticker.">Chart</button> <a href="guide/" id="bg">Field Guide</a> <a href="guide/research/" id="br" title="Studies run so far: date, question, method, result, verdict and the full file">Research</a> <a href="credit" id="bcr" title="Credit spreads (HYG/IEF, HY/IG OAS) and rolling category betas/correlations to QQQ, SMH, megacaps and LRCX. Research only. CREDITTAB">Credit &amp; Betas</a></span></header>
-<div id="strip"></div><div id="momg"></div><div id="moms"></div><div id="uwleg"></div><div id="flowlean"></div><div id="secstrip"></div><div id="rotstrip"></div><div id="note"></div>
+<div id="strip"></div><div id="momg"></div><div id="moms"></div><div id="moverstrip"></div><div id="uwleg"></div><div id="flowlean"></div><div id="secstrip"></div><div id="rotstrip"></div><div id="note"></div>
 <section id="news"><h2>News <small id="nmeta" class="mut">loading…</small><span class="nt"><button id="nbF" class="on" onclick="nTab('f')">Followed</button> <button id="nbA" onclick="nTab('a')">All market</button> <button id="nbX" onclick="nTab('x')">X posts</button></span><small id="nflt"></small><span style="margin-left:auto"><button onclick="nMin()" style="font-size:11px;background:#fff;border:1px solid var(--line);border-radius:5px;cursor:pointer" id="nminb">hide</button></span></h2><div id="nlist"></div></section>
-<div id="heat"><div id="bestnow"></div><div class="lg"><label class="gtog"><input type="checkbox" id="gby" onchange="setGB(this.checked)"> Group by sector</label><label class="srt">Sort <select id="hsort" onchange="setHS(this.value)"><option value="name">Name (A→Z)</option><option value="rvol">Volume heat (1-min rvol)</option><option value="day_rvol">Day rvol</option><option value="chg">% change</option><option value="last">Last price</option><option value="hot">Surges first</option><option value="pat">Pattern edge (hit rate)</option></select></label> rvol vs same-minute norm: <span class="sw" style="background:#eef1f4;border:1px solid #d0d7de"></span>&lt;1.5× <span class="sw" style="background:#ffd88a"></span>~2× <span class="sw" style="background:#ffaba8"></span>≥3× · pulsing = vol_surge or ≥3× · sort: use dropdown · bars = last 30 one-min volumes, red ≥3× norm, last bar = current minute · tile chips = <b>15s / 1m C/P = live Alpaca OPRA aggressor call-buy÷put-buy premium (small % = classified coverage; grey = thin/stale; ▲/▼ = trend over ~45 s of 15 s readings: green toward calls, red toward puts, – flat)</b> + day C/P vol + 15m (slow, italic) and 5m call−put lean (UW soft, core-20+focus only; small number = 5m data age in min) · right-edge marks = <b>FlashAlpha walls</b>: <span style="color:#1a7f37">●</span> call wall, <span style="color:#cf222e">●</span> put wall, <span style="color:#bf8700">●</span> gamma flip (hollow = low-confidence), black tick = spot; bigger/darker = more open interest + today’s volume at that strike; hover or tap for prices · VIX/IWM tiles = desk files; WTI/Brent = CME front-month futures (FlashAlpha, ~2 min); STALE/CLOSED stamped · <b>sector sections</b> (grey, dashed bar, after the core groups) = the 144 sector names: <b>F±n</b> Full / <b>L±n</b> Light score, C/P <sup class="tt">tt</sup> = tick test, <b>—</b> = no data for that name · click a group bar to fold it (remembered)</div><div id="grid"></div></div><div id="wtip" hidden></div><div id="stip" hidden></div>
+<div id="heat"><div id="bestnow"></div><div class="lg"><label class="gtog"><input type="checkbox" id="gby" onchange="setGB(this.checked)"> Group by sector</label><label class="srt">Sort <select id="hsort" onchange="setHS(this.value)"><option value="name">Name (A→Z)</option><option value="rvol">Volume heat (1-min rvol)</option><option value="day_rvol">Day rvol</option><option value="chg">% change (▲ Gainers)</option><option value="chg_asc">% change (▼ Decliners)</option><option value="last">Last price</option><option value="hot">Surges first</option><option value="pat">Pattern edge (hit rate)</option></select></label> rvol vs same-minute norm: <span class="sw" style="background:#eef1f4;border:1px solid #d0d7de"></span>&lt;1.5× <span class="sw" style="background:#ffd88a"></span>~2× <span class="sw" style="background:#ffaba8"></span>≥3× · pulsing = vol_surge or ≥3× · sort: use dropdown · bars = last 30 one-min volumes, red ≥3× norm, last bar = current minute · tile chips = <b>15s / 1m C/P = live Alpaca OPRA aggressor call-buy÷put-buy premium (small % = classified coverage; grey = thin/stale; ▲/▼ = trend over ~45 s of 15 s readings: green toward calls, red toward puts, – flat)</b> + day C/P vol + 15m (slow, italic) and 5m call−put lean (UW soft, core-20+focus only; small number = 5m data age in min) · right-edge marks = <b>FlashAlpha walls</b>: <span style="color:#1a7f37">●</span> call wall, <span style="color:#cf222e">●</span> put wall, <span style="color:#bf8700">●</span> gamma flip (hollow = low-confidence), black tick = spot; bigger/darker = more open interest + today’s volume at that strike; hover or tap for prices · VIX/IWM tiles = desk files; WTI/Brent = CME front-month futures (FlashAlpha, ~2 min); STALE/CLOSED stamped · <b>sector sections</b> (grey, dashed bar, after the core groups) = the 144 sector names: <b>F±n</b> Full / <b>L±n</b> Light score, C/P <sup class="tt">tt</sup> = tick test, <b>—</b> = no data for that name · click a group bar to fold it (remembered)</div><div id="grid"></div></div><div id="wtip" hidden></div><div id="stip" hidden></div>
 <div id="table" hidden><section><div id="tleg" class="tleg"></div><div class="tw"><table><thead><tr id="th"></tr></thead><tbody id="tb"></tbody></table></div></section></div>
 <div id="wide" class="wbar"><b>Sector watch</b><span class="wsm" id="wmeta">loading…</span><button onclick="wJump()" title="The 144 sector names are now sections of the Table view (one table for every ticker)">Open in Table ▸</button><span id="walerts"></span></div>
 <details id="logs"><summary>Logs</summary><div id="lower">
@@ -273,10 +293,38 @@ function flowLeanHtml(){const F=st.flow_lean||[];const uw=st.uw||{};
   if(s.hot)parts.push('<span class="pill warn">hot</span>');
   return `<span class="fl">${parts.join(' · ')}</span>`;
  }).join('');}
-let hsort='name';try{const v=localStorage.lvHeatSort;if(['name','rvol','day_rvol','chg','last','hot','pat'].includes(v))hsort=v}catch(e){}
-function setHS(v){hsort=v;try{localStorage.lvHeatSort=v}catch(e){}if(st)renderGrid();}
+let hsort='name',mvOrd='rvol';try{const v=localStorage.lvHeatSort;if(['name','rvol','day_rvol','chg','chg_asc','last','hot','pat'].includes(v))hsort=v;const mv=localStorage.lvMoverOrd;if(['rvol','chg'].includes(mv))mvOrd=mv;}catch(e){}
+function setHS(v){hsort=v;if($('hsort'))$('hsort').value=v;try{localStorage.lvHeatSort=v}catch(e){}if(st){moverStrip();if(mode==='heat')renderGrid();}}
+function setMvOrd(v){mvOrd=v;try{localStorage.lvMoverOrd=v}catch(e){}if(st)moverStrip();}
+function quickSort(v){setHS(v);if(mode==='table'){if(v==='chg'){sortK='chg';asc=false;}else if(v==='chg_asc'){sortK='chg';asc=true;}else if(v==='rvol'){sortK='rvol';asc=false;}else if(v==='day_rvol'){sortK='day_rvol';asc=false;}else if(v==='name'){sortK='sym';asc=true;}renderTable();}}
 function heatWide(){return WIDE&&WIDE.groups?wideRows():[];}/* SECTORHEAT */
-function sorted(){const rows=[...(st.rows||[]),...heatWide()];const nm=(a,b)=>a.sym.localeCompare(b.sym);const num=f=>(a,b)=>{const x=f(a),y=f(b);if(x==null&&y==null)return nm(a,b);if(x==null)return 1;if(y==null)return -1;return (y-x)||nm(a,b);};const fn={name:nm,rvol:num(rvOf),day_rvol:num(r=>r.day_rvol),chg:num(r=>r.chg),last:num(r=>r.last),hot:(a,b)=>((b.hot?1:0)-(a.hot?1:0))||nm(a,b),pat:num(r=>{const p=patBest(r);return p?p.rate+(patEdge(p)?1:0):null;})}[hsort]||nm;rows.sort(fn);return rows;}
+function sorted(){const rows=[...(st.rows||[]),...heatWide()];const nm=(a,b)=>a.sym.localeCompare(b.sym);const num=f=>(a,b)=>{const x=f(a),y=f(b);if(x==null&&y==null)return nm(a,b);if(x==null)return 1;if(y==null)return -1;return (y-x)||nm(a,b);};const numAsc=f=>(a,b)=>{const x=f(a),y=f(b);if(x==null&&y==null)return nm(a,b);if(x==null)return 1;if(y==null)return -1;return (x-y)||nm(a,b);};const fn={name:nm,rvol:num(rvOf),day_rvol:num(r=>r.day_rvol),chg:num(r=>r.chg),chg_asc:numAsc(r=>r.chg),last:num(r=>r.last),hot:(a,b)=>((b.hot?1:0)-(a.hot?1:0))||nm(a,b),pat:num(r=>{const p=patBest(r);return p?p.rate+(patEdge(p)?1:0):null;})}[hsort]||nm;rows.sort(fn);return rows;}
+function moverStrip(){const el=$('moverstrip');if(!el||!st)return;
+ const core=(st.rows||[]).filter(r=>r.kind!=='ext'&&r._t!=='wide');if(!core.length){el.innerHTML='';return;}
+ const med=a=>{const s=a.filter(v=>v!=null).sort((x,y)=>x-y);if(!s.length)return null;const m=s.length>>1;return s.length%2?s[m]:(s[m-1]+s[m])/2;};
+ const m1=med(core.map(r=>r.rvol)),md=med(core.map(r=>r.day_rvol));
+ const allUp=core.filter(r=>(r.chg||0)>0),allDn=core.filter(r=>(r.chg||0)<0);
+ const nup=allUp.length,ndn=allDn.length;
+ const cmpR=(a,b)=>((rvOf(b)??-1)-(rvOf(a)??-1))||((b.day_rvol??-1)-(a.day_rvol??-1))||(Math.abs(b.chg||0)-Math.abs(a.chg||0))||a.sym.localeCompare(b.sym);
+ const cmpUp=mvOrd==='chg'?(a,b)=>((b.chg||0)-(a.chg||0))||cmpR(a,b):cmpR;
+ const cmpDn=mvOrd==='chg'?(a,b)=>((a.chg||0)-(b.chg||0))||cmpR(a,b):cmpR;
+ const pick=(arr,chgFn,n)=>{const m=new Map();[...arr].sort(cmpR).slice(0,n).forEach(r=>m.set(r.sym,r));[...arr].sort(chgFn).slice(0,n).forEach(r=>m.set(r.sym,r));return [...m.values()];};
+ const gainers=pick(allUp,(a,b)=>(b.chg||0)-(a.chg||0),10).sort(cmpUp);
+ const decliners=pick(allDn,(a,b)=>(a.chg||0)-(b.chg||0),8).sort(cmpDn);
+ const rec={};((st.momentum&&st.momentum.recent)||[]).forEach(x=>{if(x.sym&&x.sym!=='MARKET'&&!rec[x.sym])rec[x.sym]=x;});
+ const active1m=core.filter(r=>(rvOf(r)||0)>=1.2||(r.pace||0)>=1.5||(r.mom&&['accelerate','resume','decelerate'].includes(r.mom.st))||rec[r.sym]).sort(cmpR).slice(0,12);
+ const rvSpan=r=>{const v=rvOf(r);const c=v>=2?'hot':v>=1.5?'warm':'';return `<span class="rv1 ${c}">1m ${v==null?'—':v.toFixed(2)+'×'}</span><span class="rvd">· day ${r.day_rvol==null?'—':r.day_rvol.toFixed(2)+'×'}</span>`;};
+ const pill=(r,cls)=>{const hi=Math.abs(r.chg||0)>=2.5||(rvOf(r)||0)>=1.5?' hi':'';const mst=r.mom&&r.mom.st&&r.mom.st!=='quiet'?r.mom.st:null;const ml=mst?`<span class="mk ${mst===`accelerate`?`acc`:mst===`resume`?`res`:`dec`}">${mst===`accelerate`?`▲ACC`:mst===`resume`?`▲RES`:`DEC`}</span>`:'';
+  const tip=`${r.sym} · $${P(r.last)} (${r.chg>0?'+':''}${P(r.chg)}%) · 1m rvol ${X(r.rvol)} (vol ${K(r.vol_1m)}) · 10s pace ${X(r.pace)} · day rvol ${X(r.day_rvol)} (${K(r.day_vol)}) · click for chart`;
+  return `<span class="mp ${cls}${hi}" onclick="window.openChart&&openChart('${E(r.sym)}')" title="${E(tip)}"><span class="s">${E(r.sym)}</span><span class="p">$${P(r.last)}</span><span class="c ${r.chg>=0?'up':'dn'}">${r.chg>0?'+':''}${P(r.chg)}%</span>${rvSpan(r)}${ml}</span>`;};
+ const actPill=r=>{const mst=(r.mom&&r.mom.st&&r.mom.st!=='quiet'?r.mom.st:null)||(rec[r.sym]&&rec[r.sym].kind)||((rvOf(r)||0)>=3?'SURGE':(rvOf(r)||0)>=1.5?'HEAVY':'1m vol');
+  const mc=mst==='accelerate'||mst==='SURGE'?'acc':mst==='resume'?'res':mst==='decelerate'?'dec':'';
+  const hi=(rvOf(r)||0)>=2||mst==='accelerate'?' hi':'';
+  return `<span class="mp ac${hi}" onclick="window.openChart&&openChart('${E(r.sym)}')" title="${E(`${r.sym} · ${mst} · 1m rvol ${X(r.rvol)} · 10s pace ${X(r.pace)} · day rvol ${X(r.day_rvol)} · click for chart`)}"><span class="s">${E(r.sym)}</span><span class="mk ${mc}">${E(mst===`accelerate`?`▲ACCEL`:mst===`resume`?`▲RESUME`:mst===`decelerate`?`DECEL`:mst)}</span><span class="p">$${P(r.last)}</span><span class="c ${(r.chg||0)>=0?'up':'dn'}">${(r.chg||0)>0?'+':''}${P(r.chg)}%</span>${rvSpan(r)}${vDir(r)}</span>`;};
+ el.innerHTML=`<div class="mvh"><b class="t">Live Movers</b><span class="mut">core breadth <b style="color:#1a7f37">${nup}▲</b> / <b style="color:#cf222e">${ndn}▼</b> · median 1m rvol <b>${m1==null?'—':m1.toFixed(2)+'×'}</b> · day <b>${md==null?'—':md.toFixed(2)+'×'}</b></span><span class="mvb">Strip order: <button class="${mvOrd==='rvol'?'on':''}" onclick="setMvOrd('rvol')" title="Rank Gainers & Decliners by 1-minute relative volume descending">🔥 1m RVOL</button><button class="${mvOrd==='chg'?'on':''}" onclick="setMvOrd('chg')" title="Rank Gainers & Decliners by % change">% Chg</button></span><span class="mvb" style="margin-left:auto">Sort tiles: <button class="${hsort==='rvol'?'on':''}" onclick="quickSort('rvol')">🔥 1m RVOL</button><button class="${hsort==='chg'?'on':''}" onclick="quickSort('chg')">▲ Gainers</button><button class="${hsort==='chg_asc'?'on':''}" onclick="quickSort('chg_asc')">▼ Decliners</button><button class="${hsort==='day_rvol'?'on':''}" onclick="quickSort('day_rvol')">📊 Day RVOL</button><button class="${hsort==='name'?'on':''}" onclick="quickSort('name')">A→Z</button></span></div>`+
+  `<div class="mvr"><span class="mvl up">▲ Gainers (${nup})</span>${gainers.length?gainers.map(r=>pill(r,'up')).join(''):'<span class="mut">none</span>'}</div>`+
+  `<div class="mvr"><span class="mvl dn">▼ Decliners (${ndn})</span>${decliners.length?decliners.map(r=>pill(r,'dn')).join(''):'<span class="mut">none</span>'}</div>`+
+  `<div class="mvr"><span class="mvl ac">⚡ 1m Active</span>${active1m.length?active1m.map(actPill).join(''):'<span class="mut">quiet</span>'}</div>`;}
 let SECT={groups:[]},SOF={};
 function loadSectors(){return fetch('sectors.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(d=>{if(d&&Array.isArray(d.groups)){SECT=d;SOF={};d.groups.forEach(g=>(g.tickers||[]).forEach(t=>{if(!(t in SOF))SOF[t]=g.id;}));}}).catch(()=>{});}
 function grpList(){return [...SECT.groups,{id:'other',name:'Other'}];}
@@ -354,14 +402,17 @@ const nPTf=new Intl.DateTimeFormat('en-US',{timeZone:'America/Los_Angeles',month
 function nEp(i){let v=+i.t;if(v>1e15)v/=1e9;else if(v>1e11)v/=1e3;if(!(v>0)){const s=i.created_at||i.published_at;v=s?Date.parse(s)/1000:0;}return v>0?v:0;}
 function nTm(i){const v=nEp(i);return v?`<span class="tm" title="${E(nPTf.format(new Date(v*1000))+' PT · published')}">${E(nPT.format(new Date(v*1000)))}</span>`:'<span class="tm">—</span>';}
 function nKey(s){return String(s||'').toLowerCase().replace(/https?:\/\/\S+|[^a-z0-9 ]/g,' ').split(/\s+/).filter(Boolean).slice(0,12).join(' ');}
+function nNonZero(L){return (L||[]).filter(i=>Number(i&&i.sent||0)!==0);}
+function cleanNews(d){if(!d)return null;d.items=nNonZero(d.items);d.market=nNonZero(d.market);d.x_top=nNonZero(d.x_top);d.today_followed=d.items.length;d.today=d.market.length;return d;}
 function nSort(L,tk){const ids=new Set(),ks=new Set(),out=[];
- [...(L||[])].sort((a,b)=>(nEp(a)-nEp(b))||String(a.id).localeCompare(String(b.id))).forEach(i=>{const id=String(i.id),k=nKey(i[tk]);if(ids.has(id)||(k&&ks.has(k)))return;ids.add(id);if(k)ks.add(k);out.push(i);});
+ nNonZero(L).sort((a,b)=>(nEp(a)-nEp(b))||String(a.id).localeCompare(String(b.id))).forEach(i=>{const id=String(i.id),k=nKey(i[tk]);if(ids.has(id)||(k&&ks.has(k)))return;ids.add(id);if(k)ks.add(k);out.push(i);});
  return out.sort((a,b)=>(nEp(b)-nEp(a))||String(a.id).localeCompare(String(b.id)));}
 let nSeen=null,nSeenTab=null;
 function renderNews(){['f','a','x'].forEach(k=>$('nb'+k.toUpperCase()).className=nT===k?'on':'');
  if(!NW){$('nmeta').textContent='news feed not running';$('nlist').innerHTML='';return;}
+ cleanNews(NW);
  const S=NW.status||{};const age=NW.as_of?Math.round(Date.now()/1000-NW.as_of):null;const fol=new Set(NW.followed||[]);
- $('nmeta').innerHTML=`${NW.today_followed||0} followed / ${NW.today||0} today · Alpaca (Benzinga) ${S.ws==='connected'?'<span style="color:#1a7f37">live</span>':'<b style="color:#9a6700">'+E(S.ws||'?')+'</b>'}${age!=null&&age>60?' · <b style="color:#9a6700">'+ago(age)+' old</b>':''} · sentiment ${E((NW.sentiment||{}).method||'?')} · X ${(NW.x_top||[]).length}`;
+ $('nmeta').innerHTML=`${NW.items.length} followed / ${NW.market.length} today · Alpaca (Benzinga) ${S.ws==='connected'?'<span style="color:#1a7f37">live</span>':'<b style="color:#9a6700">'+E(S.ws||'?')+'</b>'}${age!=null&&age>60?' · <b style="color:#9a6700">'+ago(age)+' old</b>':''} · sentiment ${E((NW.sentiment||{}).method||'?')} · X ${NW.x_top.length}`;
  $('nflt').innerHTML=nSym?`filter <span class="tk f" onclick="nFilter('${E(nSym)}')">${E(nSym)} ✕</span>`:'';
  const now=Date.now()/1000;let rows;
  const box=$('nlist'),tabKey=nT+'|'+(nSym||''),old=nSeenTab===tabKey?nSeen:null,cur=new Set();let anc=null,ancTop=0;
@@ -372,9 +423,9 @@ function renderNews(){['f','a','x'].forEach(k=>$('nb'+k.toUpperCase()).className
  box.innerHTML=rows.join('')||'<div class="mut">No items'+(nSym?' for '+E(nSym):'')+' yet today.</div>';
  if(anc){const el=box.querySelector(`[data-id="${CSS.escape(anc)}"]`);if(el){const br=box.getBoundingClientRect();box.scrollTop+=(el.getBoundingClientRect().top-br.top)-ancTop;}}
  nSeen=cur;nSeenTab=tabKey;}
-function loadNews(){return fetch('news.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(d=>{NW=d;renderNews();}).catch(()=>{NW=null;renderNews();});}
-function newsBadge(r){const n=r.news;if(!n)return '';const fresh=n.n30>0;const net=n.net60;if(!fresh&&!(n.n60>0)&&!(n.x60>0))return '';
- const cls=net>=1?'pos':net<=-1?'neg':'';const t=`News: ${n.n30||0} headline(s) last 30 min, ${n.n60||0} last 60 min${n.x60?', '+n.x60+' X post(s)':''} · 60-min net sentiment ${net>0?'+':''}${net} (headlines ±2 each, X ×0.5)${n.h?' · latest '+n.t+' ('+(n.src||'')+', '+(n.s>0?'+':'')+n.s+'): '+n.h:''}`;
+function loadNews(){return fetch('news.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(d=>{NW=cleanNews(d);renderNews();}).catch(()=>{NW=null;renderNews();});}
+function newsBadge(r){const n=r.news;if(!n||!n.net60||Number(n.s||0)===0)return '';const fresh=n.n30>0;const net=n.net60;if(!fresh&&!(n.n60>0)&&!(n.x60>0))return '';
+ const cls=net>=1?'pos':net<=-1?'neg':'';const t=`News: ${n.n30||0} headline(s) last 30 min, ${n.n60||0} last 60 min${n.x60?', '+n.x60+' X post(s)':''} · 60-min net sentiment ${net>0?'+':''}${net} (headlines ±2 each, X ×0.5)${n.h&&n.s?' · latest '+n.t+' ('+(n.src||'')+', '+(n.s>0?'+':'')+n.s+'): '+n.h:''}`;
  return `<span class="nb ${cls}${fresh?'':' old'}" title="${E(t)}" onclick="event.stopPropagation();nFilter('${E(r.sym)}');document.getElementById('news').scrollIntoView({behavior:'smooth'})">N${net>0?'+':''}${net}</span>`;}
 try{if(localStorage.lvNewsMin==='1'){document.addEventListener('DOMContentLoaded',()=>{})}}catch(e){}
 function momNews(r){/* NEWS badge lives on the momentum row, never in the header */const m=momChip(r),n=newsBadge(r);if(!n)return m;if(m)return m.replace(/<\/div>$/,n+"</div>");return `<div class="mom">${n}</div>`;}
@@ -573,7 +624,7 @@ function render(){if(!st)return;const age=(Date.now()/1000-st.as_of);
  const ls=(st.rows||[]).find(r=>r.mode==='last_session');
  $('note').innerHTML=(st.err?E(st.err)+' — showing last good data. ':'')+(st.market_open?'':`Market closed — tiles show the last full session${ls?' ('+E(ls.date)+')':''}: close, % change vs prior close, day volume vs its 20-session norm (tile color), and that session's last 30 one-minute bars. Live 1-min rvol, 10s pace and the current-minute bar resume at 6:30 AM PT.`);
  $('strip').innerHTML=(st.strip||[]).map(s=>`<span class="sv ${s.kind==='rvol'?'rv':''}"><b>${E(s.symbol)}</b> ${E(s.time_pt)} · ${s.kind==='vol_surge'?`${s.dir==='up'?'▲':'▼'} ${E(s.level)} `:'≥3× '}${s.rvol!=null?X(s.rvol):''}${s.test?' <span class="pill warn">test</span>':''}</span>`).join('');
- momTop();flowLeanHtml();secStrip();rotStrip();
+ momTop();moverStrip();flowLeanHtml();secStrip();rotStrip();
  if(mode==='heat')renderGrid();else renderTable();
  if(wtip.sym){if(mode==='heat')wtipShow(wtip.sym,wtip.pin);else wtipHide();}
  $('vsn').textContent=vs.gate?'engine gate: '+vs.gate+(vs.updated_pt?' · '+vs.updated_pt.slice(11):''):'';
