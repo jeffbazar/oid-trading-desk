@@ -226,6 +226,16 @@ def main():
                         "members (latest day only; history in spread_corr_tickers_daily.csv, one row per date/category/ticker/benchmark): each member's own beta/corr (and xbeta/xcorr vs hyperscalers) on the same windows, plus drop_* = the category basket recomputed without that member. Group minus drop_ = how much that member moves the group number."],
               "columns": cols, "csv": str(OUT / "spread_corr_daily.csv"), "elapsed_s": round(time.time() - t0, 1)}
     (OUT / "latest.json.tmp").write_text(json.dumps(latest, indent=1)); (OUT / "latest.json.tmp").replace(OUT / "latest.json")
+    # MIRROR 10/22: publish a copy into the desk data-API tree (catalog group "credit") so the box mirror_poller pulls it to /workspace/oid-shared/credit/
+    try:
+        import shutil
+        MD = H / "oid-desk/desk/market-data/latest/credit"; MD.mkdir(parents=True, exist_ok=True)
+        for src, dst in ((OUT / "latest.json", "latest.json"), (OUT / "latest.json", "spread-corr-latest.json"),
+                         (OUT / "spread_corr_daily.csv", "spread_corr_daily.csv"), (tp, "spread_corr_tickers_daily.csv")):
+            if src.is_file():
+                tmp = MD / ("." + dst + ".tmp"); shutil.copyfile(src, tmp); tmp.replace(MD / dst)
+    except Exception as e:  # noqa: BLE001 - never fail spread-corr over the mirror copy
+        print(f"spread-corr mirror copy failed: {type(e).__name__}: {e}", flush=True)
     print(f"[{now:%Y-%m-%d %H:%M %Z}] spread-corr ok: {len(rows)} rows {rows[0]['date']}..{L['date']} regime={L['regime']} hygief20={L['hyg_ief_chg20_pct']} "
           f"hy={L['hy_oas']}({L['hy_oas_obs_date']}) fred={hy_st}/{ig_st} {time.time()-t0:.0f}s", flush=True)
 if __name__ == "__main__": main()

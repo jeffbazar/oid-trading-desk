@@ -504,6 +504,16 @@ def write_latest(status, led, t0):
                           for r in sorted(seen.values(), key=lambda r: r["maturity"])][:20]
     L["elapsed_s"] = round(time.time() - t0, 1)
     jsave(OUT / "latest.json", L)
+    # MIRROR 10/22: publish a copy into the desk data-API tree (catalog group "credit") so the box mirror_poller pulls it to /workspace/oid-shared/credit/
+    try:
+        import shutil
+        MD = H / "oid-desk/desk/market-data/latest/credit"; MD.mkdir(parents=True, exist_ok=True)
+        for src, dst in ((OUT / "latest.json", "name-credit-latest.json"), (OUT / "bond_yields.csv", "bond_yields.csv"),
+                         (OUT / "cds_dtcc_daily.csv", "cds_dtcc_daily.csv"), (OUT / "cds_x_prints.csv", "cds_x_prints.csv")):
+            if src.is_file():
+                tmp = MD / ("." + dst + ".tmp"); shutil.copyfile(src, tmp); tmp.replace(MD / dst)
+    except Exception as e:  # noqa: BLE001 - never fail name-credit over the mirror copy
+        print(f"name-credit mirror copy failed: {type(e).__name__}: {e}", flush=True)
     c = L["cds_dtcc"].get("CRWV", {}); o = L["cds_dtcc"].get("ORCL", {})
     print(f"[{NOW:%Y-%m-%d %H:%M %Z}] name-credit: dtcc CRWV {c.get('cds5y_bp')} ({c.get('date')}) ORCL {o.get('cds5y_bp')} ({o.get('date')}); "
           f"x {status.get('x', {}).get('log')}; bonds {status.get('bonds', {}).get('rows_today')}; {L['elapsed_s']}s", flush=True)

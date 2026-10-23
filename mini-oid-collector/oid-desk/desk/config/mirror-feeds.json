@@ -92,6 +92,29 @@
     "market-data/latest/degross/degrossing_gauge.csv": "../oid-shared/degross/degrossing_gauge.csv"
    },
    "box_daemons": []
+  },
+  "credit": {
+   "files": [
+    "market-data/latest/credit/latest.json",
+    "market-data/latest/credit/spread-corr-latest.json",
+    "market-data/latest/credit/spread_corr_daily.csv",
+    "market-data/latest/credit/spread_corr_tickers_daily.csv",
+    "market-data/latest/credit/name-credit-latest.json",
+    "market-data/latest/credit/bond_yields.csv",
+    "market-data/latest/credit/cds_dtcc_daily.csv",
+    "market-data/latest/credit/cds_x_prints.csv"
+   ],
+   "live_target": {
+    "market-data/latest/credit/latest.json": "../oid-shared/credit/latest.json",
+    "market-data/latest/credit/spread-corr-latest.json": "../oid-shared/credit/spread-corr-latest.json",
+    "market-data/latest/credit/spread_corr_daily.csv": "../oid-shared/credit/spread_corr_daily.csv",
+    "market-data/latest/credit/spread_corr_tickers_daily.csv": "../oid-shared/credit/spread_corr_tickers_daily.csv",
+    "market-data/latest/credit/name-credit-latest.json": "../oid-shared/credit/name-credit-latest.json",
+    "market-data/latest/credit/bond_yields.csv": "../oid-shared/credit/bond_yields.csv",
+    "market-data/latest/credit/cds_dtcc_daily.csv": "../oid-shared/credit/cds_dtcc_daily.csv",
+    "market-data/latest/credit/cds_x_prints.csv": "../oid-shared/credit/cds_x_prints.csv"
+   },
+   "box_daemons": []
   }
  },
  "desk_state": [
