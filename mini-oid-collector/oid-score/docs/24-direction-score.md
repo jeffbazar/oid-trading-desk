@@ -1,6 +1,18 @@
 # 24 · Direction score (−3…+3): inputs, timers and grading
 
-> **Research and logging only.** The score never places or suggests orders. It is a timestamped guess at which way a stock has the least resistance *right now*, and we grade it afterwards. Built 10/19/2026, config `v1-20261019`. **Page updated Tue 10/20/2026, 4:15 PM PT** (section 9, light score for the Sector watch, added). Items marked **live from 10/21** are being built on 10/20 for the Wednesday 10/21 open.
+> **Research and logging only.** The score never places or suggests orders. It is a timestamped guess at which way a stock has the least resistance *right now*, and we grade it afterwards. Built 10/19/2026, config `v1-20261019`. **Page updated Thu 10/22/2026, 9:55 PM PT** (config `v1.2-20261022`: Rule 5 negative-gamma / de-grossing `walls` clamp + Rule 4d downtrend `volume` clamp). Earlier: Tue 10/20/2026, 6:55 PM PT (section 0: the three scores and their on-screen names) and 4:15 PM PT (section 9, light score).
+
+## 0. The three scores and their names (added Tue 10/20/2026, 6:55 PM PT)
+
+The page shows three direction scores. Each is named the same way everywhere (table header, chart lane, chart tooltip, header chips and the badge hover): **name (profile settings-version)**. The short version drops the date; the full settings ID is in the header hover and in `~/oid-data/config/score-config.json`. The live page reads the active IDs from that file (state field `score_versions`) and shows them, so a new settings version renames the column by itself.
+
+| Name on screen | Profile | Settings version (full ID) | Tickers | Inputs | Where it shows |
+|---|---|---|---|---|---|
+| **Direction (core v1.2)** | core | `v1.2-20261022` | 61 core names | All six (flip, wall room with Rule 5 clamp, volume with Rule 4d downtrend clamp, options flow with the quote-rule C/P, trend, market) | Tile badge, table column 2, chart lane "Direction", chart header chip |
+| **Full (sector widefull-v1.0)** | `wide_full` | `widefull-v1.0-20261021` | 144 sector names | Same six and same weights; options flow = 1-min **tick-test** C/P with its quality × 0.5; flip/walls only from on-surge FlashAlpha pulls | Table column 3 (chip F±n), chart lane "Full" |
+| **Light (light-v1.0)** | `light` | `light-v1.0-20261021` | 144 sector names | Trend, volume, market only (section 9) | Table column 4 (chip L±n), chart lane "Light" |
+
+**Which settings produced a value.** Every saved row carries the version that made it (`config_version` / `settings_version`). If it differs from the active version, the badge hover says so: on 10/22 `v1.2-20261022` became active (adding the Rule 5 negative-gamma / de-grossing `walls` clamp and the Rule 4d downtrend `volume` clamp; earlier `v1.1-20261020` added the 5 s change log on top of `v1-20261019`). **Momentum** is not a score (it has no −3…+3 scale or weights); it sits just to the right of the score block in the table.
 
 ## 1. What the badge means
 
@@ -19,15 +31,29 @@ Distances are measured in **ATR** (the stock's normal daily range, 14 sessions, 
 
 | Input | What it asks | How it is calculated | Weight | Data source | Update timer | Counts less when |
 |---|---|---|---|---|---|---|
-| **Volume** | Is volume coming in on up-ticks or down-ticks, and is it heavier than normal? | Over the last 15 one-minute bars: the share of volume on up bars minus down bars, scaled up when 15-minute relative volume is above normal (no boost at 0.8× or below, full boost at 2.0× and above). | **0.75** | 1-minute Alpaca SIP bars on the mini, plus same-minute volume norms (`live-norms-1m.json`) | Every minute (each closed 1-minute bar) | Newest bar older than 3 min: half weight. No closed bar yet: ignored. |
+| **Volume** | Is volume coming in on up-ticks or down-ticks, and is it heavier than normal? | Over the last 15 one-minute bars: the share of volume on up bars minus down bars, scaled up when 15-minute relative volume is above normal (no boost at 0.8× or below, full boost at 2.0× and above). **Rule 4d (`v1.2-20261022`):** clamped to `≤ 0.0` (`min(volume, 0.0)`) when in the Rule 5 regime and `trend < 0`. | **0.75** | 1-minute Alpaca SIP bars on the mini, plus same-minute volume norms (`live-norms-1m.json`) | Every minute (each closed 1-minute bar) | Newest bar older than 3 min: half weight. No closed bar yet: ignored. Positive votes clamped to 0 in negative-gamma / de-grossing downtrends. |
 | **Options flow** | Are option buyers paying up for calls or for puts? | Live call-buy ÷ put-buy premium over the last 60 s (the 1m C/P chip). C/P of 3 or more counts as fully bullish, 1/3 or less as fully bearish. If that is thin or stale, it falls back to the Unusual Whales 5-minute (else 15-minute) lean: CALL = +0.5, PUT = −0.5. | **0.50** | Alpaca OPRA option prints (`~/oid-optflow`), fallback UW net premium | C/P recomputed every 1 s; UW lean refreshed every 240 s | C/P older than 60 s: half weight. UW fallback always counts half, and half again when the 5-minute value is missing. |
-| **Wall room** | Is there more room up to the call wall or down to the put wall? | Room up = (call wall − price) ÷ ATR; room down = (price − put wall) ÷ ATR. Direction = (up − down) ÷ (up + down). Already above the call wall = +0.3; below the put wall = −0.3. | **0.75** | FlashAlpha walls on the mini (newest of the walls caches the live page uses) | Core names every 10 min, other names every 40 min (rotated) | Walls older than 20 min in market hours: half weight. Either wall missing: ignored. |
+| **Wall room** | Is there more room up to the call wall or down to the put wall? | Room up = (call wall − price) ÷ ATR; room down = (price − put wall) ÷ ATR. Direction = (up − down) ÷ (up + down). Already above the call wall = +0.3; below the put wall = −0.3. **Rule 5 (`v1.2-20261022`):** clamped to `≤ 0.0` (`min(walls, 0.0)`) below gamma flip or in a de-grossing / missing-flip downtrend. | **0.75** | FlashAlpha walls on the mini (newest of the walls caches the live page uses) | Core names every 10 min, other names every 40 min (rotated) | Walls older than 20 min in market hours: half weight. Either wall missing: ignored. Positive votes clamped to 0 in negative-gamma / de-grossing regimes (keeping −0.3 below put wall). |
 | **Gamma flip** | Is price above or below the gamma flip? | Distance from the flip in ATR, squashed so about 0.3 ATR above the flip already reads strongly positive (below is negative). | **1.00** | FlashAlpha walls (same files) | Same as wall room | FlashAlpha marks the flip low-confidence (hollow dot): half weight. Walls older than 20 min: half again. No flip: ignored. |
 | **Trend** | Is the stock above VWAP and up over the last 15 minutes? | Half from price vs session VWAP (in ATR), half from the 15-minute price change (in ATR). | **1.00** | 1-minute SIP bars | Every minute | Bars older than 3 min: half weight. |
 | **Market** | Is the whole market leaning the same way? | Average of up to three parts: **tape** (the same trend measure on SPY and QQQ), **VIX** (VIX up = bearish, scaled on a 5% move vs prior close), **UW market tide** (change in market-wide call minus put premium over 30 min, scaled on $50M). | **0.75** | SPY/QQQ 1-minute bars; VIX from FlashAlpha (`vix-live.json`); UW market tide | Tape every minute; VIX every 120 s; tide every 240 s | Quality = parts available ÷ 3. VIX older than 15 min or tide older than 20 min is dropped. |
 | **News** | Is the last hour of headlines positive or negative? | Net 60-minute headline sentiment (headlines −2…+2, X posts at half weight) ÷ 4. | 0.50 if turned on | Mini news feed (Alpaca/Benzinga, FinBERT) | Headlines arrive in seconds | **OFF.** Not in the live score. Only to be turned on with Jeffrey's OK. |
 
 Macro is color only and never enters the score.
+
+### Regime clamps in `v1.2-20261022` (Rule 5 wall room + Rule 4d volume)
+
+In a normal positive-gamma tape, being just above the put wall with plenty of room up to the call wall is constructive (`walls` approaches `+1.0`). In a negative-gamma selloff or de-grossing tape, however, price pressing down toward the put wall is dealer-accelerated downside — not a mean-reversion buy setup — and 1-minute short-covering spikes (`rvol ≥ 3`) inside an intraday downtrend frequently mark local bounce tops.
+
+Starting in `v1.2-20261022`, `score_lib.py` checks whether a ticker is in a **negative-gamma / de-grossing selloff regime**:
+1. **`below_gf`:** `px < gf` (`flip` `d_atr < 0` when gamma flip `gf` is present), **OR**
+2. **`degross_mkt_neg`:** the daily de-grossing gauge badge (`~/oid-data/degross/latest.json`, cached in memory with a 5 s `stat()` TTL and safe fallback) is **`DE-GROSSING`** (`degross_armed`) **and** the intraday `market` component is `< 0`, **OR**
+3. **`no_gf_downtrend`:** `gf` is `None` (the ~14 symbols without a FlashAlpha gamma flip) **and** `trend < 0` **and** `market < 0`.
+
+When any of the three conditions holds:
+- **Rule 5 (`walls` clamp, `clamp_rule5: true`):** `walls_c = min(walls_c, 0.0)`. Positive wall-headroom votes (`+0.01…+1.0`) are clamped to `0.0`, while `−0.3` (price already below the put wall) is preserved.
+- **Rule 4d (`volume` clamp, `clamp_downtrend: true`):** When **also** `trend_c < 0`, `volume_c = min(volume_c, 0.0)`. Positive volume-pressure votes during an active downtrend are clamped to `0.0` so short-covering bounce spikes cannot push the composite score bullish, while negative selling-volume votes remain untouched.
+- **Breakdown metadata:** When clamped, the component's `f` dict records `regime_clamp`, `clamped: true`, `clamp_reason` (`below_gf`, `degross_mkt_neg`, `no_gf_downtrend`, or `<reason>+trend_neg`), and the pre-clamp `raw_c`.
 
 ## 3. From inputs to −3…+3
 

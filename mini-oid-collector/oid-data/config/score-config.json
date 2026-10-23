@@ -1,5 +1,5 @@
 {
- "config_version": "v1.1-20261020",
+ "config_version": "v1.2-20261022",
  "note": "OID composite direction score. Research/log only - never places orders. Edit weights/enabled flags, bump config_version, then re-score history with score_report.py --config.",
  "scale": {
   "gain": 1.5,
@@ -16,14 +16,16 @@
   "walls": {
    "enabled": true,
    "weight": 0.75,
-   "beyond_wall": 0.3
+   "beyond_wall": 0.3,
+   "clamp_rule5": true
   },
   "volume": {
    "enabled": true,
    "weight": 0.75,
    "window_min": 15,
    "rvol_lo": 0.8,
-   "rvol_span": 1.2
+   "rvol_span": 1.2,
+   "clamp_downtrend": true
   },
   "flow": {
    "enabled": true,
@@ -116,7 +118,11 @@
     "market"
    ],
    "weights": {},
-   "components": {},
+   "components": {
+    "volume": {
+     "clamp_downtrend": false
+    }
+   },
    "change_refresh_s": 5,
    "file_tag": "wide",
    "exclude": [

@@ -10,6 +10,13 @@ Research/log only. Never places orders. Zero extra FlashAlpha/UW/paid calls. It 
 - Install/uninstall: `./install.sh` / `./install.sh --uninstall`. Logs: `logs/`.
 - Full spec: Field Guide page 24 (`docs/24-direction-score.md`, served at `/guide/#24-direction-score.md`).
 
+## v1.2-20261022 — Rule 5 negative-gamma / de-grossing walls clamp + Rule 4d downtrend volume clamp
+- `score_lib.py` (`_apply_clamps`, active in `build_components()` and `rescore()`):
+  - **Negative-gamma / de-grossing regime (`Rule 5`):** holds when `px < gf` (`below_gf`), OR `degross_armed()` (`~/oid-data/degross/latest.json` badge is `DE-GROSSING`, cached by `mtime` with a 5 s `stat()` TTL and safe `False` fallback) with `market_c < 0` (`degross_mkt_neg`), OR `gf is None and trend_c < 0 and market_c < 0` (`no_gf_downtrend`).
+  - **Walls clamp (`Rule 5`, `components.walls.clamp_rule5: true`):** in that regime, clamps `walls_c = min(walls_c, 0.0)` (preserving `-0.3` below the put wall while preventing `+0.01..+1.0` bullish wall-headroom votes when pressed against the put wall).
+  - **Volume clamp (`Rule 4d`, `components.volume.clamp_downtrend: true`):** when in that regime AND `trend_c < 0`, clamps `volume_c = min(volume_c, 0.0)` so 1-minute short-covering volume surges during an intraday downtrend cannot vote `+1.0` bullish at bounce tops.
+  - Records `regime_clamp`, `clamped`, `clamp_reason`, and `raw_c` in `comps["walls"]["f"]` and `comps["volume"]["f"]`.
+
 ## v1.1-20261020 — score change + episode logging (logging only; score math unchanged)
 - `score_daemon.py` now also runs a fast pass every `cadence_pt.change_refresh_s` (5 s) that re-scores every ticker on the live price, 1-min bars and options flow (walls/VIX refresh at their own pace) and, via `score_changes.py`, appends:
   - `~/oid-data/score/changes-YYYYMMDD.jsonl`: one row whenever a ticker's integer score changes (plus its first score of the session): new/previous score, ts (UTC + PT), price, every component, settings version, start + duration of the score that ended, and context (aggressor C/P 15 s + 1 m, UW C/P and lean, rvol_1m, room to call/put wall in ATR, wall age, momentum state + age, the stock's 60/120 s tape from 5 s bars, SPY/QQQ 60/120 s tape, agreement flags).

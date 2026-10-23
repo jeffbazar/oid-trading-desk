@@ -24,6 +24,7 @@ LATEST = DESK / "market-data/latest"
 LIVEPAGE = HOME / "oid-live-page"
 CONFIG = Path(os.environ.get("OID_SCORE_CONFIG", str(HOME / "oid-data/config/score-config.json")))
 OUT = Path(os.environ.get("OID_SCORE_OUT", str(HOME / "oid-data/score")))
+DEGROSS = Path(os.environ.get("OID_SCORE_DEGROSS", str(HOME / "oid-data/degross/latest.json")))
 STATE_URL = os.environ.get("OID_SCORE_STATE_URL", "http://127.0.0.1:8791/state.json")
 COMPONENTS = ("flip", "walls", "volume", "flow", "trend", "market")
 
@@ -295,8 +296,99 @@ def combine(comps, cfg):
     return round(raw, 3), score, round(qden / den, 3) if den else 0.0
 
 
+_DEGROSS = {"m": None, "chk_t": 0.0, "armed": False, "badge": None, "date": None, "by_date": {}}
+
+
+def degross_armed(t=None, date=None):
+    """True when the daily de-grossing gauge badge is DE-GROSSING (or armed without standing exhaustion flag).
+    Cached by file mtime with a 5 s stat TTL so per-symbol scoring adds zero disk I/O; fails safe (False) if missing."""
+    now = time.time()
+    if now - _DEGROSS["chk_t"] >= 5.0 or _DEGROSS["m"] is None:
+        _DEGROSS["chk_t"] = now
+        dp = DEGROSS if DEGROSS.exists() else (LATEST / "degross/latest.json")
+        try:
+            m = dp.stat().st_mtime
+        except OSError:
+            return False
+        if m != _DEGROSS["m"]:
+            try:
+                d = json.loads(dp.read_text())
+                g = d.get("gauge") or {}
+                badge = d.get("badge") or g.get("badge")
+                armed = bool(badge == "DE-GROSSING" or (g.get("armed") and not g.get("exhaust_flag_standing")))
+                by_d = {}
+                for r in d.get("history") or []:
+                    if isinstance(r, dict) and r.get("date"):
+                        rb = r.get("badge")
+                        by_d[r["date"]] = bool(rb == "DE-GROSSING" or (r.get("armed") and not r.get("exhaust_flag_standing")))
+                if d.get("date"):
+                    by_d[d["date"]] = armed
+                _DEGROSS.update({"m": m, "armed": armed, "badge": badge, "date": d.get("date"), "by_date": by_d})
+            except Exception:
+                _DEGROSS.update({"m": m, "armed": False, "badge": None, "date": None, "by_date": {}})
+    d_str = date or (datetime.fromtimestamp(t, PT).strftime("%Y-%m-%d") if t else None)
+    if d_str and d_str in _DEGROSS["by_date"]:
+        return _DEGROSS["by_date"][d_str]
+    if d_str and _DEGROSS["date"] and d_str < _DEGROSS["date"]:
+        prev = [k for k in _DEGROSS["by_date"] if k <= d_str]
+        return _DEGROSS["by_date"][max(prev)] if prev else False
+    return bool(_DEGROSS["armed"])
+
+
+def _apply_clamps(comps, cfg, t=None, date=None):
+    """v1.2-20261022 (Rule 5 walls clamp + Rule 4d downtrend volume clamp):
+    1) Negative-gamma / de-grossing regime condition:
+       - below_gf:        px < gf (flip d_atr < 0 when gf is present)
+       - degross_mkt_neg: de-grossing badge is ON (degross_armed) AND intraday market_c < 0
+       - no_gf_downtrend: gf is None AND trend_c < 0 AND market_c < 0
+       When any holds, clamp walls_c = min(walls_c, 0.0) (keeping -0.3 below put wall, preventing positive votes).
+    2) Downtrend volume clamp (Rule 4d):
+       When in the clamped regime above AND trend_c < 0, clamp volume_c = min(volume_c, 0.0) so short-covering
+       volume spikes during a downtrend cannot vote bullish at bounce tops."""
+    C = cfg.get("components") or {}
+    clamp_w = bool((C.get("walls") or {}).get("clamp_rule5", True))
+    clamp_v = bool((C.get("volume") or {}).get("clamp_downtrend", True))
+    if not clamp_w and not clamp_v:
+        return comps
+    fx = (comps.get("flip") or {}).get("x")
+    d_atr = fx.get("d_atr") if isinstance(fx, dict) else None
+    tc = (comps.get("trend") or {}).get("c", 0.0)
+    mc = (comps.get("market") or {}).get("c", 0.0)
+    reason = None
+    if d_atr is not None and d_atr < 0:
+        reason = "below_gf"
+    elif degross_armed(t=t, date=date) and mc < 0:
+        reason = "degross_mkt_neg"
+    elif d_atr is None and tc < 0 and mc < 0:
+        reason = "no_gf_downtrend"
+    if reason is None:
+        return comps
+    if clamp_w and "walls" in comps:
+        wc = comps["walls"]
+        if wc.get("x") is not None:
+            f = wc.setdefault("f", {})
+            f["regime_clamp"] = reason
+            if wc["c"] > 0.0:
+                f["raw_c"] = round(wc["c"], 4)
+                f["clamped"] = True
+                f["clamp_reason"] = reason
+                wc["c"] = 0.0
+    if clamp_v and tc < 0 and "volume" in comps:
+        vc = comps["volume"]
+        if vc.get("x") is not None:
+            f = vc.setdefault("f", {})
+            v_reason = f"{reason}+trend_neg"
+            f["regime_clamp"] = v_reason
+            if vc["c"] > 0.0:
+                f["raw_c"] = round(vc["c"], 4)
+                f["clamped"] = True
+                f["clamp_reason"] = v_reason
+                vc["c"] = 0.0
+    return comps
+
+
 def rescore(row, cfg):
-    """Re-score a logged row under another config (weights, on/off, scales, staleness)."""
+    """Re-score a logged row under another config (weights, on/off, scales, staleness, clamps)."""
     comps = {}
     tp = cfg["components"].get("trend", {})
     for name, spec in cfg["components"].items():
@@ -306,7 +398,9 @@ def rescore(row, cfg):
         p = dict(spec)
         if name == "market":
             p["_trend"] = tp
-        comps[name] = {"c": c_from_x(name, old.get("x"), p), "q": q_from_f(name, old.get("f"), cfg)}
+        comps[name] = {"c": round(c_from_x(name, old.get("x"), p), 4), "q": q_from_f(name, old.get("f"), cfg),
+                       "x": old.get("x"), "f": dict(old.get("f") or {})}
+    _apply_clamps(comps, cfg, t=row.get("t"), date=row.get("date"))
     return combine(comps, cfg)
 
 
@@ -366,6 +460,8 @@ def build_components(sym, t, px, atr, bm, walls, flow, mkt, cfg):
         comp["c"] = round(c_from_x(name, comp["x"], p), 4)
         comp["q"] = q_from_f(name, comp["f"], cfg)
         comp["w"] = C.get(name, {}).get("weight", 1.0) if C.get(name, {}).get("enabled", True) else 0.0
+    _apply_clamps(out, cfg, t=t)
+    for comp in out.values():
         if comp["x"]:
             comp["x"] = {k: (rnd(v, 4) if isinstance(v, float) else v) for k, v in comp["x"].items()}
     return out
