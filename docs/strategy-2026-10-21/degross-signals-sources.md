@@ -1,6 +1,6 @@
 # Sources and checks for `../DEGROSS-SIGNALS-20261023.md`
 
-Research run on the evening of 2026-10-22. Eight research sheets are in `degross-signals/` (three situation sheets: the tape, the de-grossing reads, the calendar; five lenses: positioning and flow, volatility and options, breadth and tape, credit and funding, the skeptic). Each sheet ends with its own source list. No sheet could open a news or market-data page from the sandbox; every market figure is a search-snippet extract of the named outlet.
+Research run on the evening of 2026-10-22. Nine research sheets are in `degross-signals/` (four situation sheets: the tape, the de-grossing reads, the calendar, and the 10/22 session reconstruction written after that close; five lenses: positioning and flow, volatility and options, breadth and tape, credit and funding, the skeptic). Each sheet ends with its own source list. No sheet could open a news or market-data page from the sandbox; every market figure is a search-snippet extract of the named outlet.
 
 ## The ten claims that were checked
 
