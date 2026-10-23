@@ -181,14 +181,15 @@ def q_tf_pq(files, sym, t0, t1, daily=False):
     return [(r[0] / 1e9, r[1], r[2], r[3], r[4], r[5] or 0, SESS.get(r[6], "r"), 1) for r in rows]
 
 
-def q_15s(files, sym, t0, t1, js):
+def q_15s(files, sym, t0, t1, js, sec=15):
+    step_ns = sec * 1000000000
     src = (f"read_json({files!r}, format='newline_delimited', columns={COLS_5S}, ignore_errors=true)" if js
            else f"read_parquet({files!r}, union_by_name=true)")
     sql = (f"with d as (select bucket_start_ns bs, arg_max(open, ingest_ts_ns) op, arg_max(high, ingest_ts_ns) hi, "
            f"arg_max(low, ingest_ts_ns) lo, arg_max(close, ingest_ts_ns) cl, arg_max(volume, ingest_ts_ns) vo, "
            f"arg_max(vwap, ingest_ts_ns) vw, min(session) se from {src} where symbol=? and bucket_start_ns>=? and bucket_start_ns<? "
            f"group by bucket_start_ns) "
-           f"select (bs // 15000000000) * 15 t, arg_min(op, bs) filter (where op is not null), "
+           f"select (bs // {step_ns}) * {sec} t, arg_min(op, bs) filter (where op is not null), "
            f"max(hi), min(lo), arg_max(cl, bs) filter (where cl is not null), sum(vo), "
            f"sum(vw*vo) filter (where vw is not null and vo>0) / nullif(sum(vo) filter (where vw is not null and vo>0),0), "
            f"min(se) from d group by 1 order by 1")
@@ -199,10 +200,81 @@ def q_15s(files, sym, t0, t1, js):
             out.append((float(t), o, h if h is not None else max(o, c), l if l is not None else min(o, c), c, v or 0, s, 0))
         elif vw is not None:   # pre/post 5 s buckets carry only a VWAP (no prices): flag 2 = VWAP-priced
             out.append((float(t), vw, vw, vw, vw, v or 0, s, 2))
-        elif out and out[-1][6] == s and t - out[-1][0] <= 120:   # no prints: flat bar at the last close (flag 3)
+        elif sec == 15 and out and out[-1][6] == s and t - out[-1][0] <= 120:   # no prints: flat bar at the last close (flag 3)
             pc = out[-1][4]
             out.append((float(t), pc, pc, pc, pc, v or 0, s, 3))
     return out
+
+
+def q_live_1m_5s(files, sym, t0, t1):
+    """Aggregate in-progress 1-min bar(s) in [t0, t1) from today's volume_5s JSONL (fast tail read, DuckDB fallback)."""
+    t0_ns, t1_ns = int(t0 * 1e9), int(t1 * 1e9)
+    try:
+        fp = Path(files[-1])
+        sz = fp.stat().st_size
+        pos = max(0, sz - 4 * 1024 * 1024)
+        with open(fp, "rb") as fh:
+            if pos:
+                fh.seek(pos)
+            buf = fh.read()
+        if pos:
+            nl = buf.find(b"\n")
+            buf = buf[nl + 1:] if nl >= 0 else b""
+        lines = buf.splitlines()
+        first_bs = None
+        for ln in lines[:25]:
+            if ln.strip():
+                try:
+                    first_bs = json.loads(ln).get("bucket_start_ns")
+                    if first_bs is not None:
+                        break
+                except Exception:
+                    pass
+        if (pos == 0 and len(files) == 1) or (first_bs is not None and first_bs <= t0_ns - 15000000000):
+            needle = f'"{sym}"'.encode()
+            by_bs = {}
+            for ln in lines:
+                if needle not in ln:
+                    continue
+                try:
+                    r = json.loads(ln)
+                except Exception:
+                    continue
+                if r.get("symbol") != sym:
+                    continue
+                bs = r.get("bucket_start_ns")
+                if bs is None or not (t0_ns <= bs < t1_ns):
+                    continue
+                ing = r.get("ingest_ts_ns") or 0
+                prev = by_bs.get(bs)
+                if prev is None or ing >= prev[0]:
+                    by_bs[bs] = (ing, r.get("open"), r.get("high"), r.get("low"), r.get("close"),
+                                 r.get("volume"), r.get("vwap"), r.get("session"))
+            by_m = {}
+            for bs in sorted(by_bs):
+                by_m.setdefault((bs // 60000000000) * 60, []).append(by_bs[bs])
+            out = []
+            for t in sorted(by_m):
+                bkts = by_m[t]
+                ops = [x[1] for x in bkts if x[1] is not None]
+                his = [x[2] for x in bkts if x[2] is not None]
+                los = [x[3] for x in bkts if x[3] is not None]
+                cls = [x[4] for x in bkts if x[4] is not None]
+                v = sum((x[5] or 0) for x in bkts)
+                vw_n = sum(x[6] * x[5] for x in bkts if x[6] is not None and (x[5] or 0) > 0)
+                vw_d = sum(x[5] for x in bkts if x[6] is not None and (x[5] or 0) > 0)
+                vw = (vw_n / vw_d) if vw_d > 0 else None
+                ses = [x[7] for x in bkts if x[7] is not None]
+                s = SESS.get(min(ses), sess_of(t)) if ses else sess_of(t)
+                if ops and cls:
+                    o, c = ops[0], cls[-1]
+                    out.append((float(t), o, max(his) if his else max(o, c), min(los) if los else min(o, c), c, v or 0, s, 0))
+                elif vw is not None:
+                    out.append((float(t), vw, vw, vw, vw, v or 0, s, 2))
+            return out
+    except Exception:
+        pass
+    return q_15s(files, sym, t0, t1, True, sec=60)
 
 
 def rollup(bars, iv):
@@ -287,6 +359,15 @@ def bars_for_dates(sym, tier, iv, dates, t0, t1, today):
             if d in st:
                 m1 += [b for b in st[d] if t0 <= b[0] < t1]; srcs.add("bar store json (regular hours)")
     m1.sort(key=lambda b: b[0])
+    if today in need:
+        jf5 = part_dates(tier, "volume_5s", "js").get(today)
+        if jf5:
+            td0 = day_bounds(today)[0]
+            ta = max(t0, td0, (m1[-1][0] + 60) if m1 and m1[-1][0] >= td0 else td0)
+            if ta < t1:
+                live1 = q_live_1m_5s(jf5, sym, ta, t1)
+                if live1:
+                    m1 += live1; srcs.add("volume_5s live jsonl")
     if iv == "1m":
         return m1, srcs
     if m1:
@@ -317,7 +398,7 @@ def avail(tier, sym):
 
 def last_data_day(tier, iv):
     tab = "volume_5s" if iv == "15s" else "bars_1m"
-    ds = set(part_dates(tier, tab, "pq")) | set(part_dates(tier, tab, "js"))
+    ds = set(part_dates(tier, tab, "pq")) | set(part_dates(tier, tab, "js")) | set(part_dates(tier, "volume_5s", "js"))
     return max(ds) if ds else et_day(time.time())
 
 

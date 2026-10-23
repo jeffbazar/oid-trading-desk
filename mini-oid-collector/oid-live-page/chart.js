@@ -191,7 +191,7 @@ function build(keep){LIVEB=null;const L=window.LightweightCharts;if(CH){CH.remov
   S.cp60.priceScale().applyOptions({mode:1});S.cp60.createPriceLine({price:1,color:'#8c959f',lineWidth:1,lineStyle:2,axisLabelVisible:false,title:'1.0'});}
  const P=CH.panes();try{P[0].setStretchFactor(5);P[1].setStretchFactor(1.3);if(P[2])P[2].setStretchFactor(1.6);if(S.hasMo&&P[3])P[3].setStretchFactor(0.35);if(P[CPP])P[CPP].setStretchFactor(1.4);}catch(e){}
  CH.timeScale().subscribeVisibleLogicalRangeChange(edgesSoon);
- CH.subscribeCrosshairMove(tip);wheelPan();setData();if(keep)CH.timeScale().setVisibleLogicalRange(keep);else homeView();liveWalls(rowOf(K.sym));scnLines();patDraw();edgesSoon();setTimeout(()=>{if(window.chartAfterBuild)chartAfterBuild();},250);}
+ CH.subscribeCrosshairMove(tip);wheelPan();setData();liveEdge();if(keep)CH.timeScale().setVisibleLogicalRange(keep);else homeView();liveWalls(rowOf(K.sym));scnLines();patDraw();edgesSoon();setTimeout(()=>{if(window.chartAfterBuild)chartAfterBuild();},250);}
 const cpv=x=>x==null?null:Math.max(0.05,Math.min(20,x));
 function pts(i){const b=D.bars[i],t=ct(b[0]),o={};const fl=b[7];
  o.c=fl===2||fl===3?{time:t,open:b[1],high:b[2],low:b[3],close:b[4],color:'#afb8c1',wickColor:'#afb8c1'}:{time:t,open:b[1],high:b[2],low:b[3],close:b[4]};
@@ -204,33 +204,46 @@ function setData(){IDX=new Map();const A={c:[],v:[],cw:[],pw:[],gf:[],cp15:[],cp
  for(let i=0;i<D.bars.length;i++){const o=pts(i);IDX.set(o.c.time,i);A.c.push(o.c);A.v.push(o.v);A.cw.push(o.cw);A.pw.push(o.pw);A.gf.push(o.gf);A.cp15.push(o.cp15);A.cp60.push(o.cp60);A.mo.push(o.mo);for(const k in S.sc)A.sc[k].push(o.sc[k]);}
  if(S.mo)S.mo.setData(A.mo);
  S.ws.setData(wsPoints());S.c.setData(A.c);S.v.setData(A.v);S.cw.setData(A.cw);S.pw.setData(A.pw);S.gf.setData(A.gf);for(const k in S.sc)S.sc[k].setData(A.sc[k]);if(S.hasCp){S.cp15.setData(A.cp15);S.cp60.setData(A.cp60);}
- $('chempty').hidden=D.bars.length>0;if(!D.bars.length)$('chempty').textContent=`No ${D.iv} bars stored for ${D.sym} in this range.`;}
-// ---- LIVEEDGE (10/21): forming candle + last-price line tick from the live row (core: state.json last, 1 s; wide: 5 s),
+ liveSnap();$('chempty').hidden=D.bars.length>0;if(!D.bars.length)$('chempty').textContent=`No ${D.iv} bars stored for ${D.sym} in this range.`;}
+// ---- LIVEEDGE (10/21): forming candle + volume + last-price line tick from the live row (core: state.json last/partial, 1 s; wide: 5 s),
 // not only when a closed 1m bar lands. Display-only: never written into D.bars; dropped before every server delta/build.
 const LIVESEC={'15s':15,'1m':60,'5m':300,'15m':900,'1h':3600};let LIVEB=null;
-function livePx(){const x=rowOf(K.sym);if(!x)return null;const p=x.k==='core'?x.r.last:x.r.p;return p==null||!isFinite(+p)?null:+p;}
-function liveDrop(){if(!LIVEB||!S.c||!D)return;const ex=LIVEB.extra;LIVEB=null;if(!ex)return;const a=[];for(let i=0;i<D.bars.length;i++)a.push(pts(i).c);S.c.setData(a);}
-function liveEdge(){try{if(!OPEN||!D||!S.c||!D.bars.length||D.to!==D.today)return;const p=livePx();if(p==null)return;
+function liveInfo(now){const x=rowOf(K.sym);if(!x)return null;const r=x.r,c=x.k==='core';
+ const p=c?r.last:r.p;if(p==null||!isFinite(+p))return null;
+ const rawPv=c?r.partial:r.pb,ps=c?r.partial_s:r.ps,dv=c?r.day_vol:r.dv;
+ const cm=Math.floor(now/60)*60,sec=now-cm;
+ const pv=(rawPv!=null&&isFinite(+rawPv)&&(ps==null||+ps<=sec+5))?Math.max(0,Math.round(+rawPv)):null;
+ return {p:+p,pv,dv:dv!=null&&isFinite(+dv)?Math.max(0,Math.round(+dv)):null,cm};}
+function livePx(){const u=liveInfo(Date.now()/1000);return u?u.p:null;}
+function liveSnap(){if(!D)return;const u=liveInfo(Date.now()/1000);D._bm=u?u.cm:Math.floor(Date.now()/60000)*60;D._bp=u&&u.pv!=null?u.pv:0;}
+function liveDrop(){if(!LIVEB||!S.c||!D)return;const ex=LIVEB.extra;LIVEB=null;if(!ex)return;
+ const ac=[],av=[];for(let i=0;i<D.bars.length;i++){const o=pts(i);ac.push(o.c);av.push(o.v);}S.c.setData(ac);if(S.v)S.v.setData(av);}
+function liveEdge(){try{if(!OPEN||!D||!S.c||!D.bars.length||D.to!==D.today)return;const now=Date.now()/1000,u=liveInfo(now);if(!u)return;const p=u.p;
  const sess=(typeof st!=='undefined'&&st)?st.session:null;if(!K.ext&&sess&&sess!=='RTH')return;
- const lb=D.bars[D.bars.length-1],now=Date.now()/1000;let t,o,h,l,extra;
- if(D.iv==='1d'){t=lb[0];o=lb[1];h=Math.max(lb[2],p);l=Math.min(lb[3],p);extra=false;}
- else{const step=(LIVESEC[D.iv]||60)*(D.k||1);if(now<lb[0]+step){t=lb[0];o=lb[1];h=Math.max(lb[2],p);l=Math.min(lb[3],p);extra=false;}
-  else{t=lb[0]+step*Math.floor((now-lb[0])/step);if(LIVEB&&LIVEB.t===t){o=LIVEB.o;h=Math.max(LIVEB.h,p);l=Math.min(LIVEB.l,p);}else{o=LIVEB&&LIVEB.extra?LIVEB.c:lb[4];h=Math.max(o,p);l=Math.min(o,p);}extra=true;}}
- if(LIVEB&&LIVEB.t===t){h=Math.max(h,LIVEB.h);l=Math.min(l,LIVEB.l);}
- LIVEB={t,o,h,l,c:p,extra};S.c.update({time:ct(t),open:o,high:h,low:l,close:p});edgesSoon();}catch(e){console.warn('liveEdge',e);}}
+ const lb=D.bars[D.bars.length-1];let t,o,h,l,v,extra,bp=LIVEB?LIVEB.bp:0,bm=LIVEB?LIVEB.bm:u.cm;
+ if(D.iv==='1d'){t=lb[0];o=lb[1];h=Math.max(lb[2],p);l=Math.min(lb[3],p);v=Math.max(lb[5]||0,u.dv||0);extra=false;}
+ else{const step=(LIVESEC[D.iv]||60)*(D.k||1);if(now<lb[0]+step){t=lb[0];o=lb[1];h=Math.max(lb[2],p);l=Math.min(lb[3],p);extra=false;
+   if(D.iv==='1m'&&(D.k||1)===1&&t===u.cm)v=Math.max(lb[5]||0,u.pv||0);
+   else{const dv=u.pv!=null?(u.cm===D._bm?Math.max(0,u.pv-(D._bp||0)):(u.cm>(D._bm||0)?u.pv:0)):0;v=(lb[5]||0)+dv;}}
+  else{t=lb[0]+step*Math.floor((now-lb[0])/step);const same=LIVEB&&LIVEB.t===t;
+   if(same){o=LIVEB.o;h=Math.max(LIVEB.h,p);l=Math.min(LIVEB.l,p);}else{o=LIVEB&&LIVEB.extra?LIVEB.c:lb[4];h=Math.max(o,p);l=Math.min(o,p);bm=u.cm;bp=(D.iv==='15s'&&t>u.cm)?(u.pv||0):0;}
+   v=u.pv!=null?(u.cm===bm?Math.max(0,u.pv-bp):u.pv):0;extra=true;}}
+ if(LIVEB&&LIVEB.t===t){h=Math.max(h,LIVEB.h);l=Math.min(l,LIVEB.l);v=Math.max(v,LIVEB.v||0);}
+ LIVEB={t,o,h,l,c:p,v,extra,bp,bm};S.c.update({time:ct(t),open:o,high:h,low:l,close:p});if(S.v)S.v.update({time:ct(t),value:v,color:p>=o?'#1a7f3766':'#cf222e66'});edgesSoon();}catch(e){console.warn('liveEdge',e);}}
 setInterval(liveEdge,1000);window.chartLive=()=>LIVEB;
 function applyDelta(n){// n = reply with bars from `since` (inclusive): replace the last bar, append new ones
- liveDrop();const t0=n.bars.length?n.bars[0][0]:null;if(t0==null){liveEdge();return;}
  // live edge = the latest candle is on screen. Then new bars scroll the view by the same count (candle keeps its spot, padding kept);
  // otherwise (panned/zoomed into history) the view is restored exactly, no snap back.
- const ts=CH.timeScale(),vr=ts.getVisibleLogicalRange(),n0=D.bars.length,atEdge=!vr||vr.to>=n0-1.5;let j=D.bars.length-1;while(j>=0&&D.bars[j][0]>=t0)j--;
+ const ts=CH.timeScale(),vr=ts.getVisibleLogicalRange(),n0=D.bars.length,atEdge=!vr||vr.to>=n0-1.5,prevLive=LIVEB;
+ liveDrop();const t0=n.bars.length?n.bars[0][0]:null;if(t0==null){LIVEB=prevLive;liveEdge();if(vr)ts.setVisibleLogicalRange(vr);return;}
+ let j=D.bars.length-1;while(j>=0&&D.bars[j][0]>=t0)j--;
  const keep=j+1;D.bars=D.bars.slice(0,keep).concat(n.bars);D.walls=D.walls.slice(0,keep).concat(n.walls);D.cp=D.cp.slice(0,keep).concat(n.cp);D.mom=(D.mom||[]).slice(0,keep).concat(n.mom||n.bars.map(()=>null));
  for(const k in D.score)D.score[k]=D.score[k].slice(0,keep).concat((n.score||{})[k]||n.bars.map(()=>null));
  D.wall_events=n.wall_events;D.scn=n.scn;scnLines();D.pat=n.pat;D.gen_ms=n.gen_ms;D.notes=n.notes;D.sources=n.sources;D.n_total=n.n_total;
  const add=D.bars.length-n0,nr=vr?(atEdge?{from:vr.from+add,to:vr.to+add}:{from:vr.from,to:vr.to}):null;
  const hadCp=S.hasCp,nowCp=n.cp.some(x=>x&&(x[0]!=null||x[1]!=null));if(nowCp&&!hadCp){build(nr);return;}
  for(let i=keep;i<D.bars.length;i++){const o=pts(i);IDX.set(o.c.time,i);S.c.update(o.c);S.v.update(o.v);S.cw.update(o.cw);S.pw.update(o.pw);S.gf.update(o.gf);for(const k in S.sc)S.sc[k].update(o.sc[k]);if(S.hasCp){S.cp15.update(o.cp15);S.cp60.update(o.cp60);}if(S.mo)S.mo.update(o.mo);}
- S.ws.setData(wsPoints());if(nr)ts.setVisibleLogicalRange(nr);patDraw();LIVEB=null;liveEdge();edgesSoon();}
+ liveSnap();S.ws.setData(wsPoints());patDraw();LIVEB=prevLive;liveEdge();if(nr)ts.setVisibleLogicalRange(nr);edgesSoon();}
 function foot(ms,kb,live){const d=D;if(!d)return;const av=d.avail||{};const ivn=d.k>1?`1 bar = ${d.k} × ${d.iv}`:d.iv;
  const sc=Object.entries(d.sources.score||{}).map(([k,v])=>`${(window.scoreName?window.scoreName(k):({core:'Direction',light:'Light',full:'Full'})[k])}: ${v.length?v.join('; '):'none'}`).join(' · ');
  $('chfoot').innerHTML=`<span><b>${esc(d.sym)}</b> ${esc(ivn)} · ${esc(d.range)} = ${esc(d.from)} → ${esc(d.to)} · ${d.n_total} bars · ${esc(d.iv)} stored since <b>${esc(av[d.iv]||'?')}</b></span>`+
@@ -247,9 +260,11 @@ function load(full){if(!OPEN||!window.LightweightCharts)return;clearTimeout(TIME
   foot(ms,kb,d.to===d.today);}).catch(e=>{$('chempty').hidden=false;$('chempty').textContent='Chart data error: '+e.message;})
  .finally(()=>{BUSY=false;if(my===REQ&&OPEN){const live=D&&D.to===D.today;TIMER=setTimeout(()=>{liveHead();edgesSoon();load(false);},live?POLL_MS:60000);}});}
 // ---- crosshair tooltip
-function tip(p){const el=$('chtip');if(!p||p.time==null||!D){el.hidden=true;return;}const i=IDX.get(p.time);if(i==null){el.hidden=true;return;}
- if(!p.point){const x=CH.timeScale().timeToCoordinate(p.time),y=S.c.priceToCoordinate(D.bars[i][4]);if(x==null||y==null){el.hidden=true;return;}p={time:p.time,point:{x,y}};}
- const b=D.bars[i],w=D.walls[i],c=D.cp[i];let h=`<div class="tt">${esc(ptLabel(b[0]))}${D.k>1?' <small>('+D.k+'×'+D.iv+')</small>':''} <small>${{p:'pre',r:'',a:'post'}[b[6]]||''}</small></div>`+
+function tip(p){const el=$('chtip');if(!p||p.time==null||!D){el.hidden=true;return;}
+ const isLive=LIVEB&&p.time===ct(LIVEB.t);let i=IDX.get(p.time);if(i==null&&isLive&&D.bars.length)i=D.bars.length-1;if(i==null){el.hidden=true;return;}
+ const b0=D.bars[i],b=isLive?[LIVEB.t,LIVEB.o,LIVEB.h,LIVEB.l,LIVEB.c,LIVEB.v!=null?LIVEB.v:b0[5],b0[6],0]:b0;
+ if(!p.point){const x=CH.timeScale().timeToCoordinate(p.time),y=S.c.priceToCoordinate(b[4]);if(x==null||y==null){el.hidden=true;return;}p={time:p.time,point:{x,y}};}
+ const w=D.walls[i],c=D.cp[i];let h=`<div class="tt">${esc(ptLabel(b[0]))}${D.k>1?' <small>('+D.k+'×'+D.iv+')</small>':''} <small>${{p:'pre',r:'',a:'post'}[b[6]]||''}</small></div>`+
   `<div>O <b>${f2(b[1])}</b> H <b>${f2(b[2])}</b> L <b>${f2(b[3])}</b> C <b>${f2(b[4])}</b></div><div>Vol <b>${fv(b[5])}</b>${b[7]===2?' <small class="mut">priced from 5 s VWAP</small>':b[7]===3?' <small class="mut">no trades</small>':''}</div>`;
  for(const k in D.score){const s=D.score[k][i];const lab=(window.scoreName?window.scoreName(k):({core:'Direction',light:'Light',full:'Full'})[k]);
   h+=s?`<div>${lab} <b style="color:${SCOL[String(s[0])]}">${s[0]>0?'+':''}${s[0]}</b> raw <b>${s[1]==null?'—':(+s[1]).toFixed(3)}</b>${s[2]!==s[3]?` <small>range in bar ${s[3]>0?'+':''}${s[3]}…${s[2]>0?'+':''}${s[2]}</small>`:''}${s[4]?` <small>${s[4]} change${s[4]>1?'s':''}</small>`:''}<br><small class="mut">since ${esc(ptLabel(s[5]).replace(/^\w+ /,''))}</small></div>`:`<div>${lab} <span class="mut">— (no score: outside regular hours or not stored)</span></div>`;}
