@@ -67,3 +67,9 @@ Implementation status for each item is recorded in `changes.json`. Verification 
 - Added `docs/DEGROSS-SIGNALS-20261023.md`: for the owner's question about predictive edge during a hedge-fund de-grossing, a dated reconstruction of the 10/12 to 10/22 tape, every published prime-broker and positioning read with its date, an exhaustion scorecard split into real-time metrics and lagged ones (with what the credit page can and cannot say intraday), a three-window plan for Friday 10/23, the options-buyer hazards in this regime, and a list of what has no edge. Every market figure is a search-snippet extract because the sandbox cannot open news or data pages; the note says so on every number.
 - Added `docs/strategy-2026-10-21/degross-signals-sources.md` (ten checked claims, two checkers each) and `docs/strategy-2026-10-21/degross-signals/` (the eight research sheets).
 - Research only. Nothing in the desk's configuration, bots, feeds or order authority changed.
+
+## 2026-10-24: Monday 10/26 watch note
+
+- Added `docs/DEGROSS-SIGNALS-20261026.md`: a review of the Friday 10/23 session and of how the Friday note's tells performed, every positioning read published Friday and Saturday, the Monday sequence from the Sunday-night Korea session through the close, the week's event map, and the corrections the checks forced (credit widened more than HYG showed; the Korean buyback bid has ended; Taiwan is closed Monday; dealer gamma is negative on every vendor's flip).
+- Added `docs/strategy-2026-10-21/degross-signals/monday/` (four research sheets, checker verdicts, critic report) and a Monday section in `degross-signals-sources.md`.
+- Research only. Nothing in the desk's configuration, bots, feeds or order authority changed.

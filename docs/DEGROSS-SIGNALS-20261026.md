@@ -1,0 +1,121 @@
+# What to watch Monday 2026-10-26
+
+Written Saturday 2026-10-24 for the Monday 2026-10-26 session, as the follow-up to `DEGROSS-SIGNALS-20261023.md`. Same question: during the session, what tells you whether the hedge-fund de-grossing behind the October tech selloff is slowing or resuming, and what can a same-day single-leg options desk do with it?
+
+**Labels.** The sandbox still cannot open any news or market-data page, so every market figure is EXTRACT, seen in search snippets or in data mirrors, with the outlet named. The one VERIFIED web item is Microsoft's earnings date; the FlashAlpha gamma figures quoted below are VERIFIED from the desk's own vendor emails. Eight load-bearing claims went to two checkers each; seven held, one (the dealer-gamma figures) was tightened. A completeness critic then corrected the credit reading and the Korea baseline; both corrections are applied. UNVERIFIED marks inference, arithmetic and rules of thumb.
+
+## 1. The answer in six lines
+
+1. **Friday was a pause in semis, not a reversal.** SOX +0.4% on 90 percent of normal volume while three of four S&P names fell, up-volume share was 27 percent, the Nasdaq printed 334 new lows, SOX gave back three quarters of a +1.8% intraday bounce, and the S&P was red all day and closed in the bottom quarter of its range. Sellers rotated to the Dow, staples and telecoms; energy absorbed the flow on Brent at $116.72.
+2. **The de-gross resumed on Thursday and nobody has published whether it continued Friday.** Goldman Prime (via Reuters and Bloomberg 10/23): on 10/22 fundamental long/short funds lost 1.4 percent, systematic 1.3 percent and multi-strategy 1.9 percent, the first time all three lost more than 1 percent in a day since Covid; long/short funds are -3.8 percent for October and tech-focused funds about -10 percent. "Market participants" said the drop "triggered deleveraging". There is no public read on Friday's US flows at all. Goldman's weekly covering 10/16 to 10/22 lands Monday morning and is the single most important thing to read.
+3. **The Asia leg did not finish.** Foreign net selling of Korean cash equities re-accelerated on Friday to about 1.0 to 1.1T won (the largest day of the week; Thursday was 0.1 to 0.4T depending on basis), while KOSPI still closed +0.3 percent because domestic institutions bought SK Hynix and Samsung. Breadth was 173 up to 719 down. The corporate buyback bid that absorbed foreign selling all month is gone: SK Hynix's 40T won programme ended 10/21 and Samsung's 15T won ended 10/6. Taiwan is closed Friday and Monday and reopens Tuesday.
+4. **Credit moved more than the ETFs showed.** ICE BofA HY OAS was 3.40 percent on 10/22, +13 bp on the day and +17 bp on the week, the largest one-day widening of the month, while HYG looked flat only because the 10-year fell 17 bp the same day. CoreWeave's 2032 bond yield rose 61 bp to 15.3 percent. By the Friday note's own grid that is "approaching confirmation", not "credit untouched". Monday's FRED print for 10/23 is the first datapoint that can settle it.
+5. **Positioning is two-sided and crowded on the short side.** Short sales about 5x long buys month-to-date, short leverage at the 99th percentile, net leverage near a three-year low with gross still high, retail buying semis at the fastest pace since July, ES leveraged funds covering 42,000 contracts of shorts in the week to 10/20. Any up-catalyst runs into covering; any capex or financing headline restarts long liquidation. SPX enters Monday below every vendor's dealer-gamma flip (7,625 to 7,762), so moves run further both ways.
+6. **Monday is the only full session before the week's event cluster**: FOMC Wednesday 2:00 PM ET, MSFT and GOOGL Wednesday after the close, SK Hynix Tuesday 7:00 to 8:00 PM ET, GDP and ECB Thursday, AMZN and INTC Thursday after the close, BoJ Thursday night, month-end and the QQQ 10/30 expiry Friday. Monday itself is quiet: a $69B 2-year auction at 1:00 PM ET, Verizon before the open, no Fed speakers, no large-cap tech earnings until Cadence, Rambus and Amkor after the close.
+
+## 2. Friday 10/23 in one table, and whether the Friday note's tells worked
+
+| Item | Reading (EXTRACT) |
+|---|---|
+| S&P 500 | 7,623.68, -0.52%; open 7,637, high 7,660 (below Thursday's close), low 7,612; -0.5% on the week, second weekly loss |
+| Nasdaq Comp / NDX | 25,955.34, -0.21% (high +0.4% at 26,112 late morning, faded); NDX flat at 28,958; -0.7% and -1.0% on the week |
+| SOX / SOXX / SMH | 10,779.46, +0.44%; high 10,923 (+1.8%), low 10,668 (-0.6%); SOXX +0.5%, SMH +0.7%; SOX -3.2% on the week after -11.4% the week before |
+| Dow / Russell / RSP | 52,215, -1.23% (worst of the day); Russell 2000 -0.3% (+2.0% on the week); RSP -0.77%, underperforming SPX on the day after +4.9% month-to-date |
+| Breadth and volume | NYSE decliners 1.72 to 1; S&P 135 up, 367 down; up-volume share 27%; Nasdaq 74 new highs, 334 new lows; total volume 15.4B vs 17.2B average; 8 of 11 sectors down; energy +2.6%, staples -1.9% |
+| Vol | VIX 19.45, +2.2% (working close; Investing.com's 18.94 is a known-divergent aggregator); intraday high 20.24; VIX9D 18.70 below VIX, so the front end stayed in contango. Thursday closes per Saxo: VIX3M 20.12, VIX9D 18.86, VVIX 107.94 (+14%). VXN, SKEW and Friday's put/call not found |
+| Semis, Friday | MU +2.5%, MRVL +2.3%, AMD +1.7%, INTC +1.7%, TSM ADR +1.5%, AMAT +0.4%; NVDA -0.6%, AVGO -0.5%, LRCX flat after -11.8%, KLAC -1.5% after -9.5%, SNDK -1.8%, WDC -3.0% post-earnings. SK Hynix ADR +4% after it halted the Solidigm US IPO. SOXL 83.56, -49% from its 10/5 close |
+| Other | Telecoms -4 to -6% on the SpaceX cell-site report (VZ reports Monday pre-market); CRWD and PANW +7 to 8%; AXP -3.7%; Bloom Energy -12% on a beat |
+| Rates, FX, commodities | 10-year 5.00%, +4 bp, after Thursday's 17 to 19 bp drop; 2-year 4.69%; Brent $116.72 (+3.1%, +6.2% on the week); WTI $103.27; USDJPY 156.9; DXY 101.75; gold about $4,010, -3.8% on the week; MOVE 103.3, -3.3% |
+| Credit | HYG 77.05, -0.06% (has not moved 0.5% in any session this month); LQD -0.4% on the rate move; HY OAS 3.40% on 10/22 (10/23 not yet posted); IG OAS 0.89%; CoreWeave 9.625% 2032 bond at 78.66, 15.3% yield (+61 bp); Meta five-year CDS a record 115 to 119 bp on 10/22 |
+| Data | Flash manufacturing PMI 56.0 vs 55.5 (53-month high) with selling prices rising at the sharpest rate since August 2022; services 57.9 vs 58.0; UMich final 48.0 vs 46.3 prelim, one-year inflation expectations 4.7%. The prints pushed yields up and did not stop the morning tech bounce; the S&P never went green |
+| Fed pricing | October hike 6 to 7%; December hike 72 to 85% depending on tracker; the Fed hiked 25 bp on 9/16 to 3.75 to 4.00% |
+
+**How the Friday note's tells did (UNVERIFIED reading of EXTRACT inputs).** The Korea Exchange flow tell gave the right warning: the 10:00 Seoul print (about 145B won of foreign selling) was the early, KRX-only figure, and the full session came in at 1.0 to 1.1T won, the heaviest of the week. The note said to read the flow at the close, and the close said "not done". The "Asia leg not forcing the US" tell also held: KOSPI closed +0.3 percent and NQ opened near flat. The universe-internals gate did its job in the other direction: the morning bounce in semis came with 27 percent up-volume and three quarters of the S&P red, which is exactly the "narrow covering, not re-grossing" shape the note said not to buy; SOX then surrendered the bounce into the afternoon, as the negative-gamma rule said it would. The VXN reading could not be found Friday and still cannot, which is the note's biggest unfilled hole. The credit tell was wrong in a way that matters: it rested on HYG, and HYG was flat only because duration offset a 13 bp spread widening. Use the OAS print and HYG minus IEI, not HYG alone.
+
+## 3. Where the de-gross stands going into Monday
+
+| Source, date | What it said | Direction |
+|---|---|---|
+| Goldman Prime via Reuters and Bloomberg, 10/23 | "If last Thursday felt bad, today has been worse." On 10/22 fundamental long/short -1.4% (worst since 7/16), systematic -1.3%, multi-strategy -1.9% (second-worst since April 2025); all three below -1% for the first time since Covid. Long/short -3.8% month-to-date to 10/22 (+8.8% year-to-date); tech-focused funds about -10%, Asia-focused about -9%. Losses from "China and technology holdings, as well as a squeeze in crowded short positions"; the drop "triggered deleveraging" | Resumed Thursday, both sides of the book |
+| Goldman Prime via Bloomberg, 10/22 (data to about 10/19 or 10/20) | Month-to-date short sales about 5x long buys; short leverage 99th percentile of five years; net leverage near a three-year low while gross rose; "short squeeze risk alert?" | Crowded short side |
+| Goldman, two series | US fundamental long/short net leverage 43.7% (five-year low as of 10/16); global series 48.6% on 10/15, about 49.4% by 10/22 | Net low, gross high |
+| UBS desk (Sippel), 10/18 | "Deleveraging rather than de-risking"; net exposure 30th percentile, gross above the 90th; "vulnerable to further deleveraging if P&L pressure persists" | The P&L pressure arrived Thursday |
+| Nomura (McElligott), 10/23 | Of 124 US long/short pairs monitored, 47 moved more than three sigma on 10/22 and six more than five sigma | Pair-book stress, the pod signature |
+| JPMorgan (Panigirtzoglou), about 10/21 | Funds "sharply reduced equity risk", less room for another concentrated wave; "not a bottom" | Tested the next day |
+| JPMorgan retail (Jain), week to 10/21 | Retail single-stock tech buying the highest since the July momentum unwind; semis, cloud and storage; tech ETFs the second-largest weekly inflow on record | Retail absorbing |
+| CFTC, positions as of 10/20 | ES leveraged funds cut their net short by 42,221 contracts to 348,674 (covering into the 10/19 to 10/21 bounce); NQ figure not found | Covering before Thursday |
+| Korea Exchange, Friday 10/23 | Foreign net sold 981B to 1,094B won of cash (basis differs by outlet) while buying 283B won of KOSPI 200 futures; institutions bought 795B (SK Hynix 596B, Samsung 135B), retail 234B; KOSPI +0.3% with 173 up to 719 down. Thursday's foreign figure is contested: -113B (Aju), -399B (Newspim basis), even +59B (one outlet). The buyback channel ("other corporates") collapsed from about 0.5T won a day Monday to Wednesday to 0.04 to 0.06T Thursday and Friday after SK Hynix (10/21) and Samsung (10/6) finished their programmes | Foreign leg resumed, cushion gone |
+| Not found | Any US prime-broker flow read for Friday; Morgan Stanley prime data for October; Friday ETF creations for SOXL, SOXS, SMH; any CTA or vol-control estimate after 10/16; any named-fund October return; the split of Thursday's flow between long selling and short covering | |
+
+**Reading (UNVERIFIED).** De-grossing in the strict sense paused 10/16 to 10/21 and resumed hard on 10/22. Friday says nothing either way in the US and says "not done" in Korea. The books are now net low and gross high with record short leverage, which is a configuration that produces violent two-sided days until either (a) a session where semis lead on volume, crowded longs outperform the most-shorted names and the next day holds the low, or (b) a credit or macro leg (oil, the FOMC) turns the sector event into a broad one.
+
+## 4. The Monday sequence
+
+Times in ET with PT in brackets. Two clock notes: Europe moved its clocks back on 10/25 and the US does not until 11/1, so this week London opens at 4:00 AM ET and closes at 12:30 PM ET, and Thursday's ECB decision is at 9:15 AM ET; and Korea's extended-hours venue prints before the regular session, so the first foreign-flow numbers at 7:00 to 7:50 PM ET Sunday are pre-market and the regular session runs 8:00 PM to 2:30 AM ET.
+
+**Sunday night (5:00 PM to 2:30 AM ET): the Asia read.**
+- Weekend tape first: Houthi missiles at Riyadh, Taif and Yanbu were intercepted Saturday; the IRGC claims two tankers were mined (CENTCOM says no mines); the US envoy said a strike "this weekend" was "absolutely" possible while Trump said Iran is "fabricating hits". Brent settled $116.72. If ES and crude gap at the 6:00 PM reopen, Monday is a macro day read through the 10-year at 5.00 percent and oil, not a positioning day, and the thresholds below are secondary.
+- Korea, 8:00 PM ET open. Do not read the foreign flow before about 10:00 to 11:00 PM ET (11:00 to 12:00 Seoul): Friday's early print was 145B won and the close was 1.1T. Compare on the same basis as Friday's close figure. Resuming: a third consecutive foreign sell day of 0.5T won or more, "other corporates" still under 0.1T, KOSPI breadth under 30 percent even if the index is up (the two-name squeeze shape). Slowing: foreign cash flat to net buying with futures still bought (the hedged leg unwinding), breadth at 40 percent or better, the index holding Friday's 5,306 low. Watch SK Hynix and Samsung separately from the index.
+- Taiwan is closed Monday (Retrocession Day make-up). The Sunday-night proxy is SGX FTSE Taiwan futures; the US-hours proxy is TSM's ADR, which carries four days of pent-up Taiwan information. The first Taiwan cash print is Tuesday 9:00 PM ET Monday night.
+- Japan: Nikkei held its 200-day average Friday (62,693). Advantest, Tokyo Electron and Disco are the semis read. USDJPY near 157: a yen move of 2 percent with Nikkei down 3 percent is the carry signature; it has not appeared.
+- NQ versus ES through the Asian session: NQ flat to up while KOSPI is weak was the "Asia not forcing the US" tell on Friday and would be again.
+
+**Monday pre-market (4:00 to 9:30 AM ET, 1:00 to 6:30 PT): the three prints that decide the lean.**
+- FRED posts the 10/23 HY and IG OAS by morning. Against 3.40 percent on 10/22: flat to tighter keeps this an equity-internal event; another +10 bp, or +25 bp cumulative since 10/21, meets the confirmation line and extends the time scale. Pair it with HYG minus IEI in the premarket, not HYG alone.
+- Goldman's prime-broker weekly for 10/16 to 10/22, via Bloomberg, usually mid-morning (timing UNVERIFIED). Read it for three things: did tech and semis see renewed net selling or was Thursday mostly short covering (gross down, net flat); did net leverage fall again from 43.7 to 49 percent depending on series; did the short-sale to long-buy ratio normalize from 5 to 1. The weekly may add only two sessions beyond what Bloomberg already carried on 10/22.
+- Pre-market quotes: TSM ADR vs its implied Taiwan level, SOXL and SOXS volume vs Friday, VZ's print (telecoms were Friday's worst group), and the gamma map: SPX closed 7,623.68, below FlashAlpha's SPX flip near 7,718 to 7,742 (SPY flip 769.40 on Friday, SPY net gamma -$15.7B at 9:56 AM Friday, VERIFIED from the desk's FlashAlpha emails) and below every other vendor's flip (7,625 to 7,762). Negative gamma on every model: trend days and late acceleration are the base case; 7,700 to 7,762 is the reclaim zone. The S&P's 100-day average sits at about 7,605, 19 points under Friday's close. QQQ closed 704.40 with lows of 701.90 Thursday and 701.16 Friday, 0.6 percent above the 700 strike that holds the reported 10/30 put block; open interest there is unverified and worth pulling.
+- VXN at 9:15 ET, which neither note has been able to find: below the 10/16 high of 27.1 on any new SOX low is the non-confirmation that matters; VXN/VIX back under about 1.36 from 1.46 is the same message. VIX9D under VIX and VIX under VIX3M (contango) already read calm and stay context only.
+
+**Regular session (9:30 AM to 4:00 PM ET, 6:30 AM to 1:00 PM PT).**
+- No entries 9:30 to 9:45 (opening auction; with 99th-percentile short leverage an open-drive squeeze is the asymmetric risk for puts) or 12:55 to 1:05 (2-year auction result). Dallas Fed manufacturing at 10:30 and the Chicago Fed index at 8:30 are minor; the dates are unverified.
+- 10:00 ET read: first-30-minute sign of NQ and SMH (sets the last-hour lean under negative gamma); universe internals on the 144 names (downside-surge share, up-volume share, percent above VWAP); RSP minus SPY; count of SOX members up (Thursday 0 of 30; Friday mixed, count not found). Repeat of Thursday's shape (semis all down, average stock up) means the de-gross is still running; semis mixed with breadth positive and up-volume over 40 percent by 11:00 means slowing.
+- GVIP versus the most-shorted basket: a bounce led by the most-shorted names with VIP lagging is covering and usually fades; VIP leading on an up day from a down open is the re-gross signal the desk has not yet seen on any day of this episode.
+- 12:30 ET Europe close (shifted), a program-flow pulse. 1:00 ET $69B 2-year auction: a tail with the 2-year at 4.69 percent and the 10-year at 5.00 percent feeds the rates leg ahead of the FOMC.
+- Last hour: levered-ETF rebalancing is about $1.5B of SOX exposure per 1 percent of the day's move at 3:00 ET, in the day's direction; imbalances publish 3:50 to 3:55. The desk is flat by 12:55 PT; record the imbalance sign for Tuesday's bias.
+- After the close: Cadence, Rambus and Amkor (the first semis-adjacent prints after Lam's supply-chain comment; list unverified), Thursday and Friday ETF flows (a first large SOXL outflow or SOXS inflow would be the retail capitulation that has not appeared), FINRA daily short volume, and the Korea flow for Tuesday's session as it prints overnight.
+
+**Trading rules for the day (UNVERIFIED, consistent with the desk's gates).** Trade only the measured conditioner (1-minute rvol at or above 3x at the day high or low, bar close in the top or bottom 30 percent, not in ACCEL for 60 seconds or more) with the IV-rank and spread gates on. In a "resuming" tape: continuation re-entry on downside surges, no calls on the first bounce, puts favoured on names whose group leader broke first. In a "slowing" tape: calls only after a down-open reversal is confirmed by SOX above its 10:00 low, VIP leading most-shorted and up-volume share over 40 percent. Half the usual ticket count. Shorter time stops: theta on a 0DTE at-the-money call is about 9.6 percent an hour at any IV. No adds in the last hour against a sell imbalance.
+
+## 5. The week after Monday
+
+| When (ET) | What | Why it matters to the desk |
+|---|---|---|
+| Mon 10/26 1:00 PM | $69B 2-year auction | Front-end bid into the FOMC |
+| Mon 10/26 9:00 PM | Taiwan reopens after four days closed (TAIEX -1.8% and TSMC -1.5% on 10/22 before the closure); TAIFEX after-hours resumes Tue 3:00 AM ET | Catch-up to the US semis drop lands in Tuesday's pre-market |
+| Tue 10/27 | $70B 5-year auction 1:00 PM; Conference Board confidence and Richmond Fed 10:00 (dates unverified); NXPI after the close, call 4:30 PM; Seagate and Teradyne after the close (dates unverified); Israeli election | First semis prints of the week |
+| Tue 10/27 7:00 to 8:00 PM | SK Hynix Q3 (filing about 8:00 KST, call 9:00 KST); a shareholder-return package of over 30T won is expected | The epicentre reports |
+| Wed 10/28 2:00 / 2:30 PM | FOMC statement and press conference; target range 3.75 to 4.00%; hold priced at 93 to 94%; no projections in October; $30B 2-year FRN 11:30 AM | Hold is priced; the December language is the risk |
+| Wed 10/28 after the close | MSFT (VERIFIED date; call 5:30 PM), GOOGL; NOW and KLAC (dates unverified) | Capex guidance from two hyperscalers is the test the week-ahead press frames the whole market around |
+| Wed 10/28 9:00 PM | Samsung Q3 call (10:00 KST Thursday) | |
+| Thu 10/29 8:30 AM | Q3 GDP advance; September PCE is either here or Friday (BEA pattern); jobless claims; ECB decision 9:15, press conference 9:45; $44B 7-year 1:00 PM | |
+| Thu 10/29 after the close | AMZN (implied about 6.6%), INTC (implied about 8.3%, guide $15.8 to 16.8B revenue), SNDK (date unverified) | Second capex read, plus Intel into a -11% to +24% history |
+| Thu 10/29 night | BoJ decision and Outlook Report (10/30 Tokyo); USDJPY is the channel | |
+| Fri 10/30 | ECI and Chicago PMI; month-end; SPX end-of-month and QQQ 10/30 expiry with the 700 put strike 0.6% below Friday's QQQ close; pension rebalance direction unclear (equities and bonds both down on the month); buyback windows reopen for MSFT and GOOGL about 10/30 and about 48% of the S&P is out of blackout by month-end | |
+| Mon 11/2 and Tue 11/3 | AAPL reports (per Apple's 10/6 notice, as found in the earlier research); US midterms; OPEC+ call possible 11/1 | |
+
+## 6. What has no edge, restated for Monday
+
+- Any "it's over" or "not a bottom" call from a strategist: JPMorgan's "sharply reduced risk" note preceded the worst day of the episode by one session, and Goldman's "squeeze alert" preceded a day when both longs and shorts lost.
+- Friday's +0.44 percent in SOX as evidence of anything: 90 percent of normal volume, 27 percent up-volume, the bounce sold.
+- HYG as a credit tell when the 10-year is moving 15 bp a day; use OAS and the duration-stripped spread.
+- The early Seoul foreign-flow print; read the close.
+- VIX-family term-structure ratios for a semis episode: in contango through a -6.7 percent SOX day and a 1.1T won Korean selling day.
+- Single-source secondary figures such as the hedge-fund VIP basket's "-4.2 percent, worst since August 2011": not carried by any wire.
+- Dollar sizes of dealer gamma: four vendors ranged from -$41B to +$64B per 1 percent at the 10/21 close; the flip level is the consensus, the magnitude is not.
+
+## 7. Verification notes
+
+Eight claims from the four research sheets went to two checkers each; the checkers faced the same blocked hosts and judged from cross-snippet consistency.
+
+- The Friday closes hold across independent snippets (S&P 7,623.68, Nasdaq 25,955.34, SOX 10,779.46, VIX 19.45). The Reuters-syndicated alternates (7,629.92, 25,986.95, Dow 52,241.55, SOX +0.6%) are preliminary 4:00 PM prints that Reuters itself later updated, not competing closes; Invezz's SOX "over 1 percent" was an intraday reading.
+- The dealer-gamma claim was tightened rather than refuted: FlashAlpha's SPX figures (-$39.1B, flip 7,742) are single-vendor EXTRACT, but the desk's own FlashAlpha SPY digests (VERIFIED) show SPY net gamma -$2.78B Wednesday, -$12.06B Thursday, -$15.70B Friday morning with a flip at 769.40 (about SPX 7,718), and every other vendor's flip (7,625 to 7,762) sits above Friday's close.
+- The Goldman 10/22 performance figures hold (fundamental -1.4%, systematic -1.3%, multi-strategy -1.9%, first all-below-minus-1% day since Covid); the VIP-basket figure is secondary-source only and is labelled so above.
+- The Korea Friday flow (981B to 1,094B won) holds; the spread is a reporting-basis difference (KRX-only versus KRX plus the extended-hours venue). The critic found Thursday's base is itself contested across three figures, so Friday's re-acceleration is between 2.7x and 10x depending on basis, and found the buyback cliff the sheets had missed.
+- Taiwan's closure Friday and Monday with a Tuesday reopening holds (typhoon, then the Retrocession Day make-up holiday), as does the one-hour Europe clock shift this week.
+- The FOMC time, the 9/16 hike to 3.75 to 4.00 percent, the hike odds and the MSFT date hold; September PCE may be Thursday or Friday.
+- The Monday $69B 2-year auction at 1:00 PM ET holds on three TreasuryDirect-derived mirrors; the Tuesday listing on one site is a template error. The Monday economic prints and after-close earnings list are unverified.
+- Brent $116.72 and WTI $103.27 hold; Friday's leg was a fresh wave of Houthi attacks and Aramco's evacuation order on top of Thursday's catalysts.
+- The critic corrected the credit reading: HY OAS 3.40% on 10/22 (+13 bp day, +17 bp week) with HYG flat because the 10-year fell 17 bp. "Credit did not confirm" is withdrawn in favour of "approaching the confirmation line; Monday's print decides".
+- Still not found by anyone: Friday's VXN, SKEW, VIX3M and put/call closes; SOX and NDX member counts Friday; any US prime-broker read of Friday; SOXL and SOXS creations for Thursday and Friday; the 10/23 OAS; CDX; the QQQ 700 open interest; Barron's, WSJ and FT weekend coverage.
+
+Sources and the full checker output are in `strategy-2026-10-21/degross-signals-sources.md` (Monday section) and `strategy-2026-10-21/degross-signals/monday/`.
