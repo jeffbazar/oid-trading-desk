@@ -85,6 +85,7 @@ R "$H/oid-desk/app"        oid-desk/app
 R "$H/oid-desk/bin"        oid-desk/bin
 R "$H/oid-desk/triggers"   oid-desk/triggers
 R "$H/oid-desk/x-on-surge" oid-desk/x-on-surge
+R "$H/oid-desk/x-sentiment" oid-desk/x-sentiment   # X sentiment feed + scorecard + corr report (shadow)
 R "$H/oid-desk/momentum"   oid-desk/momentum
 R "$H/oid-desk/news"       oid-desk/news
 R "$H/oid-desk/launchd"    oid-desk/launchd
