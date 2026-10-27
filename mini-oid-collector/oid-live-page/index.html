@@ -225,10 +225,23 @@ section{margin-top:8px;padding:6px 8px}
 #moverstrip .mp .rvd{color:var(--mut);font-size:10px}
 #moverstrip .mp .mk{font-size:9.5px;font-weight:800;padding:0 3px;border-radius:3px;background:#eaeef2;color:#424a53}
 #moverstrip .mp .mk.acc,#moverstrip .mp .mk.res{background:#1a7f37;color:#fff}#moverstrip .mp .mk.dec{background:#fff1c2;color:#9a6700}
+/* XSENT (2026-10-27): X sentiment panel, SHADOW, display only */
+#xsent{padding:5px 8px}#xsent h2{display:flex;flex-wrap:wrap;gap:4px 8px;align-items:baseline;margin:0 0 4px}
+#xsent .xsh{font-size:9px;font-weight:800;padding:0 4px;border-radius:3px;border:1px dashed #8c959f;color:#59636e;text-transform:uppercase;letter-spacing:.04em}
+#xsent.min #xsl{display:none}
+#xsl{display:grid;grid-template-columns:repeat(auto-fill,minmax(178px,1fr));gap:3px 6px}
+.xr{display:grid;grid-template-columns:44px 1fr 38px 40px;gap:0 5px;align-items:center;padding:2px 5px;border-radius:5px;background:#fff;border:1px solid var(--line);font-size:11px;font-variant-numeric:tabular-nums;cursor:pointer;white-space:nowrap}
+.xr .s{font-weight:800}.xr .s i{font-style:normal;color:#cf222e;font-size:8px;vertical-align:2px;margin-left:1px}
+.xr .bar{position:relative;height:7px;background:#eaeef2;border-radius:3px}.xr .bar::after{content:"";position:absolute;left:50%;top:-1px;bottom:-1px;width:1px;background:#8c959f}
+.xr .bar b{position:absolute;top:0;bottom:0;border-radius:3px}
+.xr .n{text-align:right;font-weight:800}.xr .n.up{color:#1a7f37}.xr .n.dn{color:#cf222e}.xr .n.z{color:#8c959f}
+.xr .c{text-align:right;color:var(--mut)}.xr .c.sp{color:#fff;background:#cf222e;border-radius:3px;padding:0 3px;font-weight:800}.xr .c.wm{color:#9a6700;font-weight:700}.xr .c.lo{opacity:.6}
+.xr.up{border-left:3px solid #1a7f37}.xr.dn{border-left:3px solid #cf222e}.xr.z{border-left:3px solid #d0d7de}.xr.old{opacity:.5}
 </style><link rel="stylesheet" href="chart.css?v=20261021-patterns"></head><body>
 <header><h1>OID live volume</h1><span id="clock" class="pill">connecting…</span><span id="mkt" class="pill"></span><span id="vsmode" class="pill"></span>
 <span class="tabs" style="margin-left:auto"><button id="bh" class="on" onclick="view('heat')">Heatmap</button> <button id="bt" onclick="view('table')">Table</button> <button id="bc" onclick="openLastChart()" title="Open the stock chart (last ticker). Tip: click any tile, table row or Sector watch row to chart that ticker.">Chart</button> <a href="guide/" id="bg">Field Guide</a> <a href="guide/research/" id="br" title="Studies run so far: date, question, method, result, verdict and the full file">Research</a> <a href="credit" id="bcr" title="Credit spreads (HYG/IEF, HY/IG OAS) and rolling category betas/correlations to QQQ, SMH, megacaps and LRCX. Research only. CREDITTAB">Credit &amp; Betas</a></span></header>
 <div id="strip"></div><div id="momg"></div><div id="moms"></div><div id="moverstrip"></div><div id="uwleg"></div><div id="flowlean"></div><div id="secstrip"></div><div id="rotstrip"></div><div id="note"></div>
+<section id="xsent"><h2>X sentiment <span class="xsh">shadow</span><small id="xsm" class="mut">loading…</small><span style="margin-left:auto"><button onclick="xsMin()" style="font-size:11px;background:#fff;border:1px solid var(--line);border-radius:5px;cursor:pointer" id="xsminb">hide</button></span></h2><div id="xsl"></div></section>
 <section id="news"><h2>News <small id="nmeta" class="mut">loading…</small><span class="nt"><button id="nbF" class="on" onclick="nTab('f')">Followed</button> <button id="nbA" onclick="nTab('a')">All market</button> <button id="nbX" onclick="nTab('x')">X posts</button></span><small id="nflt"></small><span style="margin-left:auto"><button onclick="nMin()" style="font-size:11px;background:#fff;border:1px solid var(--line);border-radius:5px;cursor:pointer" id="nminb">hide</button></span></h2><div id="nlist"></div></section>
 <div id="heat"><div id="bestnow"></div><div class="lg"><label class="gtog"><input type="checkbox" id="gby" onchange="setGB(this.checked)"> Group by sector</label><label class="srt">Sort <select id="hsort" onchange="setHS(this.value)"><option value="name">Name (A→Z)</option><option value="rvol">Volume heat (1-min rvol)</option><option value="day_rvol">Day rvol</option><option value="chg">% change (▲ Gainers)</option><option value="chg_asc">% change (▼ Decliners)</option><option value="last">Last price</option><option value="hot">Surges first</option><option value="pat">Pattern edge (hit rate)</option></select></label> rvol vs same-minute norm: <span class="sw" style="background:#eef1f4;border:1px solid #d0d7de"></span>&lt;1.5× <span class="sw" style="background:#ffd88a"></span>~2× <span class="sw" style="background:#ffaba8"></span>≥3× · pulsing = vol_surge or ≥3× · sort: use dropdown · bars = last 30 one-min volumes, red ≥3× norm, last bar = current minute · tile chips = <b>15s / 1m C/P = live Alpaca OPRA aggressor call-buy÷put-buy premium (small % = classified coverage; grey = thin/stale; ▲/▼ = trend over ~45 s of 15 s readings: green toward calls, red toward puts, – flat)</b> + day C/P vol + 15m (slow, italic) and 5m call−put lean (UW soft, core-20+focus only; small number = 5m data age in min) · right-edge marks = <b>FlashAlpha walls</b>: <span style="color:#1a7f37">●</span> call wall, <span style="color:#cf222e">●</span> put wall, <span style="color:#bf8700">●</span> gamma flip (hollow = low-confidence), black tick = spot; bigger/darker = more open interest + today’s volume at that strike; hover or tap for prices · VIX/IWM tiles = desk files; WTI/Brent = CME front-month futures (FlashAlpha, ~2 min); STALE/CLOSED stamped · <b>sector sections</b> (grey, dashed bar, after the core groups) = the 144 sector names: <b>F±n</b> Full / <b>L±n</b> Light score, C/P <sup class="tt">tt</sup> = tick test, <b>—</b> = no data for that name · click a group bar to fold it (remembered)</div><div id="grid"></div></div><div id="wtip" hidden></div><div id="stip" hidden></div>
 <div id="table" hidden><section><div id="tleg" class="tleg"></div><div class="tw"><table><thead><tr id="th"></tr></thead><tbody id="tb"></tbody></table></div></section></div>
@@ -657,6 +670,25 @@ setInterval(()=>{loadSectors();},300000);
 let WSP={},wspT=0;
 function loadWSpark(){wspT=Date.now();return fetch('wide-spark.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(d=>{if(d&&d.spark){WSP=d.spark;if(st&&mode==='heat')renderGrid();}}).catch(()=>{});}
 loadWSpark();setInterval(()=>{if(document.hidden)return;if(Date.now()-wspT>((st&&st.market_open)?15000:120000))loadWSpark();},5000);
+/* XSENT (2026-10-27): X sentiment panel. SHADOW, display only: reads /xsent.json every 60 s; nothing here touches the score, alerts or orders */
+let XS=null;
+function xsT(s){const m=/(\d{1,2}:\d{2}):\d{2} (AM|PM)/.exec(s||'');return m?m[1]+' '+m[2]:'—';}
+function renderXS(){const el=$('xsl'),mt=$('xsm');if(!el)return;
+ if(!XS||!XS.tickers){mt.textContent='feed not available';el.innerHTML='';return;}
+ const now=XS.now||Date.now()/1000,rows=Object.entries(XS.tickers).map(([s,v])=>Object.assign({s},v));
+ const spike=v=>(v.chatter_z!=null&&v.chatter_z>=2)||(v.chatter_ratio!=null&&v.chatter_ratio>=2);
+ const hot=v=>v.tier==='hot'&&(v.t==null||now-v.t<1800);
+ rows.sort((a,b)=>(spike(b)-spike(a))||(hot(b)-hot(a))||((b.chatter_ratio||0)-(a.chatter_ratio||0)));
+ const ns=rows.filter(spike).length;
+ mt.innerHTML=`${rows.length} names · ${ns} spike${ns===1?'':'s'} · as of ${E(xsT(XS.as_of_pt))} PT`;
+ el.innerHTML=rows.map(v=>{const n=v.net==null?null:+v.net,cls=n==null||Math.abs(n)<0.15?'z':n>0?'up':'dn',old=v.t!=null&&now-v.t>3600;
+  const w=n==null?0:Math.min(1,Math.abs(n))*50,bar=n==null?'':`<b style="${n>=0?'left:50%':'right:50%'};width:${w.toFixed(0)}%;background:${cls==='z'?'#8c959f':n>0?'#1a7f37':'#cf222e'}"></b>`;
+  const cr=v.chatter_ratio,cc=spike(v)?'sp':cr!=null&&cr>=1.5?'wm':cr!=null&&cr<0.8?'lo':'';
+  const tip=`${v.s} · X tone ${n==null?'no sample':(n>0?'+':'')+n.toFixed(2)} (${v.bull||0} bull / ${v.bear||0} bear / ${v.neu||0} neutral of ${v.n_kept||0} kept posts) · chatter ${v.count==null?'—':v.count} vs ${v.base_count==null?'—':v.base_count} normal (${cr==null?'—':cr.toFixed(2)+'×'}${v.chatter_z!=null?', z '+v.chatter_z.toFixed(1):''}) · ${v.tier||''} · ${v.t_pt||''} · SHADOW, display only`;
+  return `<div class="xr ${cls}${old?' old':''}" title="${E(tip)}" onclick="window.openChart&&openChart('${E(v.s)}')"><span class="s">${E(v.s)}${hot(v)?'<i>●</i>':''}</span><span class="bar">${bar}</span><span class="n ${cls}">${n==null?'—':(n>0?'+':'')+n.toFixed(2)}</span><span class="c ${cc}">${cr==null?'—':cr.toFixed(1)+'×'}</span></div>`;}).join('');}
+function loadXS(){return fetch('xsent.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(d=>{XS=d;renderXS();}).catch(()=>{XS=null;renderXS();});}
+function xsMin(){const n=$('xsent');n.classList.toggle('min');$('xsminb').textContent=n.classList.contains('min')?'show':'hide';try{localStorage.lvXsMin=n.classList.contains('min')?'1':'0'}catch(e){}}
+loadXS();setInterval(()=>{if(!document.hidden)loadXS();},60000);try{if(localStorage.lvXsMin==='1')xsMin()}catch(e){}
 loadNews();setInterval(loadNews,20000);try{if(localStorage.lvNewsMin==='1')nMin()}catch(e){}
 setInterval(()=>{if(st)render();},5000);
 $('tb').addEventListener('click',e=>{const tr=e.target.closest&&e.target.closest('tr[data-s]');if(tr&&window.openChart)openChart(tr.dataset.s);});

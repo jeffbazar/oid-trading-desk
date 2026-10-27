@@ -45,11 +45,11 @@
   "billing_dedupe": "X bills a post once per 24h UTC day (soft guarantee); budget_guard does NOT count on it (worst case)."
  },
  "caps": {
-  "x_daily_usd_cap": 5.0,
-  "x_monthly_usd_cap": 100.0,
+  "x_daily_usd_cap": 10.0,
+  "x_monthly_usd_cap": 220.0,
   "daily_cap_resets": "00:00 America/Los_Angeles (trading-day accounting)",
   "monthly_cap_resets": "X billing-cycle start (OPEN: anchor date; default = 1st of calendar month 00:00 UTC until Jeffrey confirms)",
-  "pacing": "today_allowance = min(5.00, (100.00 - month_spent) / trading_days_left_in_cycle_incl_today). ~22 trading days -> $4.55 at cycle start; underspend rolls forward up to the $5.00 day cap.",
+  "pacing": "today_allowance = min(10.00, (220.00 - month_spent - other_jobs_month_spent) / trading_days_left) * 0.95 - reserve_other_usd. With reserve 5.05 that is $4.45/day, same as before (5.00*0.95-0.30). XSENT 10/26: caps raised $5->$10/day, $100->$220/month (Jeffrey) for the x-sentiment feed.",
   "safety_margin": 0.95,
   "surge_fetches_per_day": 40,
   "requests_per_day": 120,
@@ -58,8 +58,8 @@
   "big_move_bps": 50,
   "reserve_release_pt": "12:30",
   "kill_file": "~/oid-data/state/x/STOP",
-  "reserve_other_usd": 0.3,
-  "reserve_other_note": "NAMECREDIT 10/21: kept out of x-on-surge's daily allowance for com.oid.desk.name-credit (own cap $0.30/day; ledger state/x/name_credit_budget.json)"
+  "reserve_other_usd": 5.05,
+  "reserve_other_usd_note": "XSENT 10/26: 5.05 = kept out of x-on-surge's day allowance for other X jobs (name-credit $0.30/day + x-sentiment up to ~$5.25/day, desk total <= $10). Their month spend (state/x/name_credit_budget.json + state/x/sentiment_budget.json) counts toward the monthly pacing."
  },
  "stages_by_share_of_today_allowance": [
   {

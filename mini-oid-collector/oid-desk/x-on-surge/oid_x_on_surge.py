@@ -755,8 +755,8 @@ def main():
     if args.selftest:
         cfg = load_config()
         assert cfg.get("fetch_enabled") is True, "fetch_enabled should be True for Phase 3 go"
-        assert cfg["caps"]["x_daily_usd_cap"] == 5.0
-        assert cfg["caps"]["x_monthly_usd_cap"] == 100.0
+        assert cfg["caps"]["x_daily_usd_cap"] == 10.0
+        assert cfg["caps"]["x_monthly_usd_cap"] == 220.0
         g = bg.Guard(0, 22)
         assert g.enabled()
         ok, mr, why = g.precheck("crowd", max_results=50, big_move=False, thin=True)

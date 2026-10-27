@@ -354,7 +354,7 @@ def parse_post(text, created_utc):
     return out
 
 X_DAY_CAP = 0.30          # this job's own daily ceiling; x-on-surge keeps reserve_other_usd = 0.30 out of its allowance
-X_MONTH_CAP_TOTAL = 95.0  # combined (x-on-surge + this job) month ceiling, under the $100 cap
+X_MONTH_CAP_TOTAL = 209.0  # combined (x-on-surge + this job) month ceiling, under the $220 cap (XSENT 10/26: was 95 under $100)
 X_DAY_CAP_TOTAL = 4.75    # combined day ceiling, under the $5 cap
 POST_USD = 0.005
 def xq():

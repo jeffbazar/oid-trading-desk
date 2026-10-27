@@ -6,11 +6,15 @@ import json, os
 H=os.path.dirname(os.path.abspath(__file__)); CFG=json.load(open(H+'/x-on-surge-config.json'))
 P=CFG['pricing_assumption']; C=CFG['caps']
 def _ext_month():
-    try:
-        import datetime as _dt
-        d=json.load(open(os.path.expanduser("~/oid-data/state/x/name_credit_budget.json")))
-        return float(d.get("month_spent") or 0) if d.get("month")==_dt.datetime.now().strftime("%Y-%m") else 0.0
-    except Exception: return 0.0
+    # XSENT 10/26: other X jobs' month spend = name-credit + x-sentiment ledgers (each counted only for the current month)
+    import datetime as _dt
+    m=_dt.datetime.now().strftime("%Y-%m"); tot=0.0
+    for f in ("name_credit_budget.json","sentiment_budget.json"):
+        try:
+            d=json.load(open(os.path.expanduser("~/oid-data/state/x/"+f)))
+            if d.get("month")==m: tot+=float(d.get("month_spent") or 0)
+        except Exception: pass
+    return tot
 class Guard:
     def __init__(s, month_spent=0.0, trading_days_left=22):
         s.last_fetch={}     # symbol -> (ns, fetch_id), for skipped:recent

@@ -783,6 +783,36 @@ MOMENTUM = MomentumFeed()
 MOMLOG_ROOT = Path(os.environ.get("OID_LIVEPAGE_MOMLOG", str(HOME / "oid-data/archive")))  # MOMSTATE
 
 
+
+XSENT_DIR = Path(os.environ.get("OID_LIVEPAGE_XSENT", str(HOME / "oid-data/sentiment/x")))  # XSENT (10/27)
+XSENT_KEYS = ("t", "t_pt", "tier", "count", "base_count", "chatter_ratio", "chatter_z", "n_kept", "bull", "bear", "neu", "net", "net_ewma", "status")
+
+
+def xsent_payload():
+    """XSENT (2026-10-27): compact read-only copy of the x-sentiment shadow feed for the page panel.
+    Reads latest.json + status.json + newest scorecard name. Never written to, never used by score/alerts/orders."""
+    out = {"shadow": True, "as_of_pt": None, "tickers": {}, "status": None, "scorecard": None}
+    try:
+        d = json.loads((XSENT_DIR / "latest.json").read_text())
+        out["as_of_pt"], out["writer"] = d.get("as_of_pt"), d.get("writer")
+        out["tickers"] = {s: {k: v.get(k) for k in XSENT_KEYS} for s, v in (d.get("tickers") or {}).items() if isinstance(v, dict)}
+        out["mtime"] = (XSENT_DIR / "latest.json").stat().st_mtime
+    except Exception as e:
+        out["error"] = type(e).__name__
+    try:
+        s = json.loads((XSENT_DIR / "status.json").read_text())
+        out["status"] = {k: s.get(k) for k in ("updated_pt", "fetch_enabled", "last")}
+    except Exception:
+        pass
+    try:
+        sc = sorted(XSENT_DIR.glob("scorecard-*.md"))
+        out["scorecard"] = sc[-1].name if sc else None
+    except Exception:
+        pass
+    out["now"] = time.time()
+    return out
+
+
 class MomStateLog:
     """MOMSTATE (2026-10-20): one archive row each time the Momentum state a ticker SHOWS on the page changes
     (accelerate / resume / decelerate / quiet, incl. the 10-min quiet rule), plus the first state of each ET day.
@@ -2651,6 +2681,8 @@ class H(BaseHTTPRequestHandler):
                 return self._send(200, json.dumps(body), "application/json")
             except Exception:
                 return self._send(404, json.dumps({"error": "no patterns live.json yet (com.oid.desk.patterns)"}), "application/json")
+        if path == "/xsent.json":  # XSENT (10/27): shadow X sentiment, display only (read of ~/oid-data/sentiment/x; never feeds score/alerts/orders)
+            return self._send(200 if XSENT_DIR.is_dir() else 404, json.dumps(xsent_payload()), "application/json")
         if path == "/credit":  # CREDITTAB: Credit & Betas tab
             try:
                 return self._send(200, (HERE / "credit.html").read_bytes(), "text/html; charset=utf-8")
