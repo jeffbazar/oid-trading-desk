@@ -813,6 +813,140 @@ def xsent_payload():
     return out
 
 
+
+# MOVERS (2026-10-27): RAW price-mover alert. Every name the page already tracks (core desk rows from the collector
+# /v1/live-volume + the 144 sector-watch names) vs prior close; any name >= +5% (or <= -5%) is listed for the ET day with
+# the time it first crossed. NO gamma / spread / no-chase filters. DISPLAY ONLY: never feeds the score, chat alerts or orders.
+# Covered list = docs UNIVERSE-V1.8a.md (oid-trading-desk) "Covered:" line; other core rows are the desk monitoring names.
+MOVERS_PCT = 5.0
+MOVERS_COVERED = ("SPY", "QQQ", "NVDA", "TSLA", "PLTR", "GOOGL", "NFLX", "META", "AMZN", "AMD", "CBRS", "BE", "NBIS", "IREN",
+                  "CRWV", "SNDK", "MU", "SPCX")
+MOVERS_COVERED_SRC = "oid-trading-desk/UNIVERSE-V1.8a.md (Covered) + all core live-page rows + wide sector-watch rows"
+
+
+class MoverWatch:
+    """MOVERS (2026-10-27): first-cross log of |% vs prior close| >= MOVERS_PCT, per ET day, persisted to
+    data/movers-YYYY-MM-DD.json. Updated from poll_loop (1 s) off rows already built for the page; read by /movers.json."""
+
+    def __init__(self):
+        self.lock = threading.Lock()
+        self.date, self.rec, self.cur = None, {"up": {}, "dn": {}}, {}
+        self.dirty, self.saved, self.as_of, self.session, self.n = False, 0.0, None, None, 0
+
+    def _path(self, d):
+        return HERE / f"data/movers-{d}.json"
+
+    def _roll(self, d):
+        if d == self.date:
+            return
+        self.date, self.rec = d, {"up": {}, "dn": {}}
+        try:
+            x = json.loads(self._path(d).read_text())
+            self.rec = {"up": dict(x.get("up") or {}), "dn": dict(x.get("dn") or {})}
+        except Exception:
+            pass
+
+    def _save(self, now):
+        if not self.dirty or now - self.saved < 10:
+            return
+        try:
+            p = self._path(self.date)
+            tmp = p.with_suffix(".tmp")
+            tmp.write_text(json.dumps({"date": self.date, "pct": MOVERS_PCT, "up": self.rec["up"], "dn": self.rec["dn"]}))
+            tmp.replace(p)
+            self.dirty, self.saved = False, now
+        except Exception as e:
+            log(f"movers save error: {type(e).__name__}")
+
+    @staticmethod
+    def _backfill(sym, tier, prev, side, d):
+        """Earliest of today's 1-min bars whose high (low) reached prev*(1±5%). Returns epoch or None."""
+        base = WIDE_STORE if tier == "wide" else STORE
+        p = base / "live" / f"{sym}-1m-{d.replace('-', '')}.jsonl"
+        thr = prev * (1 + side * MOVERS_PCT / 100.0)
+        bars = {}
+        try:
+            for ln in p.read_text().splitlines():
+                try:
+                    b = json.loads(ln)
+                    bars[b["t"]] = b
+                except Exception:
+                    continue
+        except OSError:
+            return None
+        for t in sorted(bars):
+            b = bars[t]
+            try:
+                hit = float(b["h"]) >= thr if side > 0 else float(b["l"]) <= thr
+            except Exception:
+                continue
+            if hit:
+                try:
+                    return datetime.strptime(t, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc).timestamp()
+                except Exception:
+                    return None
+        return None
+
+    def update(self, full, now):
+        d = full.get("et_date")
+        if not d:
+            return
+        cur = {}
+        for g in ((full.get("wide") or {}).get("groups") or []):
+            for r in g.get("rows") or []:
+                s, p, c = r.get("s"), r.get("p"), r.get("c")
+                if s and p and c is not None and r.get("d") == d:
+                    cur[s] = {"sym": s, "tier": "wide", "last": p, "pct": c, "grp": g.get("name")}
+        for r in full.get("rows") or []:
+            s, p, c = r.get("sym"), r.get("last"), r.get("chg")
+            if s and p and c is not None and r.get("mode") == "live" and r.get("kind") != "ext" and r.get("date") == d:
+                cur[s] = {"sym": s, "tier": "core", "last": p, "pct": c}
+        with self.lock:
+            self._roll(d)
+            self.cur, self.as_of, self.session, self.n = cur, now, full.get("session"), len(cur)
+            for s, v in cur.items():
+                pct = float(v["pct"])
+                for side, key in ((1, "up"), (-1, "dn")):
+                    if side * pct < MOVERS_PCT:
+                        continue
+                    R = self.rec[key].get(s)
+                    if R is None:
+                        prev = v["last"] / (1 + pct / 100.0)
+                        bt = self._backfill(s, v["tier"], prev, side, d)
+                        t0 = bt if bt and bt <= now else now
+                        R = self.rec[key][s] = {"t": round(t0, 1), "pt": datetime.fromtimestamp(t0, PT).strftime("%-I:%M %p PT"),
+                                                "px": round(prev * (1 + side * MOVERS_PCT / 100.0), 4) if bt else v["last"],
+                                                "src": "1m bars" if bt else "live", "peak": pct, "peak_pt": None}
+                        self.dirty = True
+                        log(f"movers: {s} first {'+' if side > 0 else '-'}{MOVERS_PCT:g}% at {R['pt']} ({R['src']}) · display only")
+                    if side * pct > side * R["peak"]:
+                        R["peak"], R["peak_pt"] = round(pct, 2), datetime.fromtimestamp(now, PT).strftime("%-I:%M %p PT")
+                        self.dirty = True
+            self._save(now)
+
+    def payload(self):
+        with self.lock:
+            out = {"display_only": True, "note": "RAW price alert: % vs prior close, no gamma/spread/no-chase filters; never feeds score, alerts or orders",
+                   "pct": MOVERS_PCT, "et_date": self.date, "session": self.session, "as_of": self.as_of,
+                   "as_of_pt": pt_str(self.as_of) if self.as_of else None, "n_tracked": self.n,
+                   "covered_src": MOVERS_COVERED_SRC, "now": time.time()}
+            for key in ("up", "dn"):
+                L = []
+                for s, R in self.rec[key].items():
+                    c = self.cur.get(s) or {}
+                    L.append({"sym": s, "pct": c.get("pct"), "last": c.get("last"), "tier": c.get("tier"), "grp": c.get("grp"),
+                              "cov": s in MOVERS_COVERED, "first_pt": R.get("pt"), "first_t": R.get("t"), "first_src": R.get("src"),
+                              "peak": R.get("peak"), "peak_pt": R.get("peak_pt"),
+                              "on": c.get("pct") is not None and (c["pct"] >= MOVERS_PCT if key == "up" else c["pct"] <= -MOVERS_PCT)})
+                sgn = -1 if key == "up" else 1
+                L.sort(key=lambda x: (sgn * (x["pct"] if x["pct"] is not None else (x["peak"] or 0)), x["sym"]))
+                out[key] = L
+            return out
+
+
+MOVERS = MoverWatch()
+
+
 class MomStateLog:
     """MOMSTATE (2026-10-20): one archive row each time the Momentum state a ticker SHOWS on the page changes
     (accelerate / resume / decelerate / quiet, incl. the 10-min quiet rule), plus the first state of each ET day.
@@ -2138,6 +2272,10 @@ def poll_loop():
                 S["last_full_seq"] = S["seq"] if (S["seq"] % FULL_EVERY == 1 or S.get("last_spark_key") != _spark_key(full)) else S.get("last_full_seq", 0)
                 S["last_spark_key"] = _spark_key(full)
                 COND.notify_all()
+            try:  # MOVERS (2026-10-27): raw >=5% price-mover log, display only (never feeds score/alerts/orders)
+                MOVERS.update(full, time.time())
+            except Exception as e:
+                log(f"movers error: {type(e).__name__}")
         except Exception as e:  # never log URLs/tokens
             with COND:
                 S["err"] = f"{datetime.now(PT):%I:%M:%S %p PT} collector read failed ({type(e).__name__})"
@@ -2681,6 +2819,8 @@ class H(BaseHTTPRequestHandler):
                 return self._send(200, json.dumps(body), "application/json")
             except Exception:
                 return self._send(404, json.dumps({"error": "no patterns live.json yet (com.oid.desk.patterns)"}), "application/json")
+        if path == "/movers.json":  # MOVERS (10/27): raw >=5% price-mover alert, display only (never feeds score/alerts/orders)
+            return self._send(200, json.dumps(MOVERS.payload()), "application/json")
         if path == "/xsent.json":  # XSENT (10/27): shadow X sentiment, display only (read of ~/oid-data/sentiment/x; never feeds score/alerts/orders)
             return self._send(200 if XSENT_DIR.is_dir() else 404, json.dumps(xsent_payload()), "application/json")
         if path == "/credit":  # CREDITTAB: Credit & Betas tab
