@@ -34,3 +34,11 @@ Files: `chart.js`, `chart.css`, `chart_backend.py` (child process, oid-desk venv
 `vendor/lightweight-charts.standalone.production.js` (TradingView Lightweight Charts 5.0.9, Apache-2.0, LICENSE alongside).
 Endpoint: `/chart.json?sym=&iv=15s|1m|5m|15m|1h|1d&range=1D|1W|1M|3M|YTD|1Y&ext=0|1&since=`. Wall history recorder writes
 `~/oid-data/walls-history/walls-YYYYMMDD.jsonl`. Field Guide page 30. Backups: `*.bak-20261020-chart`.
+
+## X sentiment panel (2026-10-27, SHADOW, display only)
+- Jeffrey green light 10/27 ~7:28 AM PT. Section `#xsent` above News. `GET /xsent.json` (`xsent_payload()` in livepage.py) is a
+  read-only compact copy of `~/oid-data/sentiment/x/latest.json` + `status.json` + newest scorecard name (written by
+  `com.oid.desk.x-sentiment`). Page polls it every 60 s (`loadXS()` / `renderXS()`); hide/show remembered (`localStorage.lvXsMin`).
+- Row: ticker (red dot = hot tier, updated <30 min) · tone bar + net −1..+1 (green > +0.15, red < −0.15, grey neutral / no sample) ·
+  chatter vs normal pace (red = spike: z ≥ 2 or ≥ 2×; amber ≥ 1.5×). Spikes first, then hot tier, then chatter ratio. Rows older than 60 min fade.
+- Never read by the score, alerts or orders. Patch: `patches/patch_xsent_20261027.py`; backups `*.bak-20261027-xsent`.
