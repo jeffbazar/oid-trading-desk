@@ -71,15 +71,17 @@
   "full_sample": true,
   "full_sample_every_min": 0,
   "hot_sample": true,
-  "hot_sample_every_min": 60,
+  "hot_sample_every_min": 390,
   "note": "Minutes from the 06:30 PT open; launchd wakes every 5 min and each tier runs once per N-minute block (first wake inside it). *_sample_every_min=N: tone sample on the first pass of each N-minute block (0 = every pass). 0 for *_every_min turns that tier off. Each name: $0.005 chatter count + up to $0.05 for a 10-post sample + $0.005 baseline once/day.",
   "presets_note": {
    "spec (not affordable)": "full 15 / hot 5, sample every pass: ~$116/day worst case",
    "chatter-61": "full_every_min 30, full_sample false, hot_every_min 0: ~$4.30/day (61 names, chatter only)",
    "hot-6": "universe.hot_max 6, full_every_min 0, hot_every_min 15, hot_sample_every_min 60: ~$2.90/day",
-   "hot-10": "universe.hot_max 10, full_every_min 0, hot_every_min 15, hot_sample_every_min 60: ~$4.85/day"
+   "hot-10": "universe.hot_max 10, full_every_min 0, hot_every_min 15, hot_sample_every_min 60: ~$4.85/day",
+   "hot-10-event": "v0.5: hot_max 10, hot_every_min 15, hot_sample_every_min 390 (opening sample only) + event_sample enabled (cap 2.75/day): ~3.3/day typical, <=4.65/day worst"
   },
-  "preset_active": "hot-10"
+  "preset_active": "hot-10-event",
+  "note_v05": "hot_sample_every_min 60 -> 390 = one opening tone sample per day (first hot pass); event pulls replace the hourly sample. Revert: set 60."
  },
  "scorer": {
   "engine": "jev",
@@ -94,5 +96,17 @@
   "offtopic_min_p": 0.5,
   "max_post_chars": 1200,
   "note": "engine jev = TypeSafe Jev Choice {bullish, bearish, neutral, not_about_ticker} per post; s = P(bull)-P(bear); not_about_ticker (P>=offtopic_min_p or argmax) dropped. Any Jev error/cap -> lexicon for that post. engine lexicon = word list only. Ledger state/x/jev_budget.json. Measured ~660 input tokens/post = ~$0.00003/post (~$0.01 per 350 posts)."
+ },
+ "event_sample": {
+  "enabled": true,
+  "z": 2.0,
+  "ratio": 2.0,
+  "amber_triggers": false,
+  "cooldown_min": 30,
+  "escalate_ratio_step": 1.0,
+  "escalate_z_step": 2.0,
+  "daily_usd_cap": 2.75,
+  "max_per_pass": 6,
+  "note": "v0.5 2026-10-27 (Jeffrey voice 7:45 AM PT): pull+score a tone sample in the same pass a red chatter spike fires (z>=2 or >=2x); amber 1.5x alone does not trigger. Re-pull only on escalation (+1x or +2z) or after 30 min still spiking. Own cap 2.75 USD/day on top of Budget.precheck caps. SHADOW/display only."
  }
 }

@@ -230,7 +230,8 @@ section{margin-top:8px;padding:6px 8px}
 #xsent .xsh{font-size:9px;font-weight:800;padding:0 4px;border-radius:3px;border:1px dashed #8c959f;color:#59636e;text-transform:uppercase;letter-spacing:.04em}
 #xsent.min #xsl{display:none}
 #xsl{display:grid;grid-template-columns:repeat(auto-fill,minmax(178px,1fr));gap:3px 6px}
-.xr{display:grid;grid-template-columns:44px 1fr 38px 40px;gap:0 5px;align-items:center;padding:2px 5px;border-radius:5px;background:#fff;border:1px solid var(--line);font-size:11px;font-variant-numeric:tabular-nums;cursor:pointer;white-space:nowrap}
+.xr .ag{font-size:9.5px;color:#57606a;text-align:right}.xr .ag.st{color:#afb8c1;font-style:italic}.xr .ag.ev{color:#0969da;font-weight:800}
+.xr{display:grid;grid-template-columns:44px 1fr 38px 30px 40px;gap:0 5px;align-items:center;padding:2px 5px;border-radius:5px;background:#fff;border:1px solid var(--line);font-size:11px;font-variant-numeric:tabular-nums;cursor:pointer;white-space:nowrap}
 .xr .s{font-weight:800}.xr .s i{font-style:normal;color:#cf222e;font-size:8px;vertical-align:2px;margin-left:1px}
 .xr .bar{position:relative;height:7px;background:#eaeef2;border-radius:3px}.xr .bar::after{content:"";position:absolute;left:50%;top:-1px;bottom:-1px;width:1px;background:#8c959f}
 .xr .bar b{position:absolute;top:0;bottom:0;border-radius:3px}
@@ -683,9 +684,11 @@ function renderXS(){const el=$('xsl'),mt=$('xsm');if(!el)return;
  mt.innerHTML=`${rows.length} names · ${ns} spike${ns===1?'':'s'} · as of ${E(xsT(XS.as_of_pt))} PT`;
  el.innerHTML=rows.map(v=>{const n=v.net==null?null:+v.net,cls=n==null||Math.abs(n)<0.15?'z':n>0?'up':'dn',old=v.t!=null&&now-v.t>3600;
   const w=n==null?0:Math.min(1,Math.abs(n))*50,bar=n==null?'':`<b style="${n>=0?'left:50%':'right:50%'};width:${w.toFixed(0)}%;background:${cls==='z'?'#8c959f':n>0?'#1a7f37':'#cf222e'}"></b>`;
+  const ta=v.tone_t!=null?Math.max(0,Math.round((now-v.tone_t)/60)):null,ev=String(v.sample_reason||'').startsWith('event'),fr=ta!=null&&ta<=20;
+  const ag=ta==null?'<span class="ag st">—</span>':`<span class="ag ${fr?(ev?'ev':''):'st'}">${fr&&ev?'⚡':''}${ta<60?ta+'m':Math.floor(ta/60)+'h'}</span>`;
   const cr=v.chatter_ratio,cc=spike(v)?'sp':cr!=null&&cr>=1.5?'wm':cr!=null&&cr<0.8?'lo':'';
-  const tip=`${v.s} · X tone ${n==null?'no sample':(n>0?'+':'')+n.toFixed(2)} (${v.bull||0} bull / ${v.bear||0} bear / ${v.neu||0} neutral of ${v.n_kept||0} kept posts) · chatter ${v.count==null?'—':v.count} vs ${v.base_count==null?'—':v.base_count} normal (${cr==null?'—':cr.toFixed(2)+'×'}${v.chatter_z!=null?', z '+v.chatter_z.toFixed(1):''}) · ${v.tier||''} · ${v.t_pt||''} · SHADOW, display only`;
-  return `<div class="xr ${cls}${old?' old':''}" title="${E(tip)}" onclick="window.openChart&&openChart('${E(v.s)}')"><span class="s">${E(v.s)}${hot(v)?'<i>●</i>':''}</span><span class="bar">${bar}</span><span class="n ${cls}">${n==null?'—':(n>0?'+':'')+n.toFixed(2)}</span><span class="c ${cc}">${cr==null?'—':cr.toFixed(1)+'×'}</span></div>`;}).join('');}
+  const tip=`${v.s} · X tone ${n==null?'no sample':(n>0?'+':'')+n.toFixed(2)} (${v.bull||0} bull / ${v.bear||0} bear / ${v.neu||0} neutral of ${v.n_kept||0} kept posts; ${ta==null?'tone age unknown':'tone '+ta+' min old'+(ev?', pulled at spike':'')+(fr?'':' (stale)')}) · chatter ${v.count==null?'—':v.count} vs ${v.base_count==null?'—':v.base_count} normal (${cr==null?'—':cr.toFixed(2)+'×'}${v.chatter_z!=null?', z '+v.chatter_z.toFixed(1):''}) · ${v.tier||''} · ${v.t_pt||''} · SHADOW, display only`;
+  return `<div class="xr ${cls}${old?' old':''}" title="${E(tip)}" onclick="window.openChart&&openChart('${E(v.s)}')"><span class="s">${E(v.s)}${hot(v)?'<i>●</i>':''}</span><span class="bar">${bar}</span><span class="n ${cls}">${n==null?'—':(n>0?'+':'')+n.toFixed(2)}</span>${ag}<span class="c ${cc}">${cr==null?'—':cr.toFixed(1)+'×'}</span></div>`;}).join('');}
 function loadXS(){return fetch('xsent.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(d=>{XS=d;renderXS();}).catch(()=>{XS=null;renderXS();});}
 function xsMin(){const n=$('xsent');n.classList.toggle('min');$('xsminb').textContent=n.classList.contains('min')?'show':'hide';try{localStorage.lvXsMin=n.classList.contains('min')?'1':'0'}catch(e){}}
 loadXS();setInterval(()=>{if(!document.hidden)loadXS();},60000);try{if(localStorage.lvXsMin==='1')xsMin()}catch(e){}

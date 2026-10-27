@@ -785,7 +785,7 @@ MOMLOG_ROOT = Path(os.environ.get("OID_LIVEPAGE_MOMLOG", str(HOME / "oid-data/ar
 
 
 XSENT_DIR = Path(os.environ.get("OID_LIVEPAGE_XSENT", str(HOME / "oid-data/sentiment/x")))  # XSENT (10/27)
-XSENT_KEYS = ("t", "t_pt", "tier", "count", "base_count", "chatter_ratio", "chatter_z", "n_kept", "bull", "bear", "neu", "net", "net_ewma", "status")
+XSENT_KEYS = ("t", "t_pt", "tier", "count", "base_count", "chatter_ratio", "chatter_z", "n_kept", "bull", "bear", "neu", "net", "net_ewma", "status", "tone_t", "sample_reason")
 
 
 def xsent_payload():

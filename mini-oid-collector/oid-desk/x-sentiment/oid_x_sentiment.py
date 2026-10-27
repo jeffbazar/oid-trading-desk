@@ -26,7 +26,7 @@ OUT = DATA / "sentiment/x"
 STATE = DATA / "state/x"
 LEDGER = STATE / "sentiment_budget.json"
 SSTATE = STATE / "sentiment_state.json"
-VERSION = "x-sentiment-v0.4"
+VERSION = "x-sentiment-v0.5"
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 import lexicon as LX  # noqa: E402
@@ -286,6 +286,49 @@ def ensure_baseline(sym, cfg, token, budget, st, dry):
     return b
 
 
+# ---------------- event-driven tone (v0.5) ----------------
+def snowflake_t(i):
+    """X post id -> unix seconds (X snowflake epoch 1288834974657 ms)."""
+    try: return ((int(i) >> 22) + 1288834974657) / 1000.0
+    except Exception: return None
+
+
+def is_red(row, ev):
+    z, r = row.get("chatter_z"), row.get("chatter_ratio")
+    return (z is not None and z >= float(ev.get("z", 2.0))) or (r is not None and r >= float(ev.get("ratio", 2.0)))
+
+
+def event_state(st):
+    E = st.setdefault("event", {}); day = now_pt().strftime("%Y-%m-%d")
+    if E.get("day") != day: E.clear(); E.update({"day": day, "usd": 0.0, "n": 0, "eps": {}})
+    return E
+
+
+def event_decide(sym, row, ev, E, worst_usd, n_pass):
+    """Tone pull the moment a chatter spike fires (red: z >= 2 or >= 2x; amber 1.5x does not trigger on its own).
+    One pull per episode; re-pull only on escalation (ratio +step or z +step since the last pull) or after cooldown.
+    Returns (pull?, reason)."""
+    if not ev.get("enabled"): return False, None
+    ep = E["eps"].get(sym)
+    if not is_red(row, ev):
+        if ep: ep["open"] = False
+        return False, None
+    z, r = row.get("chatter_z") or 0, row.get("chatter_ratio") or 0
+    if not ep or not ep.get("open"): reason = "spike"
+    elif r >= (ep.get("ratio") or 0) + float(ev.get("escalate_ratio_step", 1.0)) or z >= (ep.get("z") or 0) + float(ev.get("escalate_z_step", 2.0)):
+        reason = "escalation"
+    elif time.time() - ep.get("t", 0) >= 60 * float(ev.get("cooldown_min", 30)): reason = "cooldown_rescore"
+    else: return False, "cooldown"
+    if E["usd"] + worst_usd > float(ev.get("daily_usd_cap", 2.75)): return False, "event_day_cap"
+    if n_pass >= int(ev.get("max_per_pass", 6)): return False, "event_pass_cap"
+    return True, reason
+
+
+def event_mark(sym, row, E, usd=0.0, counted=True):
+    E["eps"][sym] = {"t": time.time(), "ratio": row.get("chatter_ratio"), "z": row.get("chatter_z"), "open": True}
+    if counted: E["usd"] = round(E["usd"] + usd, 4); E["n"] += 1
+
+
 # ---------------- pull ----------------
 def pull(args, cfg):
     token = read_token(cfg)
@@ -343,6 +386,7 @@ def pull(args, cfg):
     t_now = time.time(); end = t_now - 15
     date = n.strftime("%Y%m%d"); OUT.mkdir(parents=True, exist_ok=True)
     rows, spent0 = [], budget.L["day_spent"]
+    ev = cfg.get("event_sample") or {}; E = event_state(st); n_ev = 0
     latest = load_json(OUT / "latest.json", {}).get("tickers", {})
     for sym in syms:
         q = cashtag_query(sym, cfg)
@@ -364,23 +408,36 @@ def pull(args, cfg):
             per = base["mean15"] * (window / 900.0); sd = base["sd15"] * math.sqrt(window / 900.0)
             row["base_count"] = round(per, 1); row["chatter_ratio"] = round(cnt / per, 2) if per > 0 else None
             row["chatter_z"] = round((cnt - per) / sd, 2) if sd > 0 else None
-        if not do_sample:   # chatter-only pass: carry the last tone forward
+        reason = "scheduled" if do_sample else None
+        if not do_sample and cs == 200:
+            pull_ev, why_ev = event_decide(sym, row, ev, E, mr * budget.post, n_ev)
+            if pull_ev:
+                ok2, why2 = budget.precheck(mr * budget.post)
+                if ok2: reason = f"event:{why_ev}"
+                else: row["event_skip"] = why2
+            elif why_ev: row["event_skip"] = why_ev
+        if not reason:   # chatter-only pass: carry the last tone forward
             row.update({"status": "ok" if cs == 200 else f"http:{cs}", "sampled": False, "n_posts": 0,
                         "rate_remaining": ch.get("x-rate-limit-remaining"), "cost_usd": budget.count_req if cs == 200 else 0.0,
                         "net_ewma": (latest.get(sym) or {}).get("net_ewma")})
             rows.append(row); latest.setdefault(sym, {}).update({k: row.get(k) for k in ("t", "t_pt", "tier", "count", "base_count",
                                                                                         "chatter_ratio", "chatter_z", "status")})
             continue
-        row["sampled"] = True
+        row["sampled"] = True; row["sample_reason"] = reason; row["tone_t"] = round(t_now, 1)
         # tone sample: newest posts since last seen id (one request, <= mr posts)
         since = st.setdefault("since_id", {}).get(sym)
-        params = {"query": q, "max_results": str(mr), "sort_order": "recency", "end_time": iso(end),
+        params = {"query": q, "max_results": str(mr), "sort_order": "recency",
                   "tweet.fields": "created_at,author_id,lang,public_metrics,entities"}
-        if since: params["since_id"] = since
-        else: params["start_time"] = iso(end - window)
+        # v0.5: X returns 400 for since_id + start_time/end_time. Use since_id alone while it is inside the window
+        # (never re-pays a post); otherwise a plain start/end window.
+        st_since = snowflake_t(since) if since else None
+        if since and st_since and st_since >= end - window: params["since_id"] = since
+        else: params.update({"start_time": iso(end - window), "end_time": iso(end)})
         ss, sh, sb = x_get(token, "/2/tweets/search/recent", params)
         posts = sb.get("data", []) if ss == 200 else []
-        budget.record("search", len(posts) * budget.post, sym, ss, posts=len(posts))
+        budget.record("search_event" if reason.startswith("event") else "search", len(posts) * budget.post, sym, ss, posts=len(posts))
+        if reason.startswith("event"): n_ev += 1; event_mark(sym, row, E, len(posts) * budget.post)
+        elif is_red(row, ev): event_mark(sym, row, E, counted=False)   # scheduled sample already covers this spike
         if ss == 200 and sb.get("meta", {}).get("newest_id"): st["since_id"][sym] = sb["meta"]["newest_id"]
         sc = score_posts(sym, posts, cfg, users, blocked, jev)
         row.update({"status": "ok" if (cs == 200 and ss == 200) else f"http:{cs}/{ss}", "n_posts": len(posts),
@@ -394,7 +451,8 @@ def pull(args, cfg):
             a = float(cfg["sample"]["ewma_alpha"]); row["net_ewma"] = round(row["net"] if prev is None else a * row["net"] + (1 - a) * prev, 3)
         else: row["net_ewma"] = prev
         rows.append(row); latest[sym] = {k: row.get(k) for k in ("t", "t_pt", "tier", "count", "base_count", "chatter_ratio", "chatter_z",
-                                                                  "n_posts", "n_kept", "bull", "bear", "neu", "net", "net_ewma", "status")}
+                                                                  "n_posts", "n_kept", "bull", "bear", "neu", "net", "net_ewma", "status",
+                                                                  "tone_t", "sample_reason")}
     with open(OUT / f"{date}.jsonl", "a") as f:
         for r in rows: f.write(json.dumps(r) + "\n")
     save_json(OUT / "latest.json", {"as_of_pt": n.strftime("%Y-%m-%d %I:%M:%S %p PT"), "writer": VERSION, "shadow": True,
@@ -403,9 +461,11 @@ def pull(args, cfg):
     spent = round(budget.L["day_spent"] - spent0, 4)
     status.update({"last": "ok", "tier": tier, "n_syms": len(syms), "rows": len(rows), "pass_usd": spent,
                    "day_spent": budget.L["day_spent"], "month_spent": budget.L["month_spent"],
-                   "skipped": sum(1 for r in rows if str(r.get("status", "")).startswith("skipped"))})
+                   "skipped": sum(1 for r in rows if str(r.get("status", "")).startswith("skipped")),
+                   "event_pulls": n_ev, "event_day_usd": E.get("usd"), "event_day_n": E.get("n"), "event_enabled": bool(ev.get("enabled"))})
     save_json(OUT / "status.json", status)
-    log(f"pass tier={tier} syms={len(syms)} usd={spent} day={budget.L['day_spent']}")
+    log(f"pass tier={tier} syms={len(syms)} usd={spent} day={budget.L['day_spent']} events={n_ev} ev_day={E.get('usd')}"
+        + "".join(f" [{r['sym']} {r['sample_reason']} net={r.get('net')}]" for r in rows if str(r.get("sample_reason", "")).startswith("event")))
     return 0
 
 

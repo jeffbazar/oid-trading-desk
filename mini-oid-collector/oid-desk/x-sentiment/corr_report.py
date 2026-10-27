@@ -27,12 +27,13 @@ HOME = Path.home()
 DATA = Path(os.environ.get("OID_DATA_ROOT", str(HOME / "oid-data")))
 OUT = DATA / "sentiment/x"
 BARS = HOME / "oid-desk/desk/cache/bars/store/live"
-VERSION = "x-sentiment-corr-v1"
+VERSION = "x-sentiment-corr-v2"
 Z_SPIKE, R_SPIKE, R_WATCH = 2.0, 2.0, 1.5
 GREEN, RED = 0.15, -0.15
 FLAT_PCT = 0.05
 GAP_S = 35 * 60
 TONE_CARRY_S = 60 * 60
+TONE_FRESH_S = 5 * 60   # v2: a tone pulled at the spike row or <= 5 min after it counts as spike-time (fresh)
 ROLL_DAYS = 10
 BUCKETS = ["1.5-2x", "2-3x", "3x+", "z-only"]
 COLORS = ["green", "red", "gray"]
@@ -127,22 +128,25 @@ def find_spikes(rows):
     out = []
     for sym, rs in by.items():
         rs.sort(key=lambda r: r["t"])
-        tone = []  # (t, net) sampled
+        tone = [(r.get("tone_t") or r["t"], r["net"], r.get("sample_reason")) for r in rs
+                if r.get("net") is not None and r.get("sampled") is not False]   # sampled readings
         ep = None; prev_t = None
         for r in rs:
-            if r.get("net") is not None and r.get("sampled") is not False: tone.append((r["t"], r["net"]))
             gap = prev_t is not None and r["t"] - prev_t > GAP_S
             if ep is not None and (gap or not is_spike(r)): ep = None
             if is_spike(r):
                 if ep is None:
-                    net, carried = r.get("net"), False
-                    if net is None or r.get("sampled") is False:
-                        prior = [n for (t, n) in tone if r["t"] - TONE_CARRY_S <= t <= r["t"]]
-                        net, carried = (prior[-1], True) if prior else (None, False)
-                        if net is not None and r.get("net") is not None and r.get("sampled") is not False: carried = False
+                    # v2: spike-time tone first (at the spike or <= 5 min after), else the prior reading <= 60 min old
+                    fresh = [x for x in tone if r["t"] - 1 <= x[0] <= r["t"] + TONE_FRESH_S]
+                    prior = [x for x in tone if r["t"] - TONE_CARRY_S <= x[0] < r["t"] - 1]
+                    pick = fresh[0] if fresh else (prior[-1] if prior else None)
+                    src = "fresh" if fresh else ("stale" if prior else "none")
+                    net, carried = (pick[1] if pick else None), src == "stale"
                     ep = {"sym": sym, "t": r["t"], "t_pt": pt(r["t"]).strftime("%H:%M"), "ratio": r.get("chatter_ratio"),
                           "z": r.get("chatter_z"), "count": r.get("count"), "base": r.get("base_count"),
-                          "net": None if net is None else round(net, 3), "tone_carried": carried,
+                          "net": None if net is None else round(net, 3), "tone_carried": carried, "tone_src": src,
+                          "tone_age_min": None if not pick else round((r["t"] - pick[0]) / 60, 1),
+                          "tone_reason": pick[2] if pick else None,
                           "tone_sampled": net is not None, "color": color_of(net),
                           "level": "spike" if ((r.get("chatter_z") or 0) >= Z_SPIKE or (r.get("chatter_ratio") or 0) >= R_SPIKE) else "watch",
                           "bucket": bucket_of(r.get("chatter_ratio"), r.get("chatter_z")), "snapshots": 1,
@@ -266,23 +270,27 @@ def run(ymd=None, partial=None, now_t=None):
     tickers = len({r["sym"] for r in rows})
     res = {"date": ymd, "writer": VERSION, "generated_pt": stamp, "partial": partial, "shadow": True,
            "rules": {"z_spike": Z_SPIKE, "ratio_spike": R_SPIKE, "ratio_watch": R_WATCH, "green_gt": GREEN, "red_lt": RED,
-                     "flat_pct": FLAT_PCT, "episode_gap_min": GAP_S // 60, "tone_carry_min": TONE_CARRY_S // 60},
+                     "flat_pct": FLAT_PCT, "episode_gap_min": GAP_S // 60, "tone_carry_min": TONE_CARRY_S // 60, "tone_fresh_min": TONE_FRESH_S // 60},
            "snapshots": len(rows), "tickers": tickers, "spike_count": len(spikes), "missing_bars": missing,
+           "tone_src": {k: sum(e.get("tone_src") == k for e in spikes) for k in ("fresh", "stale", "none")},
            "spikes": spikes, "today": {"1h": t1, "close": tc}, "rolling": {"days": days + [ymd], "1h": r1, "close": rc}}
     d = f"{ymd[:4]}-{ymd[4:6]}-{ymd[6:]}"
     L = [f"# X chatter spikes vs price, {d}" + (" — PRELIMINARY (partial day)" if partial else ""), "",
          f"Shadow / display only. Not used by the score, alerts or orders. Generated {stamp}.", "",
          f"**{len(spikes)} spikes** ({sum(e['level']=='spike' for e in spikes)} red-level, {sum(e['level']=='watch' for e in spikes)} amber 1.5–2×) "
          f"from {len(rows)} snapshots on {tickers} tickers. "
-         f"1h tone-right: **{fr(t1['all']['hit'], t1['all']['hit_n'])}** · to close: **{fr(tc['all']['hit'], tc['all']['hit_n'])}**.", ""]
+         f"1h tone-right: **{fr(t1['all']['hit'], t1['all']['hit_n'])}** · to close: **{fr(tc['all']['hit'], tc['all']['hit_n'])}**.", "",
+         f"Tone source: **{res['tone_src']['fresh']} fresh** (pulled at the spike, ≤{TONE_FRESH_S // 60} min) · "
+         f"**{res['tone_src']['stale']} stale** (prior reading ≤{TONE_CARRY_S // 60} min old) · **{res['tone_src']['none']} none**."
+         + (lambda f1: f" Fresh-only 1h tone-right: {fr(f1['all']['hit'], f1['all']['hit_n'])}." if res['tone_src']['fresh'] else "")(tally([e for e in spikes if e.get('tone_src') == 'fresh'], "1h", not partial)), ""]
     L += ["## Spikes", "| time PT | sym | mult | z | tone | color | px | 1h | vs QQQ | to close | vs QQQ |", "|---|---|---|---|---|---|---|---|---|---|---|"]
     flag = {"full": "", "cut": " ✂", "open": " …", "no bars": ""}
     for e in spikes:
-        tone = "n/s" if e["net"] is None else f"{e['net']:+.2f}{'*' if e['tone_carried'] else ''}"
+        tone = "n/s" if e["net"] is None else f"{e['net']:+.2f}{'*' if e['tone_carried'] else ''}{'⚡' if str(e.get('tone_reason') or '').startswith('event') else ''}"
         L.append(f"| {e['t_pt']} | {e['sym']} | {e['ratio'] if e['ratio'] is not None else '—'}× | {e['z'] if e['z'] is not None else '—'} | {tone} | {e['color']} | "
                  f"{'—' if e['px'] is None else round(e['px'], 2)} | {mv(e['m1h'])}{flag[e['w1h']]} | {mv(e['x1h'])} | {mv(e['mcl'])}{flag[e['wcl']]} | {mv(e['xcl'])} |")
     if not spikes: L.append("| — | none | | | | | | | | | |")
-    L += ["", "✂ 1h window cut by the close · … window still open (partial) · * tone carried from the last sample ≤60 min earlier · n/s no tone sample", ""]
+    L += ["", "✂ 1h window cut by the close · … window still open (partial) · ⚡ tone pulled at the spike (event-driven) · * stale: tone from the last sample ≤60 min before the spike · n/s no tone sample", ""]
     def names(win, dirn):
         xs = [f"{e['sym']} {mv(e['m'+win])}" for e in spikes if e.get("d" + win) == dirn]
         return ", ".join(xs) or "—"
